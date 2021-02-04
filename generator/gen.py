@@ -102,9 +102,10 @@ class CDPType:
     items: List[CDPItems]
     enum_values: Optional[List[str]]
     properties: Optional[List[CDPProperty]]
+    context: ModuleContext
 
     @classmethod
-    def from_json(cls, type_: dict):
+    def from_json(cls, type_: dict, context: ModuleContext):
         items = type_.get("items")
         properties = type_.get("properties")
 
@@ -115,7 +116,38 @@ class CDPType:
             CDPItems.from_json(items) if items else None,
             type_.get("enum"),
             [CDPProperty.from_json(p) for p in properties] if properties else None,
+            context,
         )
+
+    def to_ast(self):
+        body = [ast.Expr(ast.Str(self.create_docstring()))]
+
+        if self.properties:
+            for property in self.properties:
+                class_attr = ast.AnnAssign(
+                    ast.Name(property.name), None, value=None, simple=1
+                )  # TODO Type annotation
+                body.append(class_attr)
+
+        return ast.ClassDef(self.id, [], body=body, decorator_list=[])
+
+    def create_docstring(self):
+        lines = []
+
+        if self.description:
+            lines.append(self.description)
+
+        if len(self.properties) > 0:
+            lines.append("")
+            lines.append("Attributes")
+            lines.append("----------")
+
+            for property in self.properties:
+                lines.append(property.name)
+                if property.description:
+                    lines.append("\t" + property.description)
+
+        return "\n\t".join(lines)
 
 
 @dataclass
@@ -260,7 +292,7 @@ class CDPDomain:
             domain.get("description"),
             domain.get("experimental", False),
             domain.get("dependencies", []),
-            [CDPType.from_json(t) for t in types],
+            [CDPType.from_json(t, context) for t in types],
             [CDPCommand.from_json(c, context) for c in commands],
             [CDPEvent.from_json(e) for e in events],
             context,
@@ -268,6 +300,9 @@ class CDPDomain:
 
     def to_ast(self):
         body = [ast_import_from("typing", "List", "Optional")]
+
+        for type in self.types:
+            body.append(type.to_ast())
 
         for command in self.commands:
             body.append(command.to_ast())
