@@ -1,3 +1,4 @@
+import ast
 import json
 import logging
 import os
@@ -5,6 +6,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional, Tuple
 
+import astor
+import inflection
 import requests
 import typer
 
@@ -18,6 +21,24 @@ app = typer.Typer()
 log_level = getattr(logging, os.environ.get("LOG_LEVEL", "info").upper())
 logging.basicConfig(level=log_level)
 logger = logging.getLogger(__name__)
+
+
+def snake_case(string: str):
+    return inflection.underscore(string)
+
+
+def ast_import_from(module: str, *names):
+    return ast.ImportFrom(module, [ast.Name(n) for n in names], level=0)
+
+
+class ModuleContext:
+    def __init__(self):
+        self.domain = None
+        self.defined_functions: List[str] = []
+
+    @property
+    def module_name(self):
+        self.module_name = snake_case(self.domain)
 
 
 @dataclass
@@ -64,7 +85,8 @@ class CDPProperty:
 
 @dataclass
 class CDPParameter(CDPProperty):
-    pass
+    def to_ast(self):
+        return ast.arg(self.name, None)  # TODO Type Annotation
 
 
 @dataclass
@@ -104,9 +126,10 @@ class CDPCommand:
     deprecated: bool
     parameters: List[CDPParameter]
     returns: List[CDPReturn]
+    context: ModuleContext
 
     @classmethod
-    def from_json(cls, command: dict):
+    def from_json(cls, command: dict, context: ModuleContext):
         parameters = command.get("parameters", [])
         returns = command.get("returns", [])
 
@@ -117,6 +140,39 @@ class CDPCommand:
             command.get("deprecated", False),
             [CDPParameter.from_json(p) for p in parameters],
             [CDPReturn.from_json(r) for r in returns],
+            context,
+        )
+
+    def to_ast(self):
+        function_name = snake_case(self.name)
+        self.context.defined_functions.append(function_name)
+
+        args = ast.arguments(
+            args=[p.to_ast() for p in self.parameters],
+            vararg=None,
+            kwarg=None,
+            defaults=[
+                ast.Name("NOT_SET") if p.optional else None for p in self.parameters
+            ],
+        )
+
+        body = []
+
+        # TODO docstring
+
+        method_params = ast.Dict(
+            list(map(lambda arg: ast.Str(arg.arg), args.args)),
+            list(map(lambda arg: ast.Name(arg.arg), args.args)),
+        )
+        method_dict = ast.Dict(
+            [ast.Str("method"), ast.Str("params")],
+            [ast.Str("{}.{}".format(self.context.domain, self.name)), method_params],
+        )
+
+        body.append(ast.Return(method_dict))
+
+        return ast.FunctionDef(
+            function_name, args, body, decorator_list=[], lineno=0, col_offset=0
         )
 
 
@@ -140,6 +196,9 @@ class CDPEvent:
             [CDPParameter.from_json(p) for p in parameters],
         )
 
+    def to_ast(self):
+        pass  # TODO Event to ast
+
 
 @dataclass
 class CDPDomain:
@@ -150,22 +209,36 @@ class CDPDomain:
     types: List[CDPType]
     commands: List[CDPCommand]
     events: List[CDPEvent]
+    context: ModuleContext
 
     @classmethod
     def from_json(cls, domain: dict):
+        domain_name = domain["domain"]
         types = domain.get("types", [])
         commands = domain.get("commands", [])
         events = domain.get("events", [])
 
+        context = ModuleContext()
+        context.domain = domain_name
+
         return cls(
-            domain["domain"],
+            domain_name,
             domain.get("description"),
             domain.get("experimental", False),
             domain.get("dependencies", []),
-            types=[CDPType.from_json(t) for t in types],
-            commands=[CDPCommand.from_json(c) for c in commands],
-            events=[CDPEvent.from_json(e) for e in events],
+            [CDPType.from_json(t) for t in types],
+            [CDPCommand.from_json(c, context) for c in commands],
+            [CDPEvent.from_json(e) for e in events],
+            context,
         )
+
+    def to_ast(self):
+        body = [ast_import_from("typing", "List", "Optional")]
+
+        for command in self.commands:
+            body.append(command.to_ast())
+
+        return ast.Module(body, lineno=0, col_offset=0)
 
 
 def fetch_and_save_protocol(url: str, filename_template: str) -> Tuple[int, int]:
