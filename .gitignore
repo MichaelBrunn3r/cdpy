@@ -1,0 +1,9 @@
+# Compiled / optimized / ...
+__pycache__/
+
+# Distribution
+doc/
+docs/
+build/
+dist/
+wheels/
