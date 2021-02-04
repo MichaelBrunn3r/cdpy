@@ -156,9 +156,7 @@ class CDPCommand:
             ],
         )
 
-        body = []
-
-        # TODO docstring
+        body = [ast.Expr(ast.Str(self.create_docstring()))]
 
         method_params = ast.Dict(
             list(map(lambda arg: ast.Str(arg.arg), args.args)),
@@ -174,6 +172,42 @@ class CDPCommand:
         return ast.FunctionDef(
             function_name, args, body, decorator_list=[], lineno=0, col_offset=0
         )
+
+    def create_docstring(self):
+        lines = []
+
+        if self.description:
+            lines.append(self.description)
+
+        if self.experimental:
+            lines.append("")
+            lines.append("**Experimental**")
+
+        if self.deprecated:
+            lines.append("")
+            lines.append("**Deprectated**")
+
+        if len(self.parameters) > 0:
+            lines.append("")
+            lines.append("Parameters")
+            lines.append("----------")
+
+            for param in self.parameters:
+                lines.append(param.name)  # TODO Type annotation
+                if param.description:
+                    lines.append("\t" + param.description)
+
+        if len(self.returns) > 0:
+            lines.append("")
+            lines.append("Returns")
+            lines.append("-------")
+
+            for ret in self.returns:
+                lines.append(ret.name)
+                if ret.description:
+                    lines.append("\t" + ret.description)
+
+        return "\n\t".join(lines)
 
 
 @dataclass
