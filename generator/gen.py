@@ -123,7 +123,15 @@ class CDPProperty:
         return ast.arg(self.name, self.create_type_annotation())
 
     def to_docstring(self):
-        return astor.to_source(self.to_ast()).replace('"', "").replace("'", "")
+        lines = [
+            astor.to_source(self.to_ast())
+            .replace('"', "")
+            .replace("'", "")
+            .replace("\n", "")
+        ]
+        if self.description and not self.description.isspace():
+            lines += map(lambda l: "\t" + l, self.description.split("\n"))
+        return lines
 
     def create_type_annotation(self):
         if self.type:
@@ -195,7 +203,7 @@ class CDPType:
             type_["id"],
             type_.get("description"),
             type_["type"],
-            CDPItems.from_json(items) if items else None,
+            CDPItems.from_json(items, context) if items else None,
             type_.get("enum"),
             properties,
             context,
@@ -214,19 +222,20 @@ class CDPType:
         lines = []
 
         if self.description:
-            lines.append(self.description)
+            lines += self.description.split("\n")
 
-        if len(self.attributes) > 0:
+        if self.attributes:
             lines.append("")
             lines.append("Attributes")
             lines.append("----------")
 
             for attr in self.attributes:
-                lines.append(attr.to_docstring())
-                if attr.description:
-                    lines.append("\t" + attr.description)
+                lines += attr.to_docstring()
 
-        return "\n\t".join(lines)
+        docstr = "\n\t".join(lines)
+        if len(lines) > 1:
+            docstr += "\n\t"
+        return docstr
 
 
 @dataclass
@@ -304,9 +313,7 @@ class CDPCommand:
             lines.append("----------")
 
             for param in self.parameters:
-                lines.append(param.to_docstring())
-                if param.description:
-                    lines.append("\t" + param.description)
+                lines += param.to_docstring()
 
         if len(self.returns) > 0:
             lines.append("")
@@ -314,9 +321,7 @@ class CDPCommand:
             lines.append("-------")
 
             for ret in self.returns:
-                lines.append(ret.to_docstring())
-                if ret.description:
-                    lines.append("\t" + ret.description)
+                lines += ret.to_docstring()
 
         return "\n\t".join(lines)
 
