@@ -4,7 +4,7 @@ import logging
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import List, Optional, Set, Tuple
 
 import astor
 import inflection
@@ -14,6 +14,14 @@ import typer
 GENERATE_DIR = script_dir = Path(os.path.abspath(os.path.split(__file__)[0]))
 BROWSER_PROTOCOL_FILENAME_TEMPLATE = "browser_protocol-v{}.{}.json"
 JS_PROTOCOL_FILENAME_TEMPLATE = "js_protocol-v{}.{}.json"
+
+JS_TO_PYTHON_TYPE_MAP = {
+    "string": "str",
+    "integer": "int",
+    "number": "float",
+    "boolean": "bool",
+    "array": "List",
+}
 
 app = typer.Typer()
 
@@ -32,26 +40,53 @@ def ast_import_from(module: str, *names):
 
 
 class ModuleContext:
-    def __init__(self):
-        self.domain = None
-        self.defined_functions: List[str] = []
+    def __init__(self, domain: str):
+        self.domain = domain
+        self.module_name = ModuleContext.domain_to_module_name(self.domain)
 
-    @property
-    def module_name(self):
-        self.module_name = snake_case(self.domain)
+        self.defined_functions: Set[str] = set()
+        self.referenced_cdp_modules: Set[str] = set()
+        self.defined_types: Set[str] = set()
+
+    @classmethod
+    def domain_to_module_name(cls, domain: str):
+        return snake_case(domain)
 
 
 @dataclass
 class CDPItems:
     type: Optional[str]
     ref: Optional[str]
+    context: ModuleContext
 
     @classmethod
-    def from_json(cls, item: dict):
-        return cls(
-            item.get("type"),
-            item.get("ref"),
-        )
+    def from_json(cls, item: dict, context: ModuleContext):
+        return cls(item.get("type"), item.get("$ref"), context)
+
+    def to_ast(self):
+        if self.type:
+            return ast.Name(JS_TO_PYTHON_TYPE_MAP.get(self.type, self.type))
+        elif self.ref:
+            parts = self.ref.split(".")
+            referenced_domain, type_ = parts if len(parts) > 1 else (None, parts[0])
+
+            if referenced_domain == self.context.domain:
+                # Escape type if it was not yet defined
+                if type_ in self.context.defined_types:
+                    return ast.Name(type_)
+                else:
+                    return ast.Str(type_)
+            else:
+                # Get referenced module
+                if referenced_domain:
+                    module_name = ModuleContext.domain_to_module_name(referenced_domain)
+                else:
+                    module_name = self.context.module_name
+
+                self.context.referenced_cdp_modules.add(module_name)
+                return ast.Str("{}.{}".format(module_name, type_))
+
+        raise Exception("CDPItems doesn't have a type or reference")
 
 
 @dataclass
@@ -65,9 +100,10 @@ class CDPProperty:
     optional: bool
     experimental: bool
     deprecated: bool
+    context: ModuleContext
 
     @classmethod
-    def from_json(cls, property: dict):
+    def from_json(cls, property: dict, context: ModuleContext):
         items = property.get("items")
 
         return cls(
@@ -76,22 +112,66 @@ class CDPProperty:
             property.get("type"),
             property.get("$ref"),
             property.get("enum"),
-            CDPItems.from_json(items) if items else None,
+            CDPItems.from_json(items, context) if items else None,
             property.get("optional", False),
             property.get("experimental", False),
             property.get("deprecated", False),
+            context,
+        )
+
+    def to_ast(self):
+        return ast.arg(self.name, self.create_type_annotation())
+
+    def to_docstring(self):
+        return astor.to_source(self.to_ast()).replace('"', "").replace("'", "")
+
+    def create_type_annotation(self):
+        if self.type:
+            type_ = ast.Name(JS_TO_PYTHON_TYPE_MAP.get(self.type, self.type))
+            if self.items:
+                type_ = ast.Subscript(type_, ast.Index(self.items.to_ast()))
+            return type_
+        elif self.ref:
+            parts = self.ref.split(".")
+            referenced_domain, type_ = parts if len(parts) > 1 else (None, parts[0])
+
+            if referenced_domain == self.context.domain:
+                # Escape type if it was not yet defined
+                if type_ in self.context.defined_types:
+                    return ast.Name(type_)
+                else:
+                    return ast.Str(type_)
+            else:
+                # Get referenced module
+                if referenced_domain:
+                    module_name = ModuleContext.domain_to_module_name(referenced_domain)
+                else:
+                    module_name = self.context.module_name
+
+                self.context.referenced_cdp_modules.add(module_name)
+                return ast.Str("{}.{}".format(module_name, type_))
+
+        raise Exception(
+            "Property '{}' doesn't have a type or reference".format(self.name)
         )
 
 
 @dataclass
 class CDPParameter(CDPProperty):
-    def to_ast(self):
-        return ast.arg(self.name, None)  # TODO Type Annotation
+    pass
 
 
 @dataclass
 class CDPReturn(CDPProperty):
     pass
+
+
+@dataclass
+class CDPAttribute(CDPProperty):
+    def to_ast(self):
+        return ast.AnnAssign(
+            ast.Name(self.name), self.create_type_annotation(), value=None, simple=1
+        )
 
 
 @dataclass
@@ -101,13 +181,15 @@ class CDPType:
     type: str
     items: List[CDPItems]
     enum_values: Optional[List[str]]
-    properties: Optional[List[CDPProperty]]
+    attributes: Optional[List[CDPAttribute]]
     context: ModuleContext
 
     @classmethod
     def from_json(cls, type_: dict, context: ModuleContext):
         items = type_.get("items")
         properties = type_.get("properties")
+        if properties:
+            properties = [CDPAttribute.from_json(p, context) for p in properties]
 
         return cls(
             type_["id"],
@@ -115,19 +197,16 @@ class CDPType:
             type_["type"],
             CDPItems.from_json(items) if items else None,
             type_.get("enum"),
-            [CDPProperty.from_json(p) for p in properties] if properties else None,
+            properties,
             context,
         )
 
     def to_ast(self):
         body = [ast.Expr(ast.Str(self.create_docstring()))]
 
-        if self.properties:
-            for property in self.properties:
-                class_attr = ast.AnnAssign(
-                    ast.Name(property.name), None, value=None, simple=1
-                )  # TODO Type annotation
-                body.append(class_attr)
+        if self.attributes:
+            for attr in self.attributes:
+                body.append(attr.to_ast())
 
         return ast.ClassDef(self.id, [], body=body, decorator_list=[])
 
@@ -137,15 +216,15 @@ class CDPType:
         if self.description:
             lines.append(self.description)
 
-        if len(self.properties) > 0:
+        if len(self.attributes) > 0:
             lines.append("")
             lines.append("Attributes")
             lines.append("----------")
 
-            for property in self.properties:
-                lines.append(property.name)
-                if property.description:
-                    lines.append("\t" + property.description)
+            for attr in self.attributes:
+                lines.append(attr.to_docstring())
+                if attr.description:
+                    lines.append("\t" + attr.description)
 
         return "\n\t".join(lines)
 
@@ -170,14 +249,14 @@ class CDPCommand:
             command.get("description"),
             command.get("experimental", False),
             command.get("deprecated", False),
-            [CDPParameter.from_json(p) for p in parameters],
-            [CDPReturn.from_json(r) for r in returns],
+            [CDPParameter.from_json(p, context) for p in parameters],
+            [CDPReturn.from_json(r, context) for r in returns],
             context,
         )
 
     def to_ast(self):
         function_name = snake_case(self.name)
-        self.context.defined_functions.append(function_name)
+        self.context.defined_functions.add(function_name)
 
         args = ast.arguments(
             args=[p.to_ast() for p in self.parameters],
@@ -225,7 +304,7 @@ class CDPCommand:
             lines.append("----------")
 
             for param in self.parameters:
-                lines.append(param.name)  # TODO Type annotation
+                lines.append(param.to_docstring())
                 if param.description:
                     lines.append("\t" + param.description)
 
@@ -235,7 +314,7 @@ class CDPCommand:
             lines.append("-------")
 
             for ret in self.returns:
-                lines.append(ret.name)
+                lines.append(ret.to_docstring())
                 if ret.description:
                     lines.append("\t" + ret.description)
 
@@ -248,10 +327,11 @@ class CDPEvent:
     description: Optional[str]
     deprecated: bool
     experimental: bool
-    parameters: List[CDPParameter]
+    attributes: List[CDPAttribute]
+    context: ModuleContext
 
     @classmethod
-    def from_json(cls, event: dict):
+    def from_json(cls, event: dict, context: ModuleContext):
         parameters = event.get("parameters", [])
 
         return cls(
@@ -259,11 +339,12 @@ class CDPEvent:
             event.get("description"),
             event.get("deprecated", False),
             event.get("experimental", False),
-            [CDPParameter.from_json(p) for p in parameters],
+            [CDPAttribute.from_json(p, context) for p in parameters],
+            context,
         )
 
     def to_ast(self):
-        pass  # TODO Event to ast
+        pass
 
 
 @dataclass
@@ -284,8 +365,7 @@ class CDPDomain:
         commands = domain.get("commands", [])
         events = domain.get("events", [])
 
-        context = ModuleContext()
-        context.domain = domain_name
+        context = ModuleContext(domain_name)
 
         return cls(
             domain_name,
@@ -294,7 +374,7 @@ class CDPDomain:
             domain.get("dependencies", []),
             [CDPType.from_json(t, context) for t in types],
             [CDPCommand.from_json(c, context) for c in commands],
-            [CDPEvent.from_json(e) for e in events],
+            [CDPEvent.from_json(e, context) for e in events],
             context,
         )
 
