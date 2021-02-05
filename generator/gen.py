@@ -287,6 +287,13 @@ class CDPCommand:
             [ast.Str("{}.{}".format(self.context.domain, self.name)), method_params],
         )
 
+        # Remove unset parameters from method dict.
+        # Only if method has optional parameters.
+        if len(self.parameters) > 0 and self.parameters[-1].optional:
+            method_dict = ast.Call(
+                ast.Name("filter_unset_parameters"), [method_dict], []
+            )
+
         body.append(ast.Return(method_dict))
 
         return ast.FunctionDef(
@@ -392,7 +399,10 @@ class CDPDomain:
         )
 
     def to_ast(self):
-        imports = [ast_import_from("typing", "List", "Optional")]
+        imports = [
+            ast_import_from("typing", "List", "Optional"),
+            ast_import_from(".domain", "filter_unset_parameters"),
+        ]
         body = []
 
         for type in self.types:
