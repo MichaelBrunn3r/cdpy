@@ -366,7 +366,8 @@ class CDPDomain:
         )
 
     def to_ast(self):
-        body = [ast_import_from("typing", "List", "Optional")]
+        imports = [ast_import_from("typing", "List", "Optional")]
+        body = []
 
         for type in self.types:
             body.append(type.to_ast())
@@ -374,7 +375,10 @@ class CDPDomain:
         for command in self.commands:
             body.append(command.to_ast())
 
-        return ast.Module(body, lineno=0, col_offset=0)
+        if len(self.context.referenced_cdp_modules) > 0:
+            imports.append(ast_import_from(".", *self.context.referenced_cdp_modules))
+
+        return ast.Module(imports + body, lineno=0, col_offset=0)
 
 
 def fetch_and_save_protocol(url: str, filename_template: str) -> Tuple[int, int]:
