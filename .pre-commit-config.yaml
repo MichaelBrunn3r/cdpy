@@ -21,8 +21,3 @@ repos:
         entry: poetry run black --config pyproject.toml
         types: [python]
         language: system
-
-  -   repo: https://github.com/PyCQA/bandit
-      rev: 1.7.0
-      hooks:
-      - id: bandit
