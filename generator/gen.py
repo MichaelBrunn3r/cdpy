@@ -420,8 +420,14 @@ def generate(version: str):
 
     protocol = load_protocol(major, minor)
 
+    # Create domain modules
+    output_dir = Path(GENERATE_DIR.parent, "cdpy")
     for domain_json in protocol["domains"]:
         domain = CDPDomain.from_json(domain_json)
+
+        output_path = Path(output_dir, domain.context.module_name + ".py")
+        with output_path.open("w") as f:
+            f.write(astor.to_source(domain.to_ast()))
 
 
 @app.command()
