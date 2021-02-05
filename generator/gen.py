@@ -47,6 +47,22 @@ def ast_import_from(module: str, *names):
     return ast.ImportFrom(module, [ast.Name(n) for n in names], level=0)
 
 
+def ast_args(args, defaults=[]):
+    return ast.arguments(
+        posonlyargs=[],
+        args=args,
+        kwonlyargs=None,
+        vararg=None,
+        kwarg=None,
+        kw_defaults=None,
+        defaults=defaults,
+    )
+
+
+def ast_from(expr: str):
+    return ast.parse(expr).body[0]
+
+
 def parse_type(type: str):
     return ast.Name(JS_TYPE_TO_BUILTIN_MAP.get(type, type))
 
@@ -228,10 +244,21 @@ class CDPType:
         return ast
 
     def create_primitive_ast(self):
+        # Add docstring
+        body = [ast.Expr(ast.Str(self.create_docstring()))]
+
+        repr = ast.FunctionDef(
+            "__repr__",
+            ast_args([ast.arg("self", None)]),
+            [ast_from("return '{}({{}})'.format(super().__repr__())".format(self.id))],
+            [],
+        )
+        body.append(repr)
+
         return ast.ClassDef(
             self.id,
             [parse_type(self.type)],
-            body=[ast.Expr(ast.Str(self.create_docstring()))],
+            body=body,
             decorator_list=[],
         )
 
@@ -242,7 +269,10 @@ class CDPType:
             body.append(attr.to_ast())
 
         return ast.ClassDef(
-            self.id, bases=[], body=body, decorator_list=[ast.Name("dataclass")]
+            self.id,
+            bases=[],
+            body=body,
+            decorator_list=[ast.Name("dataclasses.dataclass")],
         )
 
     def create_enum_ast(self):
@@ -253,7 +283,7 @@ class CDPType:
             body.append(ast.Assign([ast.Name(snake_case(v).upper())], ast.Str(v)))
 
         return ast.ClassDef(
-            self.id, bases=[ast.Name("Enum")], body=body, decorator_list=[]
+            self.id, bases=[ast.Name("enum.Enum")], body=body, decorator_list=[]
         )
 
     def create_docstring(self):
@@ -441,9 +471,10 @@ class CDPDomain:
 
     def to_ast(self):
         imports = [
+            ast.Import([ast.Name("enum")]),
+            ast.Import([ast.Name("dataclasses")]),
             ast_import_from("typing", "List", "Optional"),
-            ast_import_from("dataclasses", "dataclass"),
-            ast_import_from(".domain", "filter_unset_parameters", "Enum"),
+            ast_import_from(".common", "filter_unset_parameters"),
         ]
         body = []
 
