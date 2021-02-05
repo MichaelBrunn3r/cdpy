@@ -15,12 +15,20 @@ GENERATE_DIR = script_dir = Path(os.path.abspath(os.path.split(__file__)[0]))
 BROWSER_PROTOCOL_FILENAME_TEMPLATE = "browser_protocol-v{}.{}.json"
 JS_PROTOCOL_FILENAME_TEMPLATE = "js_protocol-v{}.{}.json"
 
-JS_TO_PYTHON_TYPE_MAP = {
+JS_TYPE_TO_ANNOTATION_MAP = {
     "string": "str",
     "integer": "int",
     "number": "float",
     "boolean": "bool",
     "array": "List",
+}
+
+JS_TYPE_TO_BUILTIN_MAP = {
+    "string": "str",
+    "integer": "int",
+    "number": "float",
+    "boolean": "bool",
+    "array": "list",
 }
 
 app = typer.Typer()
@@ -39,6 +47,10 @@ def ast_import_from(module: str, *names):
     return ast.ImportFrom(module, [ast.Name(n) for n in names], level=0)
 
 
+def parse_type(type: str):
+    return ast.Name(JS_TYPE_TO_BUILTIN_MAP.get(type, type))
+
+
 def parse_type_annotation(
     type: Optional[str], ref: Optional[str], context: "ModuleContext"
 ):
@@ -46,7 +58,7 @@ def parse_type_annotation(
         raise Exception("At least one of 'type' or 'ref' must be not be None")
 
     if type:
-        return ast.Name(JS_TO_PYTHON_TYPE_MAP.get(type, type))
+        return ast.Name(JS_TYPE_TO_ANNOTATION_MAP.get(type, type))
     elif ref:
         parts = ref.split(".")
         referenced_domain, referenced_type = (
@@ -205,15 +217,43 @@ class CDPType:
         )
 
     def to_ast(self):
-        body = [ast.Expr(ast.Str(self.create_docstring()))]
-
-        if self.attributes:
-            for attr in self.attributes:
-                body.append(attr.to_ast())
+        if self.attributes and len(self.attributes) > 0:
+            ast = self.create_complex_ast()
+        elif self.enum_values:
+            ast = self.create_enum_ast()
+        else:
+            ast = self.create_primitive_ast()
 
         self.context.defined_types.add(self.id)
+        return ast
 
-        return ast.ClassDef(self.id, [], body=body, decorator_list=[])
+    def create_primitive_ast(self):
+        return ast.ClassDef(
+            self.id,
+            [parse_type(self.type)],
+            body=[ast.Expr(ast.Str(self.create_docstring()))],
+            decorator_list=[],
+        )
+
+    def create_complex_ast(self):
+        body = [ast.Expr(ast.Str(self.create_docstring()))]
+
+        for attr in self.attributes:
+            body.append(attr.to_ast())
+
+        return ast.ClassDef(
+            self.id, bases=[], body=body, decorator_list=[ast.Name("dataclass")]
+        )
+
+    def create_enum_ast(self):
+        body = [ast.Expr(ast.Str(self.create_docstring()))]
+
+        for v in self.enum_values:
+            body.append(ast.Assign([ast.Name(snake_case(v).upper())], ast.Str(v)))
+
+        return ast.ClassDef(
+            self.id, bases=[ast.Name("Enum")], body=body, decorator_list=[]
+        )
 
     def create_docstring(self):
         lines = []
@@ -401,6 +441,8 @@ class CDPDomain:
     def to_ast(self):
         imports = [
             ast_import_from("typing", "List", "Optional"),
+            ast_import_from("dataclasses", "dataclass"),
+            ast_import_from("enum", "Enum"),
             ast_import_from(".domain", "filter_unset_parameters"),
         ]
         body = []
