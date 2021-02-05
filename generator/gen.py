@@ -248,6 +248,7 @@ class CDPType:
     def create_enum_ast(self):
         body = [ast.Expr(ast.Str(self.create_docstring()))]
 
+        # Add enum values
         for v in self.enum_values:
             body.append(ast.Assign([ast.Name(snake_case(v).upper())], ast.Str(v)))
 
@@ -442,8 +443,7 @@ class CDPDomain:
         imports = [
             ast_import_from("typing", "List", "Optional"),
             ast_import_from("dataclasses", "dataclass"),
-            ast_import_from("enum", "Enum"),
-            ast_import_from(".domain", "filter_unset_parameters"),
+            ast_import_from(".domain", "filter_unset_parameters", "Enum"),
         ]
         body = []
 
