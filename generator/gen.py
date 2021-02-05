@@ -124,7 +124,11 @@ class CDPProperty:
         )
 
     def to_ast(self):
-        return ast.arg(self.name, self.create_type_annotation())
+        annotation = self.create_type_annotation()
+        if self.optional:
+            annotation = ast.Subscript(ast.Name("Optional"), ast.Index(annotation))
+
+        return ast.arg(self.name, annotation)
 
     def to_docstring(self):
         lines = [
@@ -157,9 +161,17 @@ class CDPReturn(CDPProperty):
 @dataclass
 class CDPAttribute(CDPProperty):
     def to_ast(self):
-        return ast.AnnAssign(
+        attr = ast.AnnAssign(
             ast.Name(self.name), self.create_type_annotation(), value=None, simple=1
         )
+
+        if self.optional:
+            attr.annotation = ast.Subscript(
+                ast.Name("Optional"), ast.Index(attr.annotation)
+            )
+            attr.value = ast.Constant(None)
+
+        return attr
 
 
 @dataclass
@@ -175,9 +187,12 @@ class CDPType:
     @classmethod
     def from_json(cls, type_: dict, context: ModuleContext):
         items = type_.get("items")
-        properties = type_.get("properties")
-        if properties:
-            properties = [CDPAttribute.from_json(p, context) for p in properties]
+        attributes = type_.get("properties")
+        if attributes:
+            attributes = [CDPAttribute.from_json(p, context) for p in attributes]
+            attributes.sort(
+                key=lambda p: p.optional
+            )  # Default value attributes after non-default attributes
 
         return cls(
             type_["id"],
@@ -185,7 +200,7 @@ class CDPType:
             type_["type"],
             CDPItems.from_json(items, context) if items else None,
             type_.get("enum"),
-            properties,
+            attributes,
             context,
         )
 
@@ -232,7 +247,10 @@ class CDPCommand:
 
     @classmethod
     def from_json(cls, command: dict, context: ModuleContext):
-        parameters = command.get("parameters", [])
+        parameters = [
+            CDPParameter.from_json(p, context) for p in command.get("parameters", [])
+        ]
+        parameters.sort(key=lambda p: p.optional)
         returns = command.get("returns", [])
 
         return cls(
@@ -240,7 +258,7 @@ class CDPCommand:
             command.get("description"),
             command.get("experimental", False),
             command.get("deprecated", False),
-            [CDPParameter.from_json(p, context) for p in parameters],
+            parameters,
             [CDPReturn.from_json(r, context) for r in returns],
             context,
         )
@@ -254,15 +272,15 @@ class CDPCommand:
             vararg=None,
             kwarg=None,
             defaults=[
-                ast.Name("NOT_SET") if p.optional else None for p in self.parameters
+                ast.Constant(None) if p.optional else None for p in self.parameters
             ],
         )
 
         body = [ast.Expr(ast.Str(self.create_docstring()))]
 
         method_params = ast.Dict(
-            list(map(lambda arg: ast.Str(arg.arg), args.args)),
-            list(map(lambda arg: ast.Name(arg.arg), args.args)),
+            list(map(lambda param: ast.Str(param.name), self.parameters)),
+            list(map(lambda param: ast.Name(param.name), self.parameters)),
         )
         method_dict = ast.Dict(
             [ast.Str("method"), ast.Str("params")],
@@ -319,14 +337,19 @@ class CDPEvent:
 
     @classmethod
     def from_json(cls, event: dict, context: ModuleContext):
-        parameters = event.get("parameters", [])
+        attributes = event.get("parameters", [])
+        if attributes:
+            attributes = [CDPAttribute.from_json(p, context) for p in attributes]
+            attributes.sort(
+                key=lambda p: p.optional
+            )  # Default value attributes after non-default attributes
 
         return cls(
             event["name"],
             event.get("description"),
             event.get("deprecated", False),
             event.get("experimental", False),
-            [CDPAttribute.from_json(p, context) for p in parameters],
+            attributes,
             context,
         )
 
