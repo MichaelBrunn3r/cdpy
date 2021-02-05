@@ -39,6 +39,32 @@ def ast_import_from(module: str, *names):
     return ast.ImportFrom(module, [ast.Name(n) for n in names], level=0)
 
 
+def parse_type_annotation(
+    type: Optional[str], ref: Optional[str], context: "ModuleContext"
+):
+    if not type and not ref:
+        raise Exception("At least one of 'type' or 'ref' must be not be None")
+
+    if type:
+        return ast.Name(JS_TO_PYTHON_TYPE_MAP.get(type, type))
+    elif ref:
+        parts = ref.split(".")
+        referenced_domain, referenced_type = (
+            parts if len(parts) > 1 else (None, parts[0])
+        )
+
+        # References type from foreign or current domain?
+        if referenced_domain and referenced_domain != context.domain:
+            referenced_module = ModuleContext.domain_to_module_name(referenced_domain)
+            context.referenced_cdp_modules.add(referenced_module)
+            return ast.Str(referenced_module + "." + referenced_type)
+        else:
+            if referenced_type in context.defined_types:
+                return ast.Name(referenced_type)
+            else:
+                return ast.Str(referenced_type)
+
+
 class ModuleContext:
     def __init__(self, domain: str):
         self.domain = domain
@@ -64,29 +90,7 @@ class CDPItems:
         return cls(item.get("type"), item.get("$ref"), context)
 
     def to_ast(self):
-        if self.type:
-            return ast.Name(JS_TO_PYTHON_TYPE_MAP.get(self.type, self.type))
-        elif self.ref:
-            parts = self.ref.split(".")
-            referenced_domain, type_ = parts if len(parts) > 1 else (None, parts[0])
-
-            if referenced_domain == self.context.domain:
-                # Escape type if it was not yet defined
-                if type_ in self.context.defined_types:
-                    return ast.Name(type_)
-                else:
-                    return ast.Str(type_)
-            else:
-                # Get referenced module
-                if referenced_domain:
-                    module_name = ModuleContext.domain_to_module_name(referenced_domain)
-                else:
-                    module_name = self.context.module_name
-
-                self.context.referenced_cdp_modules.add(module_name)
-                return ast.Str("{}.{}".format(module_name, type_))
-
-        raise Exception("CDPItems doesn't have a type or reference")
+        return parse_type_annotation(self.type, self.ref, self.context)
 
 
 @dataclass
@@ -134,34 +138,10 @@ class CDPProperty:
         return lines
 
     def create_type_annotation(self):
-        if self.type:
-            type_ = ast.Name(JS_TO_PYTHON_TYPE_MAP.get(self.type, self.type))
-            if self.items:
-                type_ = ast.Subscript(type_, ast.Index(self.items.to_ast()))
-            return type_
-        elif self.ref:
-            parts = self.ref.split(".")
-            referenced_domain, type_ = parts if len(parts) > 1 else (None, parts[0])
-
-            if referenced_domain == self.context.domain:
-                # Escape type if it was not yet defined
-                if type_ in self.context.defined_types:
-                    return ast.Name(type_)
-                else:
-                    return ast.Str(type_)
-            else:
-                # Get referenced module
-                if referenced_domain:
-                    module_name = ModuleContext.domain_to_module_name(referenced_domain)
-                else:
-                    module_name = self.context.module_name
-
-                self.context.referenced_cdp_modules.add(module_name)
-                return ast.Str("{}.{}".format(module_name, type_))
-
-        raise Exception(
-            "Property '{}' doesn't have a type or reference".format(self.name)
-        )
+        type = parse_type_annotation(self.type, self.ref, self.context)
+        if self.items:
+            type = ast.Subscript(type, ast.Index(self.items.to_ast()))
+        return type
 
 
 @dataclass
@@ -215,6 +195,8 @@ class CDPType:
         if self.attributes:
             for attr in self.attributes:
                 body.append(attr.to_ast())
+
+        self.context.defined_types.add(self.id)
 
         return ast.ClassDef(self.id, [], body=body, decorator_list=[])
 
