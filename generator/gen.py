@@ -297,7 +297,7 @@ class CDPCommand:
         lines = []
 
         if self.description:
-            lines.append(self.description)
+            lines += self.description.split("\n")
 
         if self.experimental:
             lines.append("")
@@ -323,7 +323,10 @@ class CDPCommand:
             for ret in self.returns:
                 lines += ret.to_docstring()
 
-        return "\n\t".join(lines)
+        docstr = "\n\t".join(lines)
+        if len(lines) > 1:
+            docstr += "\n\t"
+        return docstr
 
 
 @dataclass
