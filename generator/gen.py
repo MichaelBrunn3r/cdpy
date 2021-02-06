@@ -4,7 +4,7 @@ import logging
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional, Set, Tuple
+from typing import Optional
 
 import astor
 import inflection
@@ -20,7 +20,7 @@ JS_TYPE_TO_ANNOTATION_MAP = {
     "integer": "int",
     "number": "float",
     "boolean": "bool",
-    "array": "List",
+    "array": "list",
 }
 
 JS_TYPE_TO_BUILTIN_MAP = {
@@ -98,9 +98,9 @@ class ModuleContext:
         self.domain = domain
         self.module_name = ModuleContext.domain_to_module_name(self.domain)
 
-        self.defined_functions: Set[str] = set()
-        self.referenced_cdp_modules: Set[str] = set()
-        self.defined_types: Set[str] = set()
+        self.defined_functions: set[str] = set()
+        self.referenced_cdp_modules: set[str] = set()
+        self.defined_types: set[str] = set()
 
     @classmethod
     def domain_to_module_name(cls, domain: str):
@@ -127,7 +127,7 @@ class CDPProperty:
     description: Optional[str]
     type: Optional[str]
     ref: Optional[str]
-    enum_values: Optional[List[str]]
+    enum_values: Optional[list[str]]
     items: Optional[CDPItems]
     optional: bool
     experimental: bool
@@ -207,9 +207,9 @@ class CDPType:
     id: str
     description: Optional[str]
     type: str
-    items: List[CDPItems]
-    enum_values: Optional[List[str]]
-    attributes: Optional[List[CDPAttribute]]
+    items: list[CDPItems]
+    enum_values: Optional[list[str]]
+    attributes: Optional[list[CDPAttribute]]
     context: ModuleContext
 
     @classmethod
@@ -321,8 +321,8 @@ class CDPCommand:
     description: Optional[str]
     experimental: bool
     deprecated: bool
-    parameters: List[CDPParameter]
-    returns: List[CDPReturn]
+    parameters: list[CDPParameter]
+    returns: list[CDPReturn]
     context: ModuleContext
 
     @classmethod
@@ -422,7 +422,7 @@ class CDPEvent:
     description: Optional[str]
     deprecated: bool
     experimental: bool
-    attributes: List[CDPAttribute]
+    attributes: list[CDPAttribute]
     context: ModuleContext
 
     @classmethod
@@ -452,10 +452,10 @@ class CDPDomain:
     domain: str
     description: Optional[str]
     experimental: bool
-    dependencies: List[str]
-    types: List[CDPType]
-    commands: List[CDPCommand]
-    events: List[CDPEvent]
+    dependencies: list[str]
+    types: list[CDPType]
+    commands: list[CDPCommand]
+    events: list[CDPEvent]
     context: ModuleContext
 
     @classmethod
@@ -482,7 +482,7 @@ class CDPDomain:
         imports = [
             ast.Import([ast.Name("enum")]),
             ast.Import([ast.Name("dataclasses")]),
-            ast_import_from("typing", "List", "Optional"),
+            ast_import_from("typing", "Optional"),
             ast_import_from(".common", "filter_unset_parameters", "Type"),
         ]
         body = []
@@ -499,7 +499,7 @@ class CDPDomain:
         return ast.Module(imports + body, lineno=0, col_offset=0)
 
 
-def fetch_and_save_protocol(url: str, filename_template: str) -> Tuple[int, int]:
+def fetch_and_save_protocol(url: str, filename_template: str) -> tuple[int, int]:
     protocol = requests.get(url).json()
 
     minor = protocol["version"]["minor"]

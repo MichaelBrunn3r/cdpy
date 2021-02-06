@@ -1,9 +1,3 @@
-import typing
-from dataclasses import _MISSING_TYPE
-
-from . import dom
-
-
 def filter_unset_parameters(method: dict):
     """Remove unset parameters from method dict"""
     method["params"] = {k: v for k, v in method["params"].items() if v != None}
@@ -28,23 +22,14 @@ class Type:
 
             value = json[field]
 
-            # Extract type from
+            # Extract type inside Optional
             if is_optional:
+                # Field type is of type typing.Optional[...].
                 field_type = data.type.__args__[0]
 
             # Skip fields with value 'None'
             if value == None:
                 args[field] = value
-                continue
-
-            # Is field_type from typing module? (e.g. List, Set, Optional, ...)
-            if type(field_type) == typing._GenericAlias:
-                origin = field_type.__origin__
-
-                # List, Set, ...
-                if type(origin) == type:
-                    args[field] = origin(value)
-                    continue
             else:
                 args[field] = field_type(value)
 
