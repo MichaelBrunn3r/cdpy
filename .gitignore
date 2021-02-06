@@ -1,5 +1,7 @@
-# Compiled / optimized / ...
-__pycache__/
+# Compiled / optimized / generated / ...
+**/__pycache__/
+.pytest_cache/
+.coverage
 
 # Distribution
 doc/
@@ -7,3 +9,4 @@ docs/
 build/
 dist/
 wheels/
+.vscode/settings.json

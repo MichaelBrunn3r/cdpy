@@ -268,9 +268,18 @@ class CDPType:
         for attr in self.attributes:
             body.append(attr.to_ast())
 
+        from_json = ast.FunctionDef(
+            "from_json",
+            ast_args([ast.arg("cls", None), ast.arg("json", ast.Name("dict"))]),
+            [ast_from("return super().from_json(json)")],
+            [ast.Name("classmethod")],
+            ast.Str(self.id),
+        )
+        body.append(from_json)
+
         return ast.ClassDef(
             self.id,
-            bases=[],
+            bases=[ast.Name("Type")],
             body=body,
             decorator_list=[ast.Name("dataclasses.dataclass")],
         )
@@ -474,7 +483,7 @@ class CDPDomain:
             ast.Import([ast.Name("enum")]),
             ast.Import([ast.Name("dataclasses")]),
             ast_import_from("typing", "List", "Optional"),
-            ast_import_from(".common", "filter_unset_parameters"),
+            ast_import_from(".common", "filter_unset_parameters", "Type"),
         ]
         body = []
 
