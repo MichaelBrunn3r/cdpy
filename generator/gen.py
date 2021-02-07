@@ -10,6 +10,7 @@ import astor
 import inflection
 import requests
 import typer
+from ast_utils import *
 
 GENERATE_DIR = script_dir = Path(os.path.abspath(os.path.split(__file__)[0]))
 BROWSER_PROTOCOL_FILENAME_TEMPLATE = "browser_protocol-v{}.{}.json"
@@ -60,26 +61,6 @@ def domain_to_module_name(domain: str):
 
 def snake_case(string: str):
     return inflection.underscore(string)
-
-
-def ast_import_from(module: str, *names):
-    return ast.ImportFrom(module, [ast.alias(name=n) for n in names], level=0)
-
-
-def ast_args(args, defaults=[]):
-    return ast.arguments(
-        posonlyargs=[],
-        args=args,
-        kwonlyargs=None,
-        vararg=None,
-        kwarg=None,
-        kw_defaults=None,
-        defaults=defaults,
-    )
-
-
-def ast_from(expr: str):
-    return ast.parse(expr).body[0]
 
 
 def parse_type(type: str):
@@ -251,7 +232,7 @@ class CDPType:
         repr = ast.FunctionDef(
             "__repr__",
             ast_args([ast.arg("self", None)]),
-            [ast_from(f"return f'{self.id}({{super().__repr__()}})'")],
+            [ast_from_str(f"return f'{self.id}({{super().__repr__()}})'")],
             [],
         )
         body.append(repr)
@@ -272,7 +253,7 @@ class CDPType:
         from_json = ast.FunctionDef(
             "from_json",
             ast_args([ast.arg("cls", None), ast.arg("json", ast.Name("dict"))]),
-            [ast_from("return super().from_json(json)")],
+            [ast_from_str("return super().from_json(json)")],
             [ast.Name("classmethod")],
             ast.Str(self.id),
         )
