@@ -253,7 +253,7 @@ class CDPType:
         repr = ast.FunctionDef(
             "__repr__",
             ast_args([ast.arg("self", None)]),
-            [ast_from("return '{}({{}})'.format(super().__repr__())".format(self.id))],
+            [ast_from(f"return f'{self.id}({{super().__repr__()}})'")],
             [],
         )
         body.append(repr)
@@ -367,7 +367,7 @@ class CDPCommand:
         )
         method_dict = ast.Dict(
             [ast.Str("method"), ast.Str("params")],
-            [ast.Str("{}.{}".format(self.context.domain, self.name)), method_params],
+            [ast.Str(f"{self.context.domain}.{self.name}"), method_params],
         )
 
         # Remove unset parameters from method dict.
@@ -541,7 +541,7 @@ def generate(version: str):
     version = version.replace("v", "")
     major, minor = version.split(".")
 
-    logger.info("Generating protocol version {}.{}".format(major, minor))
+    logger.info(f"Generating protocol version {major}.{minor}")
 
     protocol = load_protocol(major, minor)
 
@@ -566,7 +566,7 @@ def fetch():
         JS_PROTOCOL_FILENAME_TEMPLATE,
     )
 
-    logger.info("Fetched protocol v{}.{}".format(version[0], version[1]))
+    logger.info(f"Fetched protocol v{version[0]}.{version[1]}")
 
 
 if __name__ == "__main__":
