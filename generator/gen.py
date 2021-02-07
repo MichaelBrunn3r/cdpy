@@ -76,10 +76,7 @@ def parse_type_annotation(
     if type:
         return ast.Name(JS_TYPE_TO_ANNOTATION_MAP.get(type, type))
     elif ref:
-        parts = ref.split(".")
-        referenced_domain, referenced_type = (
-            parts if len(parts) > 1 else (None, parts[0])
-        )
+        referenced_domain, referenced_type = get_reference_parts(ref)
 
         # References type from foreign or current domain?
         if referenced_domain and referenced_domain != context.domain:
@@ -91,6 +88,12 @@ def parse_type_annotation(
                 return ast.Name(referenced_type)
             else:
                 return ast.Str(referenced_type)
+
+
+def get_reference_parts(reference: str) -> tuple[Optional[str], str]:
+    """Splits a reference into a domain and a name part"""
+    parts = reference.split(".")
+    return tuple(parts) if len(parts) > 1 else (None, parts[0])
 
 
 class ModuleContext:
