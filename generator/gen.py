@@ -39,6 +39,28 @@ logging.basicConfig(level=log_level)
 logger = logging.getLogger(__name__)
 
 
+class GlobalContext:
+    def __init__(self):
+        self.domains: dict[str:CDPDomain] = {}
+
+
+class ModuleContext:
+    def __init__(
+        self, module_name: str, domain_name: str, global_context: GlobalContext
+    ):
+        self.global_context = global_context
+        self.domain_name = domain_name
+        self.module_name = module_name
+
+        self.defined_functions: set[str] = set()
+        self.referenced_cdp_modules: set[str] = set()
+        self.defined_types: set[str] = set()
+
+
+def domain_to_module_name(domain: str):
+    return snake_case(domain)
+
+
 def snake_case(string: str):
     return inflection.underscore(string)
 
@@ -68,7 +90,7 @@ def parse_type(type: str):
 
 
 def parse_type_annotation(
-    type: Optional[str], ref: Optional[str], context: "ModuleContext"
+    type: Optional[str], ref: Optional[str], context: ModuleContext
 ):
     if not type and not ref:
         raise Exception("At least one of 'type' or 'ref' must be not be None")
@@ -79,8 +101,8 @@ def parse_type_annotation(
         referenced_domain, referenced_type = get_reference_parts(ref)
 
         # References type from foreign or current domain?
-        if referenced_domain and referenced_domain != context.domain:
-            referenced_module = ModuleContext.domain_to_module_name(referenced_domain)
+        if referenced_domain and referenced_domain != context.domain_name:
+            referenced_module = domain_to_module_name(referenced_domain)
             context.referenced_cdp_modules.add(referenced_module)
             return ast.Str(referenced_module + "." + referenced_type)
         else:
@@ -94,20 +116,6 @@ def get_reference_parts(reference: str) -> tuple[Optional[str], str]:
     """Splits a reference into a domain and a name part"""
     parts = reference.split(".")
     return tuple(parts) if len(parts) > 1 else (None, parts[0])
-
-
-class ModuleContext:
-    def __init__(self, domain: str):
-        self.domain = domain
-        self.module_name = ModuleContext.domain_to_module_name(self.domain)
-
-        self.defined_functions: set[str] = set()
-        self.referenced_cdp_modules: set[str] = set()
-        self.defined_types: set[str] = set()
-
-    @classmethod
-    def domain_to_module_name(cls, domain: str):
-        return snake_case(domain)
 
 
 @dataclass
@@ -367,7 +375,7 @@ class CDPCommand:
         )
         method_dict = ast.Dict(
             [ast.Str("method"), ast.Str("params")],
-            [ast.Str(f"{self.context.domain}.{self.name}"), method_params],
+            [ast.Str(f"{self.context.domain_name}.{self.name}"), method_params],
         )
 
         # Remove unset parameters from method dict.
@@ -462,15 +470,13 @@ class CDPDomain:
     context: ModuleContext
 
     @classmethod
-    def from_json(cls, domain: dict):
+    def from_json(cls, domain: dict, context: ModuleContext):
         domain_name = domain["domain"]
         types = domain.get("types", [])
         commands = domain.get("commands", [])
         events = domain.get("events", [])
 
-        context = ModuleContext(domain_name)
-
-        return cls(
+        domain = cls(
             domain_name,
             domain.get("description"),
             domain.get("experimental", False),
@@ -480,6 +486,10 @@ class CDPDomain:
             [CDPEvent.from_json(e, context) for e in events],
             context,
         )
+
+        # Register and return domain
+        context.global_context.domains[domain_name] = domain
+        return domain
 
     def to_ast(self):
         imports = [
@@ -544,11 +554,16 @@ def generate(version: str):
     logger.info(f"Generating protocol version {major}.{minor}")
 
     protocol = load_protocol(major, minor)
+    global_context = GlobalContext()
 
     # Create domain modules
     output_dir = Path(GENERATE_DIR.parent, "cdpy")
     for domain_json in protocol["domains"]:
-        domain = CDPDomain.from_json(domain_json)
+        domain_name = domain_json["domain"]
+        module_context = ModuleContext(
+            domain_to_module_name(domain_name), domain_name, global_context
+        )
+        domain = CDPDomain.from_json(domain_json, module_context)
 
         output_path = Path(output_dir, domain.context.module_name + ".py")
         with output_path.open("w") as f:
