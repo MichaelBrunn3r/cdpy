@@ -52,7 +52,11 @@ class ModuleContext:
         self.global_context = global_context
         self.domain_name = domain_name
         self.module_name = module_name
-        self.referenced_cdp_modules: set[str] = set()
+        self.required_domain_modules: set[str] = set()
+
+    def require_domain_module(self, module_name: str):
+        """Signals the context that a module needs to be imported"""
+        self.required_domain_modules.add(module_name)
 
 
 def domain_to_module_name(domain: str):
@@ -82,7 +86,7 @@ def parse_type_annotation(
             return ast.Name(referenced_type)
         else:
             referenced_module = domain_to_module_name(referenced_domain)
-            context.referenced_cdp_modules.add(referenced_module)
+            context.require_domain_module(referenced_module)
             return ast.Name(referenced_module + "." + referenced_type)
 
 
@@ -475,8 +479,8 @@ class CDPDomain:
         for command in self.commands:
             body.append(command.to_ast())
 
-        if len(self.context.referenced_cdp_modules) > 0:
-            imports.append(ast_import_from(".", *self.context.referenced_cdp_modules))
+        if len(self.context.required_domain_modules) > 0:
+            imports.append(ast_import_from(".", *self.context.required_domain_modules))
 
         return ast.Module(imports + body, lineno=0, col_offset=0)
 
