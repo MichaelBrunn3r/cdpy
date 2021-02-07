@@ -51,10 +51,7 @@ class ModuleContext:
         self.global_context = global_context
         self.domain_name = domain_name
         self.module_name = module_name
-
-        self.defined_functions: set[str] = set()
         self.referenced_cdp_modules: set[str] = set()
-        self.defined_types: set[str] = set()
 
 
 def domain_to_module_name(domain: str):
@@ -66,7 +63,7 @@ def snake_case(string: str):
 
 
 def ast_import_from(module: str, *names):
-    return ast.ImportFrom(module, [ast.Name(n) for n in names], level=0)
+    return ast.ImportFrom(module, [ast.alias(name=n) for n in names], level=0)
 
 
 def ast_args(args, defaults=[]):
@@ -100,16 +97,12 @@ def parse_type_annotation(
     elif ref:
         referenced_domain, referenced_type = get_reference_parts(ref)
 
-        # References type from foreign or current domain?
-        if referenced_domain and referenced_domain != context.domain_name:
+        if not referenced_domain or referenced_domain == context.domain_name:
+            return ast.Name(referenced_type)
+        else:
             referenced_module = domain_to_module_name(referenced_domain)
             context.referenced_cdp_modules.add(referenced_module)
-            return ast.Str(referenced_module + "." + referenced_type)
-        else:
-            if referenced_type in context.defined_types:
-                return ast.Name(referenced_type)
-            else:
-                return ast.Str(referenced_type)
+            return ast.Name(referenced_module + "." + referenced_type)
 
 
 def get_reference_parts(reference: str) -> tuple[Optional[str], str]:
@@ -245,14 +238,11 @@ class CDPType:
 
     def to_ast(self):
         if self.attributes and len(self.attributes) > 0:
-            ast = self.create_complex_ast()
+            return self.create_complex_ast()
         elif self.enum_values:
-            ast = self.create_enum_ast()
+            return self.create_enum_ast()
         else:
-            ast = self.create_primitive_ast()
-
-        self.context.defined_types.add(self.id)
-        return ast
+            return self.create_primitive_ast()
 
     def create_primitive_ast(self):
         # Add docstring
@@ -355,9 +345,6 @@ class CDPCommand:
         )
 
     def to_ast(self):
-        function_name = snake_case(self.name)
-        self.context.defined_functions.add(function_name)
-
         args = ast.arguments(
             args=[p.to_ast() for p in self.parameters],
             vararg=None,
@@ -388,7 +375,7 @@ class CDPCommand:
         body.append(ast.Return(method_dict))
 
         return ast.FunctionDef(
-            function_name, args, body, decorator_list=[], lineno=0, col_offset=0
+            snake_case(self.name), args, body, decorator_list=[], lineno=0, col_offset=0
         )
 
     def create_docstring(self):
@@ -493,6 +480,7 @@ class CDPDomain:
 
     def to_ast(self):
         imports = [
+            ast_import_from("__future__", "annotations"),
             ast.Import([ast.Name("enum")]),
             ast.Import([ast.Name("dataclasses")]),
             ast_import_from("typing", "Optional"),
