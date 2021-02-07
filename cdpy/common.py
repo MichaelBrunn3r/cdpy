@@ -1,3 +1,7 @@
+import typing
+from typing import ForwardRef, Optional
+
+
 def filter_unset_parameters(method: dict):
     """Remove unset parameters from method dict"""
     method["params"] = {k: v for k, v in method["params"].items() if v != None}
@@ -7,30 +11,40 @@ def filter_unset_parameters(method: dict):
 class Type:
     @classmethod
     def from_json(cls, json: dict):
-        args = {}
+        init_args = {}
 
-        for field, data in cls.__dataclass_fields__.items():
-            field_type = data.type
-            is_optional = data.default == None
+        dataclass_fields = cls.__dataclass_fields__
+        field_types = typing.get_type_hints(cls)
+        for arg, value in json.items():
+            # Ignore args that don't map to a class field
+            if not arg in dataclass_fields:
+                continue
 
-            # Check if the field in the json
-            if field not in json:
-                if is_optional:
-                    continue
-                else:
-                    raise Exception("Missing required argument '{}'".format(field))
-
-            value = json[field]
+            field = dataclass_fields[arg]
+            field_type = field_types[arg]
+            is_optional = field.default == None
 
             # Extract type inside Optional
             if is_optional:
-                # Field type is of type typing.Optional[...].
-                field_type = data.type.__args__[0]
+                # Field type is of form typing.Optional[...].
+                field_type = field_type.__args__[0]
 
-            # Skip fields with value 'None'
             if value == None:
-                args[field] = value
-            else:
-                args[field] = field_type(value)
+                init_args[arg] = value
+            elif issubclass(field_type, Type):
+                init_args[arg] = field_type.from_json(value)
+            elif hasattr(field_type, "__origin__") and field_type.__origin__ == list:
+                items_type = field_type.__args__[0]
+                print(items_type, type(items_type))
+                if type(items_type) == str:
+                    items_type = eval(items_type)
 
-        return cls(**args)
+                if issubclass(items_type, Type):
+                    items = map(lambda item: items_type.from_json(item), value)
+                else:
+                    items = map(lambda item: items_type(item), value)
+                init_args[arg] = list(items)
+            else:
+                init_args[arg] = field_type(value)
+
+        return cls(**init_args)
