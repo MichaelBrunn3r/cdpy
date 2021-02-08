@@ -292,15 +292,8 @@ class CDPType:
 
     @property
     def is_simple_list(self) -> bool:
-        """Predicate wether this type is a simple list, i.e. a list of primitive or simple types (e.g. list[int], list[Index] where 'class Index(int)')"""
-        if not self.items:
-            return False
-
-        if self.items.type:
-            return True
-        else:
-            items_type = self.context.get_type_by_ref(self.items.ref)
-            return items_type.is_simple
+        """Predicate wether this type is a simple list, i.e. a list of primitives (e.g. list[int])"""
+        return self.items and self.items.type
 
     @property
     def is_enum(self) -> bool:
@@ -314,7 +307,7 @@ class CDPType:
 
     @property
     def is_complex_list(self) -> bool:
-        """Predicate wether this type is complex list, i.e. a list of complex types"""
+        """Predicate wether this type is complex list, i.e. a list of complex or simple types (e.g. class CompList(list[simple]))"""
         if not self.items:
             return False
 
@@ -322,7 +315,7 @@ class CDPType:
             return False
         else:
             items_type = self.context.get_type_by_ref(self.items.ref)
-            return items_type.is_complex
+            return items_type.is_complex or items_type.is_simple
 
     @classmethod
     def from_json(cls, json: dict, context: ModuleContext):
@@ -351,6 +344,8 @@ class CDPType:
             return self.create_enum_ast()
         elif self.is_complex:
             return self.create_complex_ast()
+        elif self.is_complex_list:
+            return self.create_complex_list_ast()
         else:
             raise Exception(
                 f"Can't generate AST for type '{self.context.domain_name}.{self.id}'"
@@ -407,8 +402,7 @@ class CDPType:
 
         for attr in self.attributes:
             body.append(attr.to_ast())
-
-        body.append(self.create_from_json_function())
+        body.append(self.create_complex_from_json_function())
 
         return ast.ClassDef(
             self.id,
@@ -417,7 +411,7 @@ class CDPType:
             decorator_list=[ast.Name("dataclasses.dataclass")],
         )
 
-    def create_from_json_function(self):
+    def create_complex_from_json_function(self):
         cls_args = []
         for attr in self.attributes:
             attr_json_value = ast.Subscript(ast.Name("json"), ast.Constant(attr.name))
@@ -506,7 +500,44 @@ class CDPType:
             ast_args([ast.arg("cls", None), ast.arg("json", ast.Name("dict"))]),
             [ast.Return(ast.Call(ast.Name("cls"), cls_args, []))],
             [ast.Name("classmethod")],
-            ast.Str(self.id),
+            ast.Name(self.id),
+        )
+
+    def create_complex_list_ast(self):
+        body = [ast.Expr(ast.Str(self.create_docstring()))]
+
+        body.append(self.create_complex_list_from_json_function())
+
+        items_type = domain_type_reference_to_ast(self.items.ref, self.context)
+        base = ast.Subscript(ast.Name("list"), javascript_type_to_ast(items_type))
+
+        return ast.ClassDef(
+            self.id,
+            bases=[base],
+            body=body,
+            decorator_list=[],
+        )
+
+    def create_complex_list_from_json_function(self):
+        items_type = self.context.get_type_by_ref(self.items.ref)
+
+        # If the referenced type is from another module, add that module before the type name
+        if items_type.context.domain_name != self.context.domain_name:
+            items_type_name = items_type.context.module_name + "." + items_type.id
+        else:
+            items_type_name = items_type.id
+
+        items = ast.ListComp(
+            ast.Call(ast.Name(items_type_name), [ast.Name("x")], []),
+            [ast.comprehension(ast.Name("x"), ast.Name("json"), [])],
+        )
+
+        return ast.FunctionDef(
+            "from_json",
+            ast_args([ast.arg("cls", None), ast.arg("json", ast.Name("dict"))]),
+            [ast.Return(ast.Call(ast.Name("cls"), [items], []))],
+            [ast.Name("classmethod")],
+            ast.Name(self.id),
         )
 
     def create_docstring(self):
