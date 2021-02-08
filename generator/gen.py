@@ -24,6 +24,7 @@ JS_TYPE_TO_BUILTIN_MAP = {
     "number": "float",
     "boolean": "bool",
     "array": "list",
+    "object": "dict",
 }
 
 app = typer.Typer()
@@ -287,12 +288,7 @@ class CDPType:
     @property
     def is_simple(self) -> bool:
         """Predicate wether this type is a simple type, i.e. it inherits from a primitive type (e.g. int, string, ...)"""
-        return (
-            self.type != "object"
-            and not self.attributes
-            and not self.items
-            and not self.enum_values
-        )
+        return not self.attributes and not self.items and not self.enum_values
 
     @property
     def is_simple_list(self) -> bool:
@@ -323,9 +319,9 @@ class CDPType:
         return False
 
     @classmethod
-    def from_json(cls, type_: dict, context: ModuleContext):
-        items = type_.get("items")
-        attributes = type_.get("properties")
+    def from_json(cls, json: dict, context: ModuleContext):
+        items = json.get("items")
+        attributes = json.get("properties")
         if attributes:
             attributes = [CDPAttribute.from_json(p, context) for p in attributes]
             attributes.sort(
@@ -333,11 +329,11 @@ class CDPType:
             )  # Default value attributes after non-default attributes
 
         return cls(
-            type_["id"],
-            type_.get("description"),
-            type_["type"],
+            json["id"],
+            json.get("description"),
+            json["type"],
             CDPItems.from_json(items, context) if items else None,
-            type_.get("enum"),
+            json.get("enum"),
             attributes,
             context,
         )
