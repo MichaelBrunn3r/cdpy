@@ -287,7 +287,7 @@ class CDPType:
 
     @property
     def is_simple(self) -> bool:
-        """Predicate wether this type is a simple type, i.e. it inherits from a primitive type (e.g. int, string, ...)"""
+        """Predicate wether this type is a simple type, i.e. it inherits from a primitive type (e.g. int, string, dict, ...)"""
         return not self.attributes and not self.items and not self.enum_values
 
     @property
@@ -345,14 +345,20 @@ class CDPType:
         )
 
     def to_ast(self):
-        if self.attributes and len(self.attributes) > 0:
-            return self.create_complex_ast()
-        elif self.enum_values:
+        if self.is_simple or self.is_simple_list:
+            return self.create_simple_ast()
+        elif self.is_enum:
             return self.create_enum_ast()
+        elif self.is_complex:
+            return self.create_complex_ast()
         else:
-            return self.create_primitive_ast()
+            raise Exception(
+                f"Can't generate AST for type '{self.context.domain_name}.{self.id}'"
+            )
 
-    def create_primitive_ast(self):
+    def create_simple_ast(self):
+        """Create the AST for a simple type"""
+
         # Add docstring
         body = [ast.Expr(ast.Str(self.create_docstring()))]
 
