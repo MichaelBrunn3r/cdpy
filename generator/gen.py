@@ -370,12 +370,7 @@ class CDPType:
 
             base = ast.Subscript(base, javascript_type_to_ast(items_type))
 
-        return ast.ClassDef(
-            self.id,
-            [base],
-            body=body,
-            decorator_list=[],
-        )
+        return ast_classdef(self.id, body, [base])
 
     def create_simple_repr_function(self):
         """Create the __repr__ function for a simple type"""
@@ -394,9 +389,7 @@ class CDPType:
         for v in self.enum_values:
             body.append(ast.Assign([ast.Name(snake_case(v).upper())], ast.Str(v)))
 
-        return ast.ClassDef(
-            self.id, bases=[ast.Name("enum.Enum")], body=body, decorator_list=[]
-        )
+        return ast_classdef(self.id, body, ["enum.Enum"])
 
     def create_complex_ast(self):
         body = [ast.Expr(ast.Str(self.create_docstring()))]
@@ -405,12 +398,7 @@ class CDPType:
             body.append(attr.to_ast())
         body.append(self.create_complex_from_json_function())
 
-        return ast.ClassDef(
-            self.id,
-            bases=[ast.Name("Type")],
-            body=body,
-            decorator_list=[ast.Name("dataclasses.dataclass")],
-        )
+        return ast_classdef(self.id, body, ["Type"], ["dataclasses.dataclass"])
 
     def create_complex_from_json_function(self):
         cls_args = []
@@ -505,12 +493,7 @@ class CDPType:
         items_type = domain_type_reference_to_ast(self.items.ref, self.context)
         base = ast.Subscript(ast.Name("list"), javascript_type_to_ast(items_type))
 
-        return ast.ClassDef(
-            self.id,
-            bases=[base],
-            body=body,
-            decorator_list=[],
-        )
+        return ast_classdef(self.id, body, [base])
 
     def create_complex_list_from_json_function(self):
         items_type = self.context.get_type_by_ref(self.items.ref)

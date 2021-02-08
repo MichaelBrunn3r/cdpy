@@ -38,3 +38,20 @@ def ast_list_comp(
         iterable = ast.Name(iterable)
 
     return ast.ListComp(foreach, [ast.comprehension(target, iterable, [])])
+
+
+def ast_classdef(
+    name: str,
+    body: list[ast.AST],
+    bases: list[Union[str, ast.AST]] = [],
+    decorators: list[Union[str, ast.AST]] = [],
+):
+    for i, base in enumerate(bases):
+        if type(base) == str:
+            bases[i] == ast.Name(base)
+
+    for i, decorator in enumerate(decorators):
+        if type(decorator) == str:
+            decorators[i] == ast.Name(decorator)
+
+    return ast.ClassDef(name, bases=bases, body=body, decorator_list=decorators)
