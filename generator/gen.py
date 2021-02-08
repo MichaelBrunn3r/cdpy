@@ -287,7 +287,7 @@ class CDPType:
     id: str
     description: Optional[str]
     type: str
-    items: list[CDPItems]
+    items: CDPItems
     enum_values: Optional[list[str]]
     attributes: Optional[list[CDPAttribute]]
     context: ModuleContext
@@ -304,8 +304,15 @@ class CDPType:
 
     @property
     def is_simple_list(self) -> bool:
-        """Predicate wether this type is a simple list, i.e. a list of primitive types (e.g. list[int], ...)"""
-        return self.items and self.items.type
+        """Predicate wether this type is a simple list, i.e. a list of primitive or simple types (e.g. list[int], list[Index] where 'class Index(int)')"""
+        if not self.items:
+            return False
+
+        if self.items.type:
+            return True
+        else:
+            items_type = self.context.get_type_by_ref(self.items.ref)
+            return items_type.is_simple
 
     @property
     def is_enum(self) -> bool:
