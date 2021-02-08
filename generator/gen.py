@@ -560,13 +560,9 @@ class CDPCommand:
         )
 
     def to_ast(self):
-        args = ast.arguments(
-            args=[p.to_ast() for p in self.parameters],
-            vararg=None,
-            kwarg=None,
-            defaults=[
-                ast.Constant(None) if p.optional else None for p in self.parameters
-            ],
+        args = ast_args(
+            [p.to_ast() for p in self.parameters],
+            [ast.Constant(None) if p.optional else None for p in self.parameters],
         )
 
         body = [self.create_docstring()]

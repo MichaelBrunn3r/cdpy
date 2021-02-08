@@ -4,18 +4,6 @@ from typing import Union
 import astor
 
 
-def ast_args(args, defaults=[]):
-    return ast.arguments(
-        posonlyargs=[],
-        args=args,
-        kwonlyargs=None,
-        vararg=None,
-        kwarg=None,
-        kw_defaults=None,
-        defaults=defaults,
-    )
-
-
 def ast_from_str(expr: str):
     return ast.parse(expr).body[0]
 
@@ -62,3 +50,7 @@ def ast_docstring(lines: list[str]):
     if len(lines) > 1:
         docstr += "\n\t"
     return ast.Expr(ast.Constant(docstr))
+
+
+def ast_args(args: list[ast.AST], defaults: list[ast.AST] = []):
+    return ast.arguments(args=args, vararg=None, kwarg=None, defaults=defaults)
