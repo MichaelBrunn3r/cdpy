@@ -362,13 +362,7 @@ class CDPType:
         # Add docstring
         body = [ast.Expr(ast.Str(self.create_docstring()))]
 
-        repr = ast.FunctionDef(
-            "__repr__",
-            ast_args([ast.arg("self", None)]),
-            [ast_from_str(f"return f'{self.id}({{super().__repr__()}})'")],
-            [],
-        )
-        body.append(repr)
+        body.append(self.create_simple_repr_function())
 
         base = javascript_type_to_ast(self.type)
 
@@ -385,6 +379,27 @@ class CDPType:
             [base],
             body=body,
             decorator_list=[],
+        )
+
+    def create_simple_repr_function(self):
+        """Create the __repr__ function for a simple type"""
+        return ast.FunctionDef(
+            "__repr__",
+            ast_args([ast.arg("self", None)]),
+            [ast_from_str(f"return f'{self.id}({{super().__repr__()}})'")],
+            [],
+        )
+
+    def create_enum_ast(self):
+        """Create the AST for an enum type"""
+        body = [ast.Expr(ast.Str(self.create_docstring()))]
+
+        # Add enum values
+        for v in self.enum_values:
+            body.append(ast.Assign([ast.Name(snake_case(v).upper())], ast.Str(v)))
+
+        return ast.ClassDef(
+            self.id, bases=[ast.Name("enum.Enum")], body=body, decorator_list=[]
         )
 
     def create_complex_ast(self):
@@ -492,17 +507,6 @@ class CDPType:
             [ast.Return(ast.Call(ast.Name("cls"), cls_args, []))],
             [ast.Name("classmethod")],
             ast.Str(self.id),
-        )
-
-    def create_enum_ast(self):
-        body = [ast.Expr(ast.Str(self.create_docstring()))]
-
-        # Add enum values
-        for v in self.enum_values:
-            body.append(ast.Assign([ast.Name(snake_case(v).upper())], ast.Str(v)))
-
-        return ast.ClassDef(
-            self.id, bases=[ast.Name("enum.Enum")], body=body, decorator_list=[]
         )
 
     def create_docstring(self):
