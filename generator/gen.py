@@ -440,20 +440,16 @@ class CDPType:
                 else:
                     items_type_name = items_type.id
 
-                target = ast.Name("x")
                 if attr.is_simple_type_reference_list or attr.is_enum_reference_list:
-                    arg = ast.ListComp(
-                        ast_call(items_type_name, [target]),
-                        [ast.comprehension(target, attr_json_value, [])],
+                    arg = ast_list_comp(
+                        ast_call(items_type_name, [ast.Name("x")]), "x", attr_json_value
                     )
                 elif attr.is_complex_type_reference_list:
-                    # print(f"{self.context.domain_name}.{self.id}.{attr.name}")
                     from_json_call = ast.Attribute(
-                        ast.Name(items_type_name), ast_call("from_json", [target])
+                        ast.Name(items_type_name),
+                        ast_call("from_json", [ast.Name("x")]),
                     )
-                    arg = ast.ListComp(
-                        from_json_call, [ast.comprehension(target, attr_json_value, [])]
-                    )
+                    arg = ast_list_comp(from_json_call, "x", attr_json_value)
                 else:
                     logger.warning(
                         f"2. Couldn't create argument: {self.context.domain_name}.{self.id}.{attr.name}, {attr.items.ref}"
@@ -525,10 +521,7 @@ class CDPType:
         else:
             items_type_name = items_type.id
 
-        items = ast.ListComp(
-            ast_call(items_type_name, [ast.Name("x")]),
-            [ast.comprehension(ast.Name("x"), ast.Name("json"), [])],
-        )
+        items = ast_list_comp(ast_call(items_type_name, [ast.Name("x")]), "x", "json")
 
         return ast.FunctionDef(
             "from_json",

@@ -1,4 +1,5 @@
 import ast
+from typing import Union
 
 import astor
 
@@ -25,3 +26,15 @@ def ast_import_from(module: str, *names):
 
 def ast_call(callable: str, args: list[ast.AST]):
     return ast.Call(ast.Name(callable), args, [])
+
+
+def ast_list_comp(
+    foreach: ast.AST, target: Union[str, ast.AST], iterable: Union[str, ast.AST]
+):
+    if type(target) == str:
+        target = ast.Name(target)
+
+    if type(iterable) == str:
+        iterable = ast.Name(iterable)
+
+    return ast.ListComp(foreach, [ast.comprehension(target, iterable, [])])
