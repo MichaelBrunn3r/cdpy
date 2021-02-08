@@ -356,7 +356,7 @@ class CDPType:
         """Create the AST for a simple type"""
 
         # Add docstring
-        body = [ast.Expr(ast.Str(self.create_docstring()))]
+        body = [self.create_docstring()]
 
         body.append(self.create_simple_repr_function())
 
@@ -383,7 +383,7 @@ class CDPType:
 
     def create_enum_ast(self):
         """Create the AST for an enum type"""
-        body = [ast.Expr(ast.Str(self.create_docstring()))]
+        body = [self.create_docstring()]
 
         # Add enum values
         for v in self.enum_values:
@@ -392,7 +392,7 @@ class CDPType:
         return ast_classdef(self.id, body, ["enum.Enum"])
 
     def create_complex_ast(self):
-        body = [ast.Expr(ast.Str(self.create_docstring()))]
+        body = [self.create_docstring()]
 
         for attr in self.attributes:
             body.append(attr.to_ast())
@@ -486,7 +486,7 @@ class CDPType:
         )
 
     def create_complex_list_ast(self):
-        body = [ast.Expr(ast.Str(self.create_docstring()))]
+        body = [self.create_docstring()]
 
         body.append(self.create_complex_list_from_json_function())
 
@@ -528,10 +528,7 @@ class CDPType:
             for attr in self.attributes:
                 lines += attr.to_docstring()
 
-        docstr = "\n\t".join(lines)
-        if len(lines) > 1:
-            docstr += "\n\t"
-        return docstr
+        return ast_docstring(lines)
 
 
 @dataclass
@@ -572,7 +569,7 @@ class CDPCommand:
             ],
         )
 
-        body = [ast.Expr(ast.Str(self.create_docstring()))]
+        body = [self.create_docstring()]
 
         method_params = ast.Dict(
             list(map(lambda param: ast.Str(param.name), self.parameters)),
@@ -624,10 +621,7 @@ class CDPCommand:
             for ret in self.returns:
                 lines += ret.to_docstring()
 
-        docstr = "\n\t".join(lines)
-        if len(lines) > 1:
-            docstr += "\n\t"
-        return docstr
+        return ast_docstring(lines)
 
 
 @dataclass

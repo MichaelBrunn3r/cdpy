@@ -55,3 +55,10 @@ def ast_classdef(
             decorators[i] == ast.Name(decorator)
 
     return ast.ClassDef(name, bases=bases, body=body, decorator_list=decorators)
+
+
+def ast_docstring(lines: list[str]):
+    docstr = "\n\t".join(lines)
+    if len(lines) > 1:
+        docstr += "\n\t"
+    return ast.Expr(ast.Constant(docstr))
