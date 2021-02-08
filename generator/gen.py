@@ -353,24 +353,19 @@ class CDPType:
             )
 
     def create_simple_ast(self):
-        """Create the AST for a simple type"""
-
-        # Add docstring
-        body = [self.create_docstring()]
-
-        body.append(self.create_simple_repr_function())
-
+        """Create the AST for a simple type or simple list type"""
         base = javascript_type_to_ast(self.type)
+        if self.is_simple_list:
+            items_type = javascript_type_to_ast(
+                self.items.type if self.items.type else self.items.ref
+            )
+            base = ast.Subscript(base, items_type)
 
-        if self.items:
-            if self.items.type:
-                items_type = javascript_type_to_ast(self.items.type)
-            else:
-                items_type = javascript_type_to_ast(self.items.ref)
-
-            base = ast.Subscript(base, javascript_type_to_ast(items_type))
-
-        return ast_classdef(self.id, body, [base])
+        return ast_classdef(
+            self.id,
+            [self.create_docstring(), self.create_simple_repr_function()],
+            [base],
+        )
 
     def create_simple_repr_function(self):
         """Create the __repr__ function for a simple type"""
@@ -486,12 +481,10 @@ class CDPType:
         )
 
     def create_complex_list_ast(self):
-        body = [self.create_docstring()]
-
-        body.append(self.create_complex_list_from_json_function())
+        body = [self.create_docstring(), self.create_complex_list_from_json_function()]
 
         items_type = domain_type_reference_to_ast(self.items.ref, self.context)
-        base = ast.Subscript(ast.Name("list"), javascript_type_to_ast(items_type))
+        base = ast.Subscript(ast.Name("list"), items_type)
 
         return ast_classdef(self.id, body, [base])
 
