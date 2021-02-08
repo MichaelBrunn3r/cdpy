@@ -158,16 +158,25 @@ class CDPProperty:
         """Checks if the property references a simple type, i.e. a type that inherits from a primitive type.
         (e.g. class Simple(int))
         """
-        return self.ref and self.context.get_type_by_ref(self.ref).is_simple
+        if not self.ref:
+            return False
+
+        ref_type = self.context.get_type_by_ref(self.ref)
+
+        return ref_type.is_simple or ref_type.is_simple_list
 
     @property
     def is_simple_type_reference_list(self):
         """Checks if the property is a list of references to a simple type, i.e. a type that inherits from a primitive type.
         (e.g. class Simple(int) -> list[Simple])
         """
-        return (
-            self.is_list_of_references
-            and self.context.get_type_by_ref(self.items.ref).is_simple
+        if not self.is_list_of_references:
+            return False
+
+        items_type = self.context.get_type_by_ref(self.items.ref)
+
+        return self.is_list_of_references and (
+            items_type.is_simple or items_type.is_simple_list
         )
 
     @property
@@ -430,8 +439,8 @@ class CDPType:
                         from_json_call, [ast.comprehension(target, attr_json_value, [])]
                     )
                 else:
-                    logger.warn(
-                        f"2. Couldn't create argument: {self.context.domain_name}.{self.id}.{attr.name}"
+                    logger.warning(
+                        f"2. Couldn't create argument: {self.context.domain_name}.{self.id}.{attr.name}, {attr.items.ref}"
                     )
                     continue
             else:
@@ -455,8 +464,8 @@ class CDPType:
                         ast.Call(ast.Name("from_json"), [attr_json_value], []),
                     )
                 else:
-                    logger.warn(
-                        f"3. Couldn't create argument: {self.context.domain_name}.{self.id}.{attr.name}"
+                    logger.warning(
+                        f"3. Couldn't create argument: {self.context.domain_name}.{self.id}.{attr.name}, {attr.ref}"
                     )
                     continue
 
