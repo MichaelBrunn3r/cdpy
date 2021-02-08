@@ -137,6 +137,70 @@ class CDPProperty:
     deprecated: bool
     context: ModuleContext
 
+    @property
+    def is_primitive(self):
+        """Checks if the property is a primitive type (e.g. int, str, float, ...)"""
+        return self.type and not self.items and not self.enum_values
+
+    @property
+    def is_primitive_list(self):
+        """Checks if the property is a list of primitive types (e.g. list[int], list[str], list[float], ...)"""
+        return self.items and self.items.type
+
+    @property
+    def is_enum(self):
+        """Checks if the property is an enum"""
+        # TODO not handled yet
+        return self.enum_values
+
+    @property
+    def is_simple_type_reference(self):
+        """Checks if the property references a simple type, i.e. a type that inherits from a primitive type.
+        (e.g. class Simple(int))
+        """
+        return self.ref and self.context.get_type_by_ref(self.ref).is_simple
+
+    @property
+    def is_simple_type_reference_list(self):
+        """Checks if the property is a list of references to a simple type, i.e. a type that inherits from a primitive type.
+        (e.g. class Simple(int) -> list[Simple])
+        """
+        return (
+            self.is_list_of_references
+            and self.context.get_type_by_ref(self.items.ref).is_simple
+        )
+
+    @property
+    def is_enum_reference(self):
+        """Checks if the property references an enum"""
+        return self.ref and self.context.get_type_by_ref(self.ref).is_enum
+
+    @property
+    def is_enum_reference_list(self):
+        """Checks if the property is a list of enum references"""
+        return (
+            self.is_list_of_references
+            and self.context.get_type_by_ref(self.items.ref).is_enum
+        )
+
+    @property
+    def is_complex_type_reference(self):
+        """Checks if the property references a complex type, i.e. a type that has attributes."""
+        return self.ref and self.context.get_type_by_ref(self.ref).is_complex
+
+    @property
+    def is_complex_type_reference_list(self):
+        """Checks if the property i a list of references to a complex type, i.e. a type that has attributes."""
+        return (
+            self.is_list_of_references
+            and self.context.get_type_by_ref(self.items.ref).is_complex
+        )
+
+    @property
+    def is_list_of_references(self):
+        """Checks if the property is a list and its items are references to an type"""
+        return self.items and self.items.ref
+
     @classmethod
     def from_json(cls, property: dict, context: ModuleContext):
         items = property.get("items")
@@ -219,6 +283,33 @@ class CDPType:
     attributes: Optional[list[CDPAttribute]]
     context: ModuleContext
 
+    @property
+    def is_simple(self):
+        return (
+            self.type != "object"
+            and not self.attributes
+            and not self.items
+            and not self.enum_values
+        )
+
+    @property
+    def is_simple_list(self):
+        # TODO Quad, Rectangle, Item, PaintProfile
+        pass
+
+    @property
+    def is_enum(self):
+        return self.enum_values
+
+    @property
+    def is_complex(self):
+        return self.attributes
+
+    @property
+    def is_complex_list(self):
+        # TODO ArrayOfStrings
+        pass
+
     @classmethod
     def from_json(cls, type_: dict, context: ModuleContext):
         items = type_.get("items")
@@ -272,20 +363,105 @@ class CDPType:
         for attr in self.attributes:
             body.append(attr.to_ast())
 
-        from_json = ast.FunctionDef(
-            "from_json",
-            ast_args([ast.arg("cls", None), ast.arg("json", ast.Name("dict"))]),
-            [ast_from_str("return super().from_json(json)")],
-            [ast.Name("classmethod")],
-            ast.Str(self.id),
-        )
-        body.append(from_json)
+        body.append(self.create_from_json_function())
 
         return ast.ClassDef(
             self.id,
             bases=[ast.Name("Type")],
             body=body,
             decorator_list=[ast.Name("dataclasses.dataclass")],
+        )
+
+    def create_from_json_function(self):
+        cls_args = []
+        for attr in self.attributes:
+            attr_json_value = ast.Subscript(ast.Name("json"), ast.Constant(attr.name))
+
+            if attr.is_primitive or attr.is_primitive_list:
+                if attr.optional:
+                    arg = ast.Attribute(
+                        ast.Name("json"),
+                        ast.Call(ast.Name("get"), [ast.Str(attr.name)], []),
+                    )
+                else:
+                    arg = attr_json_value
+            elif attr.is_enum:
+                # TODO case not handled
+                # logger.warn(f"1. Couldn't create argument: {self.context.domain_name}.{self.id}.{attr.name}")
+                continue
+            elif attr.is_list_of_references:
+                items_type = self.context.get_type_by_ref(attr.items.ref)
+
+                # If the referenced type is from another module, add that module before the type name
+                if items_type.context.domain_name != self.context.domain_name:
+                    items_type_name = (
+                        items_type.context.module_name + "." + items_type.id
+                    )
+                else:
+                    items_type_name = items_type.id
+
+                target = ast.Name("x")
+                if attr.is_simple_type_reference_list or attr.is_enum_reference_list:
+                    arg = ast.ListComp(
+                        ast.Call(ast.Name(items_type_name), [target], []),
+                        [ast.comprehension(target, attr_json_value, [])],
+                    )
+                elif attr.is_complex_type_reference_list:
+                    # print(f"{self.context.domain_name}.{self.id}.{attr.name}")
+                    from_json_call = ast.Attribute(
+                        ast.Name(items_type_name),
+                        ast.Call(ast.Name("from_json"), [target], []),
+                    )
+                    arg = ast.ListComp(
+                        from_json_call, [ast.comprehension(target, attr_json_value, [])]
+                    )
+                else:
+                    logger.warn(
+                        f"2. Couldn't create argument: {self.context.domain_name}.{self.id}.{attr.name}"
+                    )
+                    continue
+            else:
+                referenced_type = self.context.get_type_by_ref(attr.ref)
+
+                # If the referenced type is from another module, add that module before the type name
+                if referenced_type.context.domain_name != self.context.domain_name:
+                    referenced_type_name = (
+                        referenced_type.context.module_name + "." + referenced_type.id
+                    )
+                else:
+                    referenced_type_name = referenced_type.id
+
+                if attr.is_simple_type_reference or attr.is_enum_reference:
+                    arg = ast.Call(
+                        ast.Name(referenced_type_name), [attr_json_value], []
+                    )
+                elif attr.is_complex_type_reference:
+                    arg = ast.Attribute(
+                        ast.Name(referenced_type_name),
+                        ast.Call(ast.Name("from_json"), [attr_json_value], []),
+                    )
+                else:
+                    logger.warn(
+                        f"3. Couldn't create argument: {self.context.domain_name}.{self.id}.{attr.name}"
+                    )
+                    continue
+
+            # Wrap argument in 'if ... else None' if the attribute is optional.
+            # Primitives are calling 'dict.get()' instead.
+            if attr.optional and not attr.is_primitive and not attr.is_primitive_list:
+                is_in_json_condition = ast.Compare(
+                    ast.Constant(attr.name), [ast.In()], [ast.Name("json")]
+                )
+                arg = ast.IfExp(is_in_json_condition, arg, ast.Constant(None))
+
+            cls_args.append(arg)
+
+        return ast.FunctionDef(
+            "from_json",
+            ast_args([ast.arg("cls", None), ast.arg("json", ast.Name("dict"))]),
+            [ast.Return(ast.Call(ast.Name("cls"), cls_args, []))],
+            [ast.Name("classmethod")],
+            ast.Str(self.id),
         )
 
     def create_enum_ast(self):
