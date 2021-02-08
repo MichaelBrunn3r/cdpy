@@ -314,9 +314,15 @@ class CDPType:
 
     @property
     def is_complex_list(self) -> bool:
-        """Predicate wether this type is complex list, i.e. a list of"""
-        # TODO ArrayOfStrings
-        return False
+        """Predicate wether this type is complex list, i.e. a list of complex types"""
+        if not self.items:
+            return False
+
+        if self.items.type:
+            return False
+        else:
+            items_type = self.context.get_type_by_ref(self.items.ref)
+            return items_type.is_complex
 
     @classmethod
     def from_json(cls, json: dict, context: ModuleContext):
