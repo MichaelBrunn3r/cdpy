@@ -18,14 +18,6 @@ GENERATE_DIR = script_dir = Path(os.path.abspath(os.path.split(__file__)[0]))
 BROWSER_PROTOCOL_FILENAME_TEMPLATE = "browser_protocol-v{}.{}.json"
 JS_PROTOCOL_FILENAME_TEMPLATE = "js_protocol-v{}.{}.json"
 
-JS_TYPE_TO_ANNOTATION_MAP = {
-    "string": "str",
-    "integer": "int",
-    "number": "float",
-    "boolean": "bool",
-    "array": "list",
-}
-
 JS_TYPE_TO_BUILTIN_MAP = {
     "string": "str",
     "integer": "int",
