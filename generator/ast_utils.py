@@ -21,3 +21,7 @@ def ast_from_str(expr: str):
 
 def ast_import_from(module: str, *names):
     return ast.ImportFrom(module, [ast.alias(name=n) for n in names], level=0)
+
+
+def ast_call(callable: str, args: list[ast.AST]):
+    return ast.Call(ast.Name(callable), args, [])

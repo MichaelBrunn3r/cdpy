@@ -12,7 +12,8 @@ import astor
 import inflection
 import requests
 import typer
-from ast_utils import *
+
+from generator.ast_utils import *
 
 GENERATE_DIR = script_dir = Path(os.path.abspath(os.path.split(__file__)[0]))
 BROWSER_PROTOCOL_FILENAME_TEMPLATE = "browser_protocol-v{}.{}.json"
@@ -420,7 +421,7 @@ class CDPType:
                 if attr.optional:
                     arg = ast.Attribute(
                         ast.Name("json"),
-                        ast.Call(ast.Name("get"), [ast.Str(attr.name)], []),
+                        ast_call("get", [ast.Constant(attr.name)]),
                     )
                 else:
                     arg = attr_json_value
@@ -442,14 +443,13 @@ class CDPType:
                 target = ast.Name("x")
                 if attr.is_simple_type_reference_list or attr.is_enum_reference_list:
                     arg = ast.ListComp(
-                        ast.Call(ast.Name(items_type_name), [target], []),
+                        ast_call(items_type_name, [target]),
                         [ast.comprehension(target, attr_json_value, [])],
                     )
                 elif attr.is_complex_type_reference_list:
                     # print(f"{self.context.domain_name}.{self.id}.{attr.name}")
                     from_json_call = ast.Attribute(
-                        ast.Name(items_type_name),
-                        ast.Call(ast.Name("from_json"), [target], []),
+                        ast.Name(items_type_name), ast_call("from_json", [target])
                     )
                     arg = ast.ListComp(
                         from_json_call, [ast.comprehension(target, attr_json_value, [])]
@@ -471,13 +471,11 @@ class CDPType:
                     referenced_type_name = referenced_type.id
 
                 if attr.is_simple_type_reference or attr.is_enum_reference:
-                    arg = ast.Call(
-                        ast.Name(referenced_type_name), [attr_json_value], []
-                    )
+                    arg = ast_call(referenced_type_name, [attr_json_value])
                 elif attr.is_complex_type_reference:
                     arg = ast.Attribute(
                         ast.Name(referenced_type_name),
-                        ast.Call(ast.Name("from_json"), [attr_json_value], []),
+                        ast_call("from_json", [attr_json_value]),
                     )
                 else:
                     logger.warning(
@@ -498,7 +496,7 @@ class CDPType:
         return ast.FunctionDef(
             "from_json",
             ast_args([ast.arg("cls", None), ast.arg("json", ast.Name("dict"))]),
-            [ast.Return(ast.Call(ast.Name("cls"), cls_args, []))],
+            [ast.Return(ast_call("cls", cls_args))],
             [ast.Name("classmethod")],
             ast.Name(self.id),
         )
@@ -528,14 +526,14 @@ class CDPType:
             items_type_name = items_type.id
 
         items = ast.ListComp(
-            ast.Call(ast.Name(items_type_name), [ast.Name("x")], []),
+            ast_call(items_type_name, [ast.Name("x")]),
             [ast.comprehension(ast.Name("x"), ast.Name("json"), [])],
         )
 
         return ast.FunctionDef(
             "from_json",
             ast_args([ast.arg("cls", None), ast.arg("json", ast.Name("dict"))]),
-            [ast.Return(ast.Call(ast.Name("cls"), [items], []))],
+            [ast.Return(ast_call("cls", [items]))],
             [ast.Name("classmethod")],
             ast.Name(self.id),
         )
@@ -612,9 +610,7 @@ class CDPCommand:
         # Remove unset parameters from method dict.
         # Only if method has optional parameters.
         if len(self.parameters) > 0 and self.parameters[-1].optional:
-            method_dict = ast.Call(
-                ast.Name("filter_unset_parameters"), [method_dict], []
-            )
+            method_dict = ast_call("filter_unset_parameters", [method_dict])
 
         body.append(ast.Return(method_dict))
 
