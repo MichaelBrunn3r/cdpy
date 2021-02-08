@@ -284,7 +284,8 @@ class CDPType:
     context: ModuleContext
 
     @property
-    def is_simple(self):
+    def is_simple(self) -> bool:
+        """Predicate wether this type is a simple type, i.e. it inherits from a primitive type (e.g. int, string, ...)"""
         return (
             self.type != "object"
             and not self.attributes
@@ -293,22 +294,25 @@ class CDPType:
         )
 
     @property
-    def is_simple_list(self):
-        # TODO Quad, Rectangle, Item, PaintProfile
-        pass
+    def is_simple_list(self) -> bool:
+        """Predicate wether this type is a simple list, i.e. a list of primitive types (e.g. list[int], ...)"""
+        return self.items and self.items.type
 
     @property
-    def is_enum(self):
+    def is_enum(self) -> bool:
+        """Predicate wether this type is an enum"""
         return self.enum_values
 
     @property
-    def is_complex(self):
+    def is_complex(self) -> bool:
+        """Predicate wether this type is complex, i.e. it has attributes"""
         return self.attributes
 
     @property
-    def is_complex_list(self):
+    def is_complex_list(self) -> bool:
+        """Predicate wether this type is complex list, i.e. a list of"""
         # TODO ArrayOfStrings
-        pass
+        return False
 
     @classmethod
     def from_json(cls, type_: dict, context: ModuleContext):
