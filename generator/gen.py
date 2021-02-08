@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import ast
 import json
 import logging
@@ -42,7 +44,14 @@ logger = logging.getLogger(__name__)
 
 class GlobalContext:
     def __init__(self):
-        self.domains: dict[str:CDPDomain] = {}
+        self.domains: dict[str, CDPDomain] = {}
+
+    def get_type_by_ref(self, reference: str) -> CDPType | None:
+        domain_name, type_name = get_reference_parts(reference)
+        domain = self.domains[domain_name]
+        for type_ in domain.types:
+            if type_.id == type_name:
+                return type_
 
 
 class ModuleContext:
@@ -57,6 +66,13 @@ class ModuleContext:
     def require_domain_module(self, module_name: str):
         """Signals the context that a module needs to be imported"""
         self.required_domain_modules.add(module_name)
+
+    def get_type_by_ref(self, reference: str) -> CDPType | None:
+        domain_name, type_name = get_reference_parts(reference)
+        if not domain_name:
+            domain_name = self.domain_name
+
+        return self.global_context.get_type_by_ref(domain_name + "." + type_name)
 
 
 def domain_to_module_name(domain: str):
@@ -528,18 +544,21 @@ def generate(version: str):
 
     logger.info(f"Generating protocol version {major}.{minor}")
 
+    # Parse domains
     protocol = load_protocol(major, minor)
     global_context = GlobalContext()
 
-    # Create domain modules
-    output_dir = Path(GENERATE_DIR.parent, "cdpy")
     for domain_json in protocol["domains"]:
         domain_name = domain_json["domain"]
         module_context = ModuleContext(
             domain_to_module_name(domain_name), domain_name, global_context
         )
-        domain = CDPDomain.from_json(domain_json, module_context)
+        CDPDomain.from_json(domain_json, module_context)
 
+    # Create domain modules
+    output_dir = Path(GENERATE_DIR.parent, "cdpy")
+
+    for domain in global_context.domains.values():
         output_path = Path(output_dir, domain.context.module_name + ".py")
         with output_path.open("w") as f:
             f.write(astor.to_source(domain.to_ast()))
