@@ -354,9 +354,19 @@ class CDPType:
         )
         body.append(repr)
 
+        base = javascript_type_to_ast(self.type)
+
+        if self.items:
+            if self.items.type:
+                items_type = javascript_type_to_ast(self.items.type)
+            else:
+                items_type = javascript_type_to_ast(self.items.ref)
+
+            base = ast.Subscript(base, javascript_type_to_ast(items_type))
+
         return ast.ClassDef(
             self.id,
-            [javascript_type_to_ast(self.type)],
+            [base],
             body=body,
             decorator_list=[],
         )
