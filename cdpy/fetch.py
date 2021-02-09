@@ -57,8 +57,8 @@ class RequestPattern:
         return filter_none(
             {
                 "urlPattern": self.urlPattern,
-                "resourceType": str(self.resourceType) if self.resourceType else None,
-                "requestStage": str(self.requestStage) if self.requestStage else None,
+                "resourceType": self.resourceType.value if self.resourceType else None,
+                "requestStage": self.requestStage.value if self.requestStage else None,
             }
         )
 

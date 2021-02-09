@@ -150,8 +150,8 @@ class BaseAudioContext:
         return filter_none(
             {
                 "contextId": str(self.contextId),
-                "contextType": str(self.contextType),
-                "contextState": str(self.contextState),
+                "contextType": self.contextType.value,
+                "contextState": self.contextState.value,
                 "callbackBufferSize": self.callbackBufferSize,
                 "maxOutputChannelCount": self.maxOutputChannelCount,
                 "sampleRate": self.sampleRate,
@@ -229,8 +229,8 @@ class AudioNode:
             "numberOfInputs": self.numberOfInputs,
             "numberOfOutputs": self.numberOfOutputs,
             "channelCount": self.channelCount,
-            "channelCountMode": str(self.channelCountMode),
-            "channelInterpretation": str(self.channelInterpretation),
+            "channelCountMode": self.channelCountMode.value,
+            "channelInterpretation": self.channelInterpretation.value,
         }
 
 
@@ -278,7 +278,7 @@ class AudioParam:
             "nodeId": str(self.nodeId),
             "contextId": str(self.contextId),
             "paramType": str(self.paramType),
-            "rate": str(self.rate),
+            "rate": self.rate.value,
             "defaultValue": self.defaultValue,
             "minValue": self.minValue,
             "maxValue": self.maxValue,

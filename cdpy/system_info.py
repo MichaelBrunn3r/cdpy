@@ -216,10 +216,10 @@ class ImageDecodeAcceleratorCapability:
 
     def to_json(self) -> dict:
         return {
-            "imageType": str(self.imageType),
+            "imageType": self.imageType.value,
             "maxDimensions": self.maxDimensions.to_json(),
             "minDimensions": self.minDimensions.to_json(),
-            "subsamplings": [str(s) for s in self.subsamplings],
+            "subsamplings": [s.value for s in self.subsamplings],
         }
 
 

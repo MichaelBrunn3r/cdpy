@@ -166,7 +166,11 @@ class CDPPropertyCategory(enum.Enum):
 
     @property
     def unparse_with_base_type(self):
-        return self.parse_with_constructor
+        return self in (self.SIMPLE, self.SIMPLE_LIST)
+
+    @property
+    def unparse_with_attribute_value(self):
+        return self in (self.ENUM, self.ENUM_LIST)
 
     def from_cdp_type(type: CDPType, is_list: bool):
         """Returns a category according to a properties type"""
@@ -512,6 +516,9 @@ class CDPType:
                         ast.Attribute(ast.Name(var_name), "to_json"), []
                     )
                     json_val = ast_list_comp(to_json_call, var_name, attr_value)
+                elif category.unparse_with_attribute_value:
+                    value_attr = ast.Attribute(ast.Name(var_name), "value")
+                    json_val = ast_list_comp(value_attr, var_name, attr_value)
                 else:
                     raise Exception(
                         f"Can't convert attribute to json: {self.context.domain_name}.{self.id}.{attr.name}"
@@ -524,6 +531,8 @@ class CDPType:
                     json_val = ast_call(ast.Name(base_type), [attr_value])
                 elif category.unparse_with_to_json:
                     json_val = ast_call(ast.Attribute(attr_value, "to_json"), [])
+                elif category.unparse_with_attribute_value:
+                    json_val = ast.Attribute(attr_value, "value")
                 else:
                     raise Exception(
                         f"Can't convert attribute to json: {self.context.domain_name}.{self.id}.{attr.name}"

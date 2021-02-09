@@ -79,7 +79,7 @@ class DataEntry:
             "responseTime": self.responseTime,
             "responseStatus": self.responseStatus,
             "responseStatusText": self.responseStatusText,
-            "responseType": str(self.responseType),
+            "responseType": self.responseType.value,
             "responseHeaders": [r.to_json() for r in self.responseHeaders],
         }
 

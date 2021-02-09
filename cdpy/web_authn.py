@@ -88,9 +88,9 @@ class VirtualAuthenticatorOptions:
     def to_json(self) -> dict:
         return filter_none(
             {
-                "protocol": str(self.protocol),
-                "transport": str(self.transport),
-                "ctap2Version": str(self.ctap2Version) if self.ctap2Version else None,
+                "protocol": self.protocol.value,
+                "transport": self.transport.value,
+                "ctap2Version": self.ctap2Version.value if self.ctap2Version else None,
                 "hasResidentKey": self.hasResidentKey,
                 "hasUserVerification": self.hasUserVerification,
                 "hasLargeBlob": self.hasLargeBlob,

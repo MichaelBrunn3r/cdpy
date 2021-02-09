@@ -44,7 +44,7 @@ class UsageForType:
         return cls(StorageType(json["storageType"]), json["usage"])
 
     def to_json(self) -> dict:
-        return {"storageType": str(self.storageType), "usage": self.usage}
+        return {"storageType": self.storageType.value, "usage": self.usage}
 
 
 @dataclasses.dataclass

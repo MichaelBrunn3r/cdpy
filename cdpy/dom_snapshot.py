@@ -169,8 +169,8 @@ class DOMNode:
                 "systemId": self.systemId,
                 "frameId": str(self.frameId) if self.frameId else None,
                 "contentDocumentIndex": self.contentDocumentIndex,
-                "pseudoType": str(self.pseudoType) if self.pseudoType else None,
-                "shadowRootType": str(self.shadowRootType)
+                "pseudoType": self.pseudoType.value if self.pseudoType else None,
+                "shadowRootType": self.shadowRootType.value
                 if self.shadowRootType
                 else None,
                 "isClickable": self.isClickable,

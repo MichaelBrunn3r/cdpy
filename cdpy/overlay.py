@@ -527,7 +527,7 @@ class HighlightConfig:
                 "cssGridColor": self.cssGridColor.to_json()
                 if self.cssGridColor
                 else None,
-                "colorFormat": str(self.colorFormat) if self.colorFormat else None,
+                "colorFormat": self.colorFormat.value if self.colorFormat else None,
                 "gridHighlightConfig": self.gridHighlightConfig.to_json()
                 if self.gridHighlightConfig
                 else None,
@@ -537,7 +537,7 @@ class HighlightConfig:
                 "flexItemHighlightConfig": self.flexItemHighlightConfig.to_json()
                 if self.flexItemHighlightConfig
                 else None,
-                "contrastAlgorithm": str(self.contrastAlgorithm)
+                "contrastAlgorithm": self.contrastAlgorithm.value
                 if self.contrastAlgorithm
                 else None,
             }

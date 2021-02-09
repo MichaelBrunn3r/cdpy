@@ -121,14 +121,14 @@ class AXValueSource:
     def to_json(self) -> dict:
         return filter_none(
             {
-                "type": str(self.type),
+                "type": self.type.value,
                 "value": self.value.to_json() if self.value else None,
                 "attribute": self.attribute,
                 "attributeValue": self.attributeValue.to_json()
                 if self.attributeValue
                 else None,
                 "superseded": self.superseded,
-                "nativeSource": str(self.nativeSource) if self.nativeSource else None,
+                "nativeSource": self.nativeSource.value if self.nativeSource else None,
                 "nativeSourceValue": self.nativeSourceValue.to_json()
                 if self.nativeSourceValue
                 else None,
@@ -192,7 +192,7 @@ class AXProperty:
         return cls(AXPropertyName(json["name"]), AXValue.from_json(json["value"]))
 
     def to_json(self) -> dict:
-        return {"name": str(self.name), "value": self.value.to_json()}
+        return {"name": self.name.value, "value": self.value.to_json()}
 
 
 @dataclasses.dataclass
@@ -232,7 +232,7 @@ class AXValue:
     def to_json(self) -> dict:
         return filter_none(
             {
-                "type": str(self.type),
+                "type": self.type.value,
                 "value": self.value,
                 "relatedNodes": [r.to_json() for r in self.relatedNodes]
                 if self.relatedNodes

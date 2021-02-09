@@ -87,7 +87,7 @@ class BackgroundServiceEvent:
             "timestamp": float(self.timestamp),
             "origin": self.origin,
             "serviceWorkerRegistrationId": str(self.serviceWorkerRegistrationId),
-            "service": str(self.service),
+            "service": self.service.value,
             "eventName": self.eventName,
             "instanceId": self.instanceId,
             "eventMetadata": [e.to_json() for e in self.eventMetadata],

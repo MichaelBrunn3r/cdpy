@@ -339,7 +339,7 @@ class Request:
                 "url": self.url,
                 "method": self.method,
                 "headers": dict(self.headers),
-                "initialPriority": str(self.initialPriority),
+                "initialPriority": self.initialPriority.value,
                 "referrerPolicy": self.referrerPolicy,
                 "urlFragment": self.urlFragment,
                 "postData": self.postData,
@@ -347,7 +347,7 @@ class Request:
                 "postDataEntries": [p.to_json() for p in self.postDataEntries]
                 if self.postDataEntries
                 else None,
-                "mixedContentType": str(self.mixedContentType)
+                "mixedContentType": self.mixedContentType.value
                 if self.mixedContentType
                 else None,
                 "isLinkPreload": self.isLinkPreload,
@@ -503,9 +503,7 @@ class SecurityDetails:
                 "signedCertificateTimestampList": [
                     s.to_json() for s in self.signedCertificateTimestampList
                 ],
-                "certificateTransparencyCompliance": str(
-                    self.certificateTransparencyCompliance
-                ),
+                "certificateTransparencyCompliance": self.certificateTransparencyCompliance.value,
                 "keyExchangeGroup": self.keyExchangeGroup,
                 "mac": self.mac,
             }
@@ -590,7 +588,7 @@ class CorsErrorStatus:
 
     def to_json(self) -> dict:
         return {
-            "corsError": str(self.corsError),
+            "corsError": self.corsError.value,
             "failedParameter": self.failedParameter,
         }
 
@@ -636,7 +634,7 @@ class TrustTokenParams:
     def to_json(self) -> dict:
         return filter_none(
             {
-                "type": str(self.type),
+                "type": self.type.value,
                 "refreshPolicy": self.refreshPolicy,
                 "issuers": self.issuers,
             }
@@ -772,7 +770,7 @@ class Response:
                 "connectionReused": self.connectionReused,
                 "connectionId": self.connectionId,
                 "encodedDataLength": self.encodedDataLength,
-                "securityState": str(self.securityState),
+                "securityState": self.securityState.value,
                 "headersText": self.headersText,
                 "requestHeaders": dict(self.requestHeaders)
                 if self.requestHeaders
@@ -784,7 +782,7 @@ class Response:
                 "fromServiceWorker": self.fromServiceWorker,
                 "fromPrefetchCache": self.fromPrefetchCache,
                 "timing": self.timing.to_json() if self.timing else None,
-                "serviceWorkerResponseSource": str(self.serviceWorkerResponseSource)
+                "serviceWorkerResponseSource": self.serviceWorkerResponseSource.value
                 if self.serviceWorkerResponseSource
                 else None,
                 "responseTime": float(self.responseTime) if self.responseTime else None,
@@ -936,7 +934,7 @@ class CachedResource:
         return filter_none(
             {
                 "url": self.url,
-                "type": str(self.type),
+                "type": self.type.value,
                 "bodySize": self.bodySize,
                 "response": self.response.to_json() if self.response else None,
             }
@@ -1070,9 +1068,9 @@ class Cookie:
                 "httpOnly": self.httpOnly,
                 "secure": self.secure,
                 "session": self.session,
-                "priority": str(self.priority),
+                "priority": self.priority.value,
                 "sameParty": self.sameParty,
-                "sameSite": str(self.sameSite) if self.sameSite else None,
+                "sameSite": self.sameSite.value if self.sameSite else None,
             }
         )
 
@@ -1153,7 +1151,7 @@ class BlockedSetCookieWithReason:
     def to_json(self) -> dict:
         return filter_none(
             {
-                "blockedReasons": [str(b) for b in self.blockedReasons],
+                "blockedReasons": [b.value for b in self.blockedReasons],
                 "cookieLine": self.cookieLine,
                 "cookie": self.cookie.to_json() if self.cookie else None,
             }
@@ -1184,7 +1182,7 @@ class BlockedCookieWithReason:
 
     def to_json(self) -> dict:
         return {
-            "blockedReasons": [str(b) for b in self.blockedReasons],
+            "blockedReasons": [b.value for b in self.blockedReasons],
             "cookie": self.cookie.to_json(),
         }
 
@@ -1254,9 +1252,9 @@ class CookieParam:
                 "path": self.path,
                 "secure": self.secure,
                 "httpOnly": self.httpOnly,
-                "sameSite": str(self.sameSite) if self.sameSite else None,
+                "sameSite": self.sameSite.value if self.sameSite else None,
                 "expires": float(self.expires) if self.expires else None,
-                "priority": str(self.priority) if self.priority else None,
+                "priority": self.priority.value if self.priority else None,
             }
         )
 
@@ -1375,8 +1373,8 @@ class RequestPattern:
         return filter_none(
             {
                 "urlPattern": self.urlPattern,
-                "resourceType": str(self.resourceType) if self.resourceType else None,
-                "interceptionStage": str(self.interceptionStage)
+                "resourceType": self.resourceType.value if self.resourceType else None,
+                "interceptionStage": self.interceptionStage.value
                 if self.interceptionStage
                 else None,
             }
@@ -1539,7 +1537,7 @@ class SignedExchangeError:
             {
                 "message": self.message,
                 "signatureIndex": self.signatureIndex,
-                "errorField": str(self.errorField) if self.errorField else None,
+                "errorField": self.errorField.value if self.errorField else None,
             }
         )
 
@@ -1634,8 +1632,8 @@ class ClientSecurityState:
     def to_json(self) -> dict:
         return {
             "initiatorIsSecureContext": self.initiatorIsSecureContext,
-            "initiatorIPAddressSpace": str(self.initiatorIPAddressSpace),
-            "privateNetworkRequestPolicy": str(self.privateNetworkRequestPolicy),
+            "initiatorIPAddressSpace": self.initiatorIPAddressSpace.value,
+            "privateNetworkRequestPolicy": self.privateNetworkRequestPolicy.value,
         }
 
 
@@ -1676,8 +1674,8 @@ class CrossOriginOpenerPolicyStatus:
     def to_json(self) -> dict:
         return filter_none(
             {
-                "value": str(self.value),
-                "reportOnlyValue": str(self.reportOnlyValue),
+                "value": self.value.value,
+                "reportOnlyValue": self.reportOnlyValue.value,
                 "reportingEndpoint": self.reportingEndpoint,
                 "reportOnlyReportingEndpoint": self.reportOnlyReportingEndpoint,
             }
@@ -1719,8 +1717,8 @@ class CrossOriginEmbedderPolicyStatus:
     def to_json(self) -> dict:
         return filter_none(
             {
-                "value": str(self.value),
-                "reportOnlyValue": str(self.reportOnlyValue),
+                "value": self.value.value,
+                "reportOnlyValue": self.reportOnlyValue.value,
                 "reportingEndpoint": self.reportingEndpoint,
                 "reportOnlyReportingEndpoint": self.reportOnlyReportingEndpoint,
             }

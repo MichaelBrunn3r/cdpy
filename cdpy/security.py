@@ -174,7 +174,7 @@ class SafetyTipInfo:
 
     def to_json(self) -> dict:
         return filter_none(
-            {"safetyTipStatus": str(self.safetyTipStatus), "safeUrl": self.safeUrl}
+            {"safetyTipStatus": self.safetyTipStatus.value, "safeUrl": self.safeUrl}
         )
 
 
@@ -215,7 +215,7 @@ class VisibleSecurityState:
     def to_json(self) -> dict:
         return filter_none(
             {
-                "securityState": str(self.securityState),
+                "securityState": self.securityState.value,
                 "securityStateIssueIds": self.securityStateIssueIds,
                 "certificateSecurityState": self.certificateSecurityState.to_json()
                 if self.certificateSecurityState
@@ -272,11 +272,11 @@ class SecurityStateExplanation:
     def to_json(self) -> dict:
         return filter_none(
             {
-                "securityState": str(self.securityState),
+                "securityState": self.securityState.value,
                 "title": self.title,
                 "summary": self.summary,
                 "description": self.description,
-                "mixedContentType": str(self.mixedContentType),
+                "mixedContentType": self.mixedContentType.value,
                 "certificate": self.certificate,
                 "recommendations": self.recommendations,
             }
@@ -332,8 +332,8 @@ class InsecureContentStatus:
             "containedMixedForm": self.containedMixedForm,
             "ranContentWithCertErrors": self.ranContentWithCertErrors,
             "displayedContentWithCertErrors": self.displayedContentWithCertErrors,
-            "ranInsecureContentStyle": str(self.ranInsecureContentStyle),
-            "displayedInsecureContentStyle": str(self.displayedInsecureContentStyle),
+            "ranInsecureContentStyle": self.ranInsecureContentStyle.value,
+            "displayedInsecureContentStyle": self.displayedInsecureContentStyle.value,
         }
 
 

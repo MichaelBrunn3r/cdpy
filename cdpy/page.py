@@ -131,16 +131,14 @@ class Frame:
                 "domainAndRegistry": self.domainAndRegistry,
                 "securityOrigin": self.securityOrigin,
                 "mimeType": self.mimeType,
-                "secureContextType": str(self.secureContextType),
-                "crossOriginIsolatedContextType": str(
-                    self.crossOriginIsolatedContextType
-                ),
-                "gatedAPIFeatures": [str(g) for g in self.gatedAPIFeatures],
+                "secureContextType": self.secureContextType.value,
+                "crossOriginIsolatedContextType": self.crossOriginIsolatedContextType.value,
+                "gatedAPIFeatures": [g.value for g in self.gatedAPIFeatures],
                 "parentId": self.parentId,
                 "name": self.name,
                 "urlFragment": self.urlFragment,
                 "unreachableUrl": self.unreachableUrl,
-                "adFrameType": str(self.adFrameType) if self.adFrameType else None,
+                "adFrameType": self.adFrameType.value if self.adFrameType else None,
             }
         )
 
@@ -193,7 +191,7 @@ class FrameResource:
         return filter_none(
             {
                 "url": self.url,
-                "type": str(self.type),
+                "type": self.type.value,
                 "mimeType": self.mimeType,
                 "lastModified": float(self.lastModified) if self.lastModified else None,
                 "contentSize": self.contentSize,
@@ -343,7 +341,7 @@ class NavigationEntry:
             "url": self.url,
             "userTypedURL": self.userTypedURL,
             "title": self.title,
-            "transitionType": str(self.transitionType),
+            "transitionType": self.transitionType.value,
         }
 
 

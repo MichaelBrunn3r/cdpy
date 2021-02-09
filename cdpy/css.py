@@ -51,7 +51,7 @@ class PseudoElementMatches:
 
     def to_json(self) -> dict:
         return {
-            "pseudoType": str(self.pseudoType),
+            "pseudoType": self.pseudoType.value,
             "matches": [m.to_json() for m in self.matches],
         }
 
@@ -256,7 +256,7 @@ class CSSStyleSheetHeader:
                 "styleSheetId": str(self.styleSheetId),
                 "frameId": str(self.frameId),
                 "sourceURL": self.sourceURL,
-                "origin": str(self.origin),
+                "origin": self.origin.value,
                 "title": self.title,
                 "disabled": self.disabled,
                 "isInline": self.isInline,
@@ -314,7 +314,7 @@ class CSSRule:
         return filter_none(
             {
                 "selectorList": self.selectorList.to_json(),
-                "origin": str(self.origin),
+                "origin": self.origin.value,
                 "style": self.style.to_json(),
                 "styleSheetId": str(self.styleSheetId) if self.styleSheetId else None,
                 "media": [m.to_json() for m in self.media] if self.media else None,
@@ -897,7 +897,7 @@ class CSSKeyframeRule:
     def to_json(self) -> dict:
         return filter_none(
             {
-                "origin": str(self.origin),
+                "origin": self.origin.value,
                 "keyText": self.keyText.to_json(),
                 "style": self.style.to_json(),
                 "styleSheetId": str(self.styleSheetId) if self.styleSheetId else None,

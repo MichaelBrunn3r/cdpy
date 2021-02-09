@@ -255,8 +255,8 @@ class Node:
                 "xmlVersion": self.xmlVersion,
                 "name": self.name,
                 "value": self.value,
-                "pseudoType": str(self.pseudoType) if self.pseudoType else None,
-                "shadowRootType": str(self.shadowRootType)
+                "pseudoType": self.pseudoType.value if self.pseudoType else None,
+                "shadowRootType": self.shadowRootType.value
                 if self.shadowRootType
                 else None,
                 "frameId": str(self.frameId) if self.frameId else None,

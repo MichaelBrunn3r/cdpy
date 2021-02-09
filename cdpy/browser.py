@@ -72,7 +72,7 @@ class Bounds:
                 "top": self.top,
                 "width": self.width,
                 "height": self.height,
-                "windowState": str(self.windowState) if self.windowState else None,
+                "windowState": self.windowState.value if self.windowState else None,
             }
         )
 

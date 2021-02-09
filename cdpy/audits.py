@@ -153,9 +153,11 @@ class SameSiteCookieIssueDetails:
         return filter_none(
             {
                 "cookie": self.cookie.to_json(),
-                "cookieWarningReasons": [str(c) for c in self.cookieWarningReasons],
-                "cookieExclusionReasons": [str(c) for c in self.cookieExclusionReasons],
-                "operation": str(self.operation),
+                "cookieWarningReasons": [c.value for c in self.cookieWarningReasons],
+                "cookieExclusionReasons": [
+                    c.value for c in self.cookieExclusionReasons
+                ],
+                "operation": self.operation.value,
                 "siteForCookies": self.siteForCookies,
                 "cookieUrl": self.cookieUrl,
                 "request": self.request.to_json() if self.request else None,
@@ -248,10 +250,10 @@ class MixedContentIssueDetails:
     def to_json(self) -> dict:
         return filter_none(
             {
-                "resolutionStatus": str(self.resolutionStatus),
+                "resolutionStatus": self.resolutionStatus.value,
                 "insecureURL": self.insecureURL,
                 "mainResourceURL": self.mainResourceURL,
-                "resourceType": str(self.resourceType) if self.resourceType else None,
+                "resourceType": self.resourceType.value if self.resourceType else None,
                 "request": self.request.to_json() if self.request else None,
                 "frame": self.frame.to_json() if self.frame else None,
             }
@@ -310,7 +312,7 @@ class BlockedByResponseIssueDetails:
         return filter_none(
             {
                 "request": self.request.to_json(),
-                "reason": str(self.reason),
+                "reason": self.reason.value,
                 "parentFrame": self.parentFrame.to_json() if self.parentFrame else None,
                 "blockedFrame": self.blockedFrame.to_json()
                 if self.blockedFrame
@@ -361,8 +363,8 @@ class HeavyAdIssueDetails:
 
     def to_json(self) -> dict:
         return {
-            "resolution": str(self.resolution),
-            "reason": str(self.reason),
+            "resolution": self.resolution.value,
+            "reason": self.reason.value,
             "frame": self.frame.to_json(),
         }
 
@@ -462,9 +464,7 @@ class ContentSecurityPolicyIssueDetails:
             {
                 "violatedDirective": self.violatedDirective,
                 "isReportOnly": self.isReportOnly,
-                "contentSecurityPolicyViolationType": str(
-                    self.contentSecurityPolicyViolationType
-                ),
+                "contentSecurityPolicyViolationType": self.contentSecurityPolicyViolationType.value,
                 "blockedURL": self.blockedURL,
                 "frameAncestor": self.frameAncestor.to_json()
                 if self.frameAncestor
@@ -515,7 +515,7 @@ class SharedArrayBufferIssueDetails:
         return {
             "sourceCodeLocation": self.sourceCodeLocation.to_json(),
             "isWarning": self.isWarning,
-            "type": str(self.type),
+            "type": self.type.value,
         }
 
 
@@ -564,7 +564,7 @@ class TrustedWebActivityIssueDetails:
         return filter_none(
             {
                 "url": self.url,
-                "violationType": str(self.violationType),
+                "violationType": self.violationType.value,
                 "httpStatusCode": self.httpStatusCode,
                 "packageName": self.packageName,
                 "signature": self.signature,
@@ -752,7 +752,7 @@ class InspectorIssue:
         )
 
     def to_json(self) -> dict:
-        return {"code": str(self.code), "details": self.details.to_json()}
+        return {"code": self.code.value, "details": self.details.to_json()}
 
 
 def get_encoded_response(

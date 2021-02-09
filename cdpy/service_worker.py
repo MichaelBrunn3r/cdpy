@@ -116,8 +116,8 @@ class ServiceWorkerVersion:
                 "versionId": self.versionId,
                 "registrationId": str(self.registrationId),
                 "scriptURL": self.scriptURL,
-                "runningStatus": str(self.runningStatus),
-                "status": str(self.status),
+                "runningStatus": self.runningStatus.value,
+                "status": self.status.value,
                 "scriptLastModified": self.scriptLastModified,
                 "scriptResponseTime": self.scriptResponseTime,
                 "controlledClients": [str(c) for c in self.controlledClients]
