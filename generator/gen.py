@@ -717,7 +717,10 @@ def load_protocol(major: int, minor: int):
 
 
 @app.command()
-def generate(version: str):
+def generate(
+    version: str,
+    dry: bool = typer.Option(False, help="Do a dry run, don't generate anything"),
+):
     # Parse version parameter
     version = version.replace("v", "")
     major, minor = version.split(".")
@@ -742,8 +745,11 @@ def generate(version: str):
 
     for domain in global_context.domains.values():
         output_path = Path(output_dir, domain.context.module_name + ".py")
-        with output_path.open("w") as f:
-            f.write(ast.unparse(domain.to_ast()))
+
+        code = ast.unparse(domain.to_ast())
+        if not dry:
+            with output_path.open("w") as f:
+                f.write(code)
 
 
 @app.command()
