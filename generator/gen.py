@@ -171,12 +171,9 @@ class CDPProperty:
     deprecated: bool
     context: ModuleContext
 
-    def __post_init__(self):
-        self._category = None
-
     @property
     def category(self):
-        if not self._category:
+        if not hasattr(self, "_category"):
             if self.items:
                 # Property is a list
                 if self.items.type:
@@ -185,13 +182,22 @@ class CDPProperty:
                 else:
                     # Property is a list of cdp types
                     items_type = self.context.get_type_by_ref(self.items.ref)
-                    if items_type.is_simple or items_type.is_simple_list:
+                    if items_type.category in [
+                        CDPTypeCategory.SIMPLE,
+                        CDPTypeCategory.SIMPLE_LIST,
+                    ]:
                         # Items are simple or simple lists
                         self._category = CDPPropertyCategory.SIMPLE_TYPE_REFERENCE_LIST
-                    elif self.context.get_type_by_ref(self.items.ref).is_enum:
+                    elif (
+                        self.context.get_type_by_ref(self.items.ref).category
+                        == CDPTypeCategory.ENUM
+                    ):
                         # Items are cdp enum types
                         self._category = CDPPropertyCategory.ENUM_REFERENCE_LIST
-                    elif items_type.is_complex or items_type.is_complex_list:
+                    elif items_type.category in [
+                        CDPTypeCategory.COMPLEX,
+                        CDPTypeCategory.COMPLEX_LIST,
+                    ]:
                         # Items are complex cdp types (i.e. have attributes) or lists of complex cdp types
                         self._category = CDPPropertyCategory.COMPLEX_TYPE_REFERENCE_LIST
                     else:
@@ -200,13 +206,22 @@ class CDPProperty:
                 self._category = CDPPropertyCategory.ENUM
             elif self.ref:
                 ref_type = self.context.get_type_by_ref(self.ref)
-                if ref_type.is_simple or ref_type.is_simple_list:
+                if ref_type.category in [
+                    CDPTypeCategory.SIMPLE,
+                    CDPTypeCategory.SIMPLE_LIST,
+                ]:
                     # Property is a simple cdp type (i.e. inherits from a primitive/builtin)
                     self._category = CDPPropertyCategory.SIMPLE_TYPE_REFERENCE
-                elif self.context.get_type_by_ref(self.ref).is_enum:
+                elif (
+                    self.context.get_type_by_ref(self.ref).category
+                    == CDPTypeCategory.ENUM
+                ):
                     # Property is a cdp enum type
                     self._category = CDPPropertyCategory.ENUM_REFERENCE
-                elif self.context.get_type_by_ref(self.ref).is_complex:
+                elif (
+                    self.context.get_type_by_ref(self.ref).category
+                    == CDPTypeCategory.COMPLEX
+                ):
                     # Property is a complex cdp type (i.e. type has attributes)
                     self._category = CDPPropertyCategory.COMPLEX_TYPE_REFERENCE
                 else:
@@ -289,6 +304,14 @@ class CDPAttribute(CDPProperty):
         )
 
 
+class CDPTypeCategory(enum.Enum):
+    SIMPLE = 0
+    SIMPLE_LIST = 1
+    ENUM = 2
+    COMPLEX = 3
+    COMPLEX_LIST = 4
+
+
 @dataclass
 class CDPType:
     id: str
@@ -300,36 +323,21 @@ class CDPType:
     context: ModuleContext
 
     @property
-    def is_simple(self) -> bool:
-        """Predicate wether this type is a simple type, i.e. it inherits from a primitive type (e.g. int, string, dict, ...)"""
-        return not self.attributes and not self.items and not self.enum_values
+    def category(self) -> CDPTypeCategory:
+        if not hasattr(self, "_category"):
+            if self.items:
+                if self.items.type:
+                    self._category = CDPTypeCategory.SIMPLE_LIST
+                else:
+                    self._category = CDPTypeCategory.COMPLEX_LIST
+            elif self.enum_values:
+                self._category = CDPTypeCategory.ENUM
+            elif self.attributes:
+                self._category = CDPTypeCategory.COMPLEX
+            else:
+                self._category = CDPTypeCategory.SIMPLE
 
-    @property
-    def is_simple_list(self) -> bool:
-        """Predicate wether this type is a simple list, i.e. a list of primitives (e.g. list[int])"""
-        return self.items and self.items.type
-
-    @property
-    def is_enum(self) -> bool:
-        """Predicate wether this type is an enum"""
-        return self.enum_values
-
-    @property
-    def is_complex(self) -> bool:
-        """Predicate wether this type is complex, i.e. it has attributes"""
-        return self.attributes
-
-    @property
-    def is_complex_list(self) -> bool:
-        """Predicate wether this type is complex list, i.e. a list of complex or simple types (e.g. class CompList(list[simple]))"""
-        if not self.items:
-            return False
-
-        if self.items.type:
-            return False
-        else:
-            items_type = self.context.get_type_by_ref(self.items.ref)
-            return items_type.is_complex or items_type.is_simple
+        return self._category
 
     def create_reference(self, from_context: ModuleContext):
         """Create a reference to this type from a context"""
@@ -359,14 +367,14 @@ class CDPType:
         )
 
     def to_ast(self):
-        if self.is_simple or self.is_simple_list:
+        if self.category in [CDPTypeCategory.SIMPLE, CDPTypeCategory.SIMPLE_LIST]:
             return self.create_simple_ast()
-        elif self.is_enum:
+        elif self.category == CDPTypeCategory.ENUM:
             self.context.require("enum", None)
             return self.create_enum_ast()
-        elif self.is_complex:
+        elif self.category == CDPTypeCategory.COMPLEX:
             return self.create_complex_ast()
-        elif self.is_complex_list:
+        elif self.category == CDPTypeCategory.COMPLEX_LIST:
             return self.create_complex_list_ast()
         else:
             raise Exception(
