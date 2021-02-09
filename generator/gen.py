@@ -82,22 +82,28 @@ def snake_case(string: str):
     return inflection.underscore(string)
 
 
-def javascript_type_to_ast(type: str) -> ast.Name:
-    """Converts a javascript type to a python type ast node"""
-    return ast.Name(JS_TYPE_TO_BUILTIN_MAP.get(type, type))
-
-
-def domain_type_reference_to_ast(ref: str, context: ModuleContext):
-    """Converts a reference to a domain type to a python type reference ast node"""
-    referenced_domain, referenced_type = get_reference_parts(ref)
-
-    if not referenced_domain or referenced_domain == context.domain_name:
-        # References type in current domain -> module can be omitted
-        return ast.Name(referenced_type)
+def create_type_annotation(
+    type, ref, items: CDPItems, optional, context: ModuleContext
+):
+    if items:
+        annot = f"list[{create_type_annotation(items.type, items.ref, None, False, context)}]"
+    elif type:
+        annot = JS_TYPE_TO_BUILTIN_MAP.get(type, type)
     else:
-        referenced_module = domain_to_module_name(referenced_domain)
-        context.require(".", referenced_module)
-        return ast.Name(referenced_module + "." + referenced_type)
+        referenced_domain, referenced_type = get_reference_parts(ref)
+
+        if not referenced_domain or referenced_domain == context.domain_name:
+            # References type in current domain -> module can be omitted
+            annot = referenced_type
+        else:
+            referenced_module = domain_to_module_name(referenced_domain)
+            context.require(".", referenced_module)
+            annot = f"{referenced_module}.{referenced_type}"
+
+    if optional:
+        annot = f"Optional[{annot}]"
+
+    return annot
 
 
 def get_reference_parts(reference: str) -> tuple[Optional[str], str]:
@@ -116,11 +122,8 @@ class CDPItems:
     def from_json(cls, item: dict, context: ModuleContext):
         return cls(item.get("type"), item.get("$ref"), context)
 
-    def to_ast(self):
-        if self.type:
-            return javascript_type_to_ast(self.type)
-        else:
-            return domain_type_reference_to_ast(self.ref, self.context)
+    def create_type_annotation(self):
+        return create_type_annotation(self.type, self.type, None, False, self.context)
 
 
 @dataclass
@@ -232,11 +235,10 @@ class CDPProperty:
         )
 
     def to_ast(self):
-        annotation = self.create_type_annotation()
-        if self.optional:
-            annotation = ast.Subscript(ast.Name("Optional"), ast.Index(annotation))
-
-        return ast.arg(self.name, annotation)
+        annotation = create_type_annotation(
+            self.type, self.ref, self.items, self.optional, self.context
+        )
+        return ast.arg(self.name, ast.Name(annotation))
 
     def to_docstring(self):
         lines = [
@@ -248,16 +250,6 @@ class CDPProperty:
         if self.description and not self.description.isspace():
             lines += map(lambda l: "\t" + l, self.description.split("\n"))
         return lines
-
-    def create_type_annotation(self):
-        if self.type:
-            type = javascript_type_to_ast(self.type)
-        else:
-            type = domain_type_reference_to_ast(self.ref, self.context)
-
-        if self.items:
-            type = ast.Subscript(type, ast.Index(self.items.to_ast()))
-        return type
 
 
 @dataclass
@@ -273,17 +265,15 @@ class CDPReturn(CDPProperty):
 @dataclass
 class CDPAttribute(CDPProperty):
     def to_ast(self):
-        attr = ast.AnnAssign(
-            ast.Name(self.name), self.create_type_annotation(), value=None, simple=1
+        annotation = create_type_annotation(
+            self.type, self.ref, self.items, self.optional, self.context
         )
-
-        if self.optional:
-            attr.annotation = ast.Subscript(
-                ast.Name("Optional"), ast.Index(attr.annotation)
-            )
-            attr.value = ast.Constant(None)
-
-        return attr
+        value = (
+            ast.Constant(None) if self.optional else None
+        )  # Default value if optional
+        return ast.AnnAssign(
+            ast.Name(self.name), ast.Name(annotation), value=value, simple=1
+        )
 
 
 @dataclass
@@ -365,12 +355,7 @@ class CDPType:
 
     def create_simple_ast(self):
         """Create the AST for a simple type or simple list type"""
-        base = javascript_type_to_ast(self.type)
-        if self.is_simple_list:
-            items_type = javascript_type_to_ast(
-                self.items.type if self.items.type else self.items.ref
-            )
-            base = ast.Subscript(base, items_type)
+        base = create_type_annotation(self.type, None, self.items, False, self.context)
 
         return ast_classdef(
             self.id,
@@ -487,9 +472,9 @@ class CDPType:
 
     def create_complex_list_ast(self):
         body = [self.create_docstring(), self.create_complex_list_from_json_function()]
-
-        items_type = domain_type_reference_to_ast(self.items.ref, self.context)
-        base = ast.Subscript(ast.Name("list"), items_type)
+        base = ast.Name(
+            create_type_annotation(self.type, None, self.items, False, self.context)
+        )
 
         return ast_classdef(self.id, body, [base])
 
