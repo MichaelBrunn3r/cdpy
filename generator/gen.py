@@ -331,6 +331,13 @@ class CDPType:
             items_type = self.context.get_type_by_ref(self.items.ref)
             return items_type.is_complex or items_type.is_simple
 
+    def create_reference(self, from_context: ModuleContext):
+        """Create a reference to this type from a context"""
+        if self.context != from_context:
+            return f"{self.context.module_name}.{self.id}"
+        else:
+            return self.id
+
     @classmethod
     def from_json(cls, json: dict, context: ModuleContext):
         items = json.get("items")
@@ -419,15 +426,9 @@ class CDPType:
                 else:
                     arg = attr_json_value
             elif attr.is_list_of_references:
-                items_type = self.context.get_type_by_ref(attr.items.ref)
-
-                # If the referenced type is from another module, add that module before the type name
-                if items_type.context.domain_name != self.context.domain_name:
-                    items_type_name = (
-                        items_type.context.module_name + "." + items_type.id
-                    )
-                else:
-                    items_type_name = items_type.id
+                items_type_name = self.context.get_type_by_ref(
+                    attr.items.ref
+                ).create_reference(self.context)
 
                 if category.parse_with_constructor:
                     arg = ast_list_comp(
@@ -440,15 +441,9 @@ class CDPType:
                     )
                     arg = ast_list_comp(from_json_call, "x", attr_json_value)
             else:
-                referenced_type = self.context.get_type_by_ref(attr.ref)
-
-                # If the referenced type is from another module, add that module before the type name
-                if referenced_type.context.domain_name != self.context.domain_name:
-                    referenced_type_name = (
-                        referenced_type.context.module_name + "." + referenced_type.id
-                    )
-                else:
-                    referenced_type_name = referenced_type.id
+                referenced_type_name = self.context.get_type_by_ref(
+                    attr.ref
+                ).create_reference(self.context)
 
                 if category.parse_with_constructor:
                     arg = ast_call(referenced_type_name, [attr_json_value])
