@@ -77,7 +77,7 @@ def snake_case(string: str):
     return inflection.underscore(string)
 
 
-def javascript_type_to_ast(type: str):
+def javascript_type_to_ast(type: str) -> ast.Name:
     """Converts a javascript type to a python type ast node"""
     return ast.Name(JS_TYPE_TO_BUILTIN_MAP.get(type, type))
 
@@ -193,11 +193,13 @@ class CDPProperty:
 
     @property
     def is_complex_type_reference_list(self):
-        """Checks if the property i a list of references to a complex type, i.e. a type that has attributes."""
-        return (
-            self.is_list_of_references
-            and self.context.get_type_by_ref(self.items.ref).is_complex
-        )
+        """Checks if the property is a list of references to a complex (list) type, i.e. a type that has attributes."""
+        if not self.is_list_of_references:
+            return False
+
+        items_type = self.context.get_type_by_ref(self.items.ref)
+
+        return items_type.is_complex or items_type.is_complex_list
 
     @property
     def is_list_of_references(self):
@@ -410,7 +412,9 @@ class CDPType:
                     arg = attr_json_value
             elif attr.is_enum:
                 # TODO case not handled
-                # logger.warn(f"1. Couldn't create argument: {self.context.domain_name}.{self.id}.{attr.name}")
+                logger.warning(
+                    f"Couldn't create enum argument: {self.context.domain_name}.{self.id}.{attr.name}"
+                )
                 continue
             elif attr.is_list_of_references:
                 items_type = self.context.get_type_by_ref(attr.items.ref)
@@ -435,7 +439,7 @@ class CDPType:
                     arg = ast_list_comp(from_json_call, "x", attr_json_value)
                 else:
                     logger.warning(
-                        f"2. Couldn't create argument: {self.context.domain_name}.{self.id}.{attr.name}, {attr.items.ref}"
+                        f"Couldn't create reference list argument: {self.context.domain_name}.{self.id}.{attr.name}, {attr.items.ref}"
                     )
                     continue
             else:
@@ -458,7 +462,7 @@ class CDPType:
                     )
                 else:
                     logger.warning(
-                        f"3. Couldn't create argument: {self.context.domain_name}.{self.id}.{attr.name}, {attr.ref}"
+                        f"Couldn't create argument: {self.context.domain_name}.{self.id}.{attr.name}, {attr.ref}"
                     )
                     continue
 
