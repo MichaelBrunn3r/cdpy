@@ -62,7 +62,7 @@ class ApplicationCache:
             json["size"],
             json["creationTime"],
             json["updateTime"],
-            [ApplicationCacheResource.from_json(x) for x in json["resources"]],
+            [ApplicationCacheResource.from_json(r) for r in json["resources"]],
         )
 
     def to_json(self) -> dict:

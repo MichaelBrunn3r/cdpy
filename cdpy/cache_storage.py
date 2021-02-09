@@ -63,12 +63,12 @@ class DataEntry:
         return cls(
             json["requestURL"],
             json["requestMethod"],
-            [Header.from_json(x) for x in json["requestHeaders"]],
+            [Header.from_json(r) for r in json["requestHeaders"]],
             json["responseTime"],
             json["responseStatus"],
             json["responseStatusText"],
             CachedResponseType(json["responseType"]),
-            [Header.from_json(x) for x in json["responseHeaders"]],
+            [Header.from_json(r) for r in json["responseHeaders"]],
         )
 
     def to_json(self) -> dict:

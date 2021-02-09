@@ -117,7 +117,7 @@ class DOMNode:
             json.get("inputChecked"),
             json.get("optionSelected"),
             json.get("childNodeIndexes"),
-            [NameValue.from_json(x) for x in json["attributes"]]
+            [NameValue.from_json(a) for a in json["attributes"]]
             if "attributes" in json
             else None,
             json.get("pseudoElementIndexes"),
@@ -135,7 +135,7 @@ class DOMNode:
             if "shadowRootType" in json
             else None,
             json.get("isClickable"),
-            [dom_debugger.EventListener.from_json(x) for x in json["eventListeners"]]
+            [dom_debugger.EventListener.from_json(e) for e in json["eventListeners"]]
             if "eventListeners" in json
             else None,
             json.get("currentSourceURL"),
@@ -260,7 +260,7 @@ class LayoutTreeNode:
             json["domNodeIndex"],
             dom.Rect.from_json(json["boundingBox"]),
             json.get("layoutText"),
-            [InlineTextBox.from_json(x) for x in json["inlineTextNodes"]]
+            [InlineTextBox.from_json(i) for i in json["inlineTextNodes"]]
             if "inlineTextNodes" in json
             else None,
             json.get("styleIndex"),
@@ -298,7 +298,7 @@ class ComputedStyle:
 
     @classmethod
     def from_json(cls, json: dict) -> ComputedStyle:
-        return cls([NameValue.from_json(x) for x in json["properties"]])
+        return cls([NameValue.from_json(p) for p in json["properties"]])
 
     def to_json(self) -> dict:
         return {"properties": [p.to_json() for p in self.properties]}
@@ -357,7 +357,7 @@ class RareStringData:
 
     @classmethod
     def from_json(cls, json: dict) -> RareStringData:
-        return cls(json["index"], [StringIndex(x) for x in json["value"]])
+        return cls(json["index"], [StringIndex(v) for v in json["value"]])
 
     def to_json(self) -> dict:
         return {"index": self.index, "value": [int(v) for v in self.value]}
@@ -565,14 +565,14 @@ class NodeTreeSnapshot:
         return cls(
             json.get("parentIndex"),
             json.get("nodeType"),
-            [StringIndex(x) for x in json["nodeName"]] if "nodeName" in json else None,
-            [StringIndex(x) for x in json["nodeValue"]]
+            [StringIndex(n) for n in json["nodeName"]] if "nodeName" in json else None,
+            [StringIndex(n) for n in json["nodeValue"]]
             if "nodeValue" in json
             else None,
-            [dom.BackendNodeId(x) for x in json["backendNodeId"]]
+            [dom.BackendNodeId(b) for b in json["backendNodeId"]]
             if "backendNodeId" in json
             else None,
-            [ArrayOfStrings.from_json(x) for x in json["attributes"]]
+            [ArrayOfStrings.from_json(a) for a in json["attributes"]]
             if "attributes" in json
             else None,
             RareStringData.from_json(json["textValue"])
@@ -682,18 +682,18 @@ class LayoutTreeSnapshot:
     def from_json(cls, json: dict) -> LayoutTreeSnapshot:
         return cls(
             json["nodeIndex"],
-            [ArrayOfStrings.from_json(x) for x in json["styles"]],
-            [Rectangle(x) for x in json["bounds"]],
-            [StringIndex(x) for x in json["text"]],
+            [ArrayOfStrings.from_json(s) for s in json["styles"]],
+            [Rectangle(b) for b in json["bounds"]],
+            [StringIndex(t) for t in json["text"]],
             RareBooleanData.from_json(json["stackingContexts"]),
             json.get("paintOrders"),
-            [Rectangle(x) for x in json["offsetRects"]]
+            [Rectangle(o) for o in json["offsetRects"]]
             if "offsetRects" in json
             else None,
-            [Rectangle(x) for x in json["scrollRects"]]
+            [Rectangle(s) for s in json["scrollRects"]]
             if "scrollRects" in json
             else None,
-            [Rectangle(x) for x in json["clientRects"]]
+            [Rectangle(c) for c in json["clientRects"]]
             if "clientRects" in json
             else None,
         )
@@ -748,7 +748,7 @@ class TextBoxSnapshot:
     def from_json(cls, json: dict) -> TextBoxSnapshot:
         return cls(
             json["layoutIndex"],
-            [Rectangle(x) for x in json["bounds"]],
+            [Rectangle(b) for b in json["bounds"]],
             json["start"],
             json["length"],
         )

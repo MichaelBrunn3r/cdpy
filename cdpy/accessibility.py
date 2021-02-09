@@ -221,10 +221,10 @@ class AXValue:
         return cls(
             AXValueType(json["type"]),
             json.get("value"),
-            [AXRelatedNode.from_json(x) for x in json["relatedNodes"]]
+            [AXRelatedNode.from_json(r) for r in json["relatedNodes"]]
             if "relatedNodes" in json
             else None,
-            [AXValueSource.from_json(x) for x in json["sources"]]
+            [AXValueSource.from_json(s) for s in json["sources"]]
             if "sources" in json
             else None,
         )
@@ -338,17 +338,17 @@ class AXNode:
         return cls(
             AXNodeId(json["nodeId"]),
             json["ignored"],
-            [AXProperty.from_json(x) for x in json["ignoredReasons"]]
+            [AXProperty.from_json(i) for i in json["ignoredReasons"]]
             if "ignoredReasons" in json
             else None,
             AXValue.from_json(json["role"]) if "role" in json else None,
             AXValue.from_json(json["name"]) if "name" in json else None,
             AXValue.from_json(json["description"]) if "description" in json else None,
             AXValue.from_json(json["value"]) if "value" in json else None,
-            [AXProperty.from_json(x) for x in json["properties"]]
+            [AXProperty.from_json(p) for p in json["properties"]]
             if "properties" in json
             else None,
-            [AXNodeId(x) for x in json["childIds"]] if "childIds" in json else None,
+            [AXNodeId(c) for c in json["childIds"]] if "childIds" in json else None,
             dom.BackendNodeId(json["backendDOMNodeId"])
             if "backendDOMNodeId" in json
             else None,

@@ -148,7 +148,7 @@ class UserAgentMetadata:
             json["architecture"],
             json["model"],
             json["mobile"],
-            [UserAgentBrandVersion.from_json(x) for x in json["brands"]]
+            [UserAgentBrandVersion.from_json(b) for b in json["brands"]]
             if "brands" in json
             else None,
             json.get("fullVersion"),

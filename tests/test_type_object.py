@@ -42,6 +42,11 @@ def required_node_args3():
     }
 
 
+@pytest.fixture
+def node(required_node_args):
+    return cdpy.dom.Node(**required_node_args)
+
+
 class TestFromJson:
     def test_builtin_arg(self, required_node_args):
         node = cdpy.dom.Node.from_json(required_node_args)
@@ -186,3 +191,110 @@ class TestFromJson:
 
         assert node.frameId == "deadbeef"
         assert type(node.frameId) == cdpy.page.FrameId
+
+
+class TestToJson:
+    def test_builtin_attr(self, node):
+        json = node.to_json()
+
+        assert "nodeId" in json
+        assert type(json["nodeId"]) == int
+
+    def test_builtin_list_attr(self, node):
+        node.attributes = ["a", "b", "c"]
+        json = node.to_json()
+
+        assert "attributes" in json
+        assert type(json["attributes"]) == list
+        assert json["attributes"] == ["a", "b", "c"]
+
+    def test_typeless_enum_attr(self):
+        args = {"text": "lorem", "source": "mediaRule"}
+        json = cdpy.css.CSSMedia.from_json(args).to_json()
+
+        assert "source" in json
+        assert type(json["source"]) == str
+        assert json["source"] == "mediaRule"
+        assert json == args
+
+    def test_simple_attr(self, required_node_args):
+        json = cdpy.dom.Node.from_json(required_node_args).to_json()
+
+        assert "nodeId" in json
+        assert type(json["nodeId"]) == int
+        assert json["nodeId"] == 222
+        assert json == required_node_args
+
+    def test_simple_list_attr(self):
+        args = {"index": [1, 2], "value": [1, 2]}
+        json = cdpy.dom_snapshot.RareStringData.from_json(args).to_json()
+
+        assert "value" in json
+        assert type(json["value"]) == list
+        assert type(json["value"][0]) == int
+        assert json["value"] == [1, 2]
+        assert json == args
+
+    def test_enum_attr(self, required_node_args):
+        args = required_node_args | {"pseudoType": "marker"}
+        json = cdpy.dom.Node.from_json(args).to_json()
+
+        assert "pseudoType" in json
+        assert type(json["pseudoType"]) == str
+        assert json["pseudoType"] == "marker"
+        assert json == args
+
+    def test_enum_list_attr(self):
+        args = {
+            "blockedReasons": ["UserPreferences", "UnknownError"],
+            "cookieLine": "lorem",
+        }
+        json = cdpy.network.BlockedSetCookieWithReason.from_json(args).to_json()
+
+        assert "blockedReasons" in json
+        assert type(json["blockedReasons"]) == list
+        assert type(json["blockedReasons"][0]) == str
+        assert json["blockedReasons"] == ["UserPreferences", "UnknownError"]
+        assert json == args
+
+    def test_object_attr(self, required_node_args, required_node_args2):
+        args = required_node_args | {"contentDocument": required_node_args2}
+        nested_node = cdpy.dom.Node.from_json(required_node_args2)
+        json = cdpy.dom.Node.from_json(args).to_json()
+
+        assert "contentDocument" in json
+        assert type(json["contentDocument"]) == dict
+        assert json["contentDocument"] == required_node_args2
+        assert json == args
+
+    def test_object_list_attr(
+        self, required_node_args, required_node_args2, required_node_args3
+    ):
+        nested_node_1 = cdpy.dom.Node(**required_node_args2)
+        nested_node_2 = cdpy.dom.Node(**required_node_args3)
+        args = required_node_args | {
+            "children": [required_node_args2, required_node_args3]
+        }
+        json = cdpy.dom.Node.from_json(args).to_json()
+
+        assert "children" in json
+        assert type(json["children"]) == list
+        assert json["children"] == [required_node_args2, required_node_args3]
+        assert json == args
+
+    def test_unset_attributes_are_filtered(self, required_node_args):
+        node = cdpy.dom.Node.from_json(required_node_args)
+        json = node.to_json()
+
+        for attr in node.__dict__:
+            if getattr(node, attr) == None:
+                assert attr not in json
+
+    def test_type_from_other_domain(self, required_node_args):
+        args = required_node_args | {"frameId": "deadbeef"}
+        json = cdpy.dom.Node.from_json(args).to_json()
+
+        assert "frameId" in json
+        assert type(json["frameId"]) == str
+        assert json["frameId"] == "deadbeef"
+        assert json == args

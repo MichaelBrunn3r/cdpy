@@ -168,10 +168,10 @@ class ObjectPreview:
         return cls(
             json["type"],
             json["overflow"],
-            [PropertyPreview.from_json(x) for x in json["properties"]],
+            [PropertyPreview.from_json(p) for p in json["properties"]],
             json.get("subtype"),
             json.get("description"),
-            [EntryPreview.from_json(x) for x in json["entries"]]
+            [EntryPreview.from_json(e) for e in json["entries"]]
             if "entries" in json
             else None,
         )
@@ -660,7 +660,7 @@ class StackTrace:
     @classmethod
     def from_json(cls, json: dict) -> StackTrace:
         return cls(
-            [CallFrame.from_json(x) for x in json["callFrames"]],
+            [CallFrame.from_json(c) for c in json["callFrames"]],
             json.get("description"),
             StackTrace.from_json(json["parent"]) if "parent" in json else None,
             StackTraceId.from_json(json["parentId"]) if "parentId" in json else None,

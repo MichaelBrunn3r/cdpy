@@ -62,7 +62,7 @@ class LogEntry:
             if "networkRequestId" in json
             else None,
             json.get("workerId"),
-            [runtime.RemoteObject.from_json(x) for x in json["args"]]
+            [runtime.RemoteObject.from_json(a) for a in json["args"]]
             if "args" in json
             else None,
         )

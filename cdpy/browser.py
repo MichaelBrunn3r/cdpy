@@ -222,7 +222,7 @@ class Histogram:
             json["name"],
             json["sum"],
             json["count"],
-            [Bucket.from_json(x) for x in json["buckets"]],
+            [Bucket.from_json(b) for b in json["buckets"]],
         )
 
     def to_json(self) -> dict:

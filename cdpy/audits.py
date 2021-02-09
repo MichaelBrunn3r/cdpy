@@ -141,8 +141,8 @@ class SameSiteCookieIssueDetails:
     def from_json(cls, json: dict) -> SameSiteCookieIssueDetails:
         return cls(
             AffectedCookie.from_json(json["cookie"]),
-            [SameSiteCookieWarningReason(x) for x in json["cookieWarningReasons"]],
-            [SameSiteCookieExclusionReason(x) for x in json["cookieExclusionReasons"]],
+            [SameSiteCookieWarningReason(c) for c in json["cookieWarningReasons"]],
+            [SameSiteCookieExclusionReason(c) for c in json["cookieExclusionReasons"]],
             SameSiteCookieOperation(json["operation"]),
             json.get("siteForCookies"),
             json.get("cookieUrl"),

@@ -43,7 +43,7 @@ class ProfileNode:
             json.get("hitCount"),
             json.get("children"),
             json.get("deoptReason"),
-            [PositionTickInfo.from_json(x) for x in json["positionTicks"]]
+            [PositionTickInfo.from_json(p) for p in json["positionTicks"]]
             if "positionTicks" in json
             else None,
         )
@@ -91,7 +91,7 @@ class Profile:
     @classmethod
     def from_json(cls, json: dict) -> Profile:
         return cls(
-            [ProfileNode.from_json(x) for x in json["nodes"]],
+            [ProfileNode.from_json(n) for n in json["nodes"]],
             json["startTime"],
             json["endTime"],
             json.get("samples"),
@@ -185,7 +185,7 @@ class FunctionCoverage:
     def from_json(cls, json: dict) -> FunctionCoverage:
         return cls(
             json["functionName"],
-            [CoverageRange.from_json(x) for x in json["ranges"]],
+            [CoverageRange.from_json(r) for r in json["ranges"]],
             json["isBlockCoverage"],
         )
 
@@ -220,7 +220,7 @@ class ScriptCoverage:
         return cls(
             runtime.ScriptId(json["scriptId"]),
             json["url"],
-            [FunctionCoverage.from_json(x) for x in json["functions"]],
+            [FunctionCoverage.from_json(f) for f in json["functions"]],
         )
 
     def to_json(self) -> dict:
@@ -268,7 +268,7 @@ class TypeProfileEntry:
 
     @classmethod
     def from_json(cls, json: dict) -> TypeProfileEntry:
-        return cls(json["offset"], [TypeObject.from_json(x) for x in json["types"]])
+        return cls(json["offset"], [TypeObject.from_json(t) for t in json["types"]])
 
     def to_json(self) -> dict:
         return {"offset": self.offset, "types": [t.to_json() for t in self.types]}
@@ -297,7 +297,7 @@ class ScriptTypeProfile:
         return cls(
             runtime.ScriptId(json["scriptId"]),
             json["url"],
-            [TypeProfileEntry.from_json(x) for x in json["entries"]],
+            [TypeProfileEntry.from_json(e) for e in json["entries"]],
         )
 
     def to_json(self) -> dict:

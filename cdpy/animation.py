@@ -176,7 +176,7 @@ class KeyframesRule:
     @classmethod
     def from_json(cls, json: dict) -> KeyframesRule:
         return cls(
-            [KeyframeStyle.from_json(x) for x in json["keyframes"]], json.get("name")
+            [KeyframeStyle.from_json(k) for k in json["keyframes"]], json.get("name")
         )
 
     def to_json(self) -> dict:

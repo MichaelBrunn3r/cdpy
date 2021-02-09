@@ -31,7 +31,7 @@ class DatabaseWithObjectStores:
         return cls(
             json["name"],
             json["version"],
-            [ObjectStore.from_json(x) for x in json["objectStores"]],
+            [ObjectStore.from_json(o) for o in json["objectStores"]],
         )
 
     def to_json(self) -> dict:
@@ -69,7 +69,7 @@ class ObjectStore:
             json["name"],
             KeyPath.from_json(json["keyPath"]),
             json["autoIncrement"],
-            [ObjectStoreIndex.from_json(x) for x in json["indexes"]],
+            [ObjectStoreIndex.from_json(i) for i in json["indexes"]],
         )
 
     def to_json(self) -> dict:
@@ -151,7 +151,7 @@ class Key:
             json.get("number"),
             json.get("string"),
             json.get("date"),
-            [Key.from_json(x) for x in json["array"]] if "array" in json else None,
+            [Key.from_json(a) for a in json["array"]] if "array" in json else None,
         )
 
     def to_json(self) -> dict:

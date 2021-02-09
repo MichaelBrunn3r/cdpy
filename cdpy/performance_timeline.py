@@ -111,7 +111,7 @@ class LayoutShift:
             json["value"],
             json["hadRecentInput"],
             network.TimeSinceEpoch(json["lastInputTime"]),
-            [LayoutShiftAttribution.from_json(x) for x in json["sources"]],
+            [LayoutShiftAttribution.from_json(s) for s in json["sources"]],
         )
 
     def to_json(self) -> dict:

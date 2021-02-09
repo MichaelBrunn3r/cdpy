@@ -211,7 +211,7 @@ class ImageDecodeAcceleratorCapability:
             ImageType(json["imageType"]),
             Size.from_json(json["maxDimensions"]),
             Size.from_json(json["minDimensions"]),
-            [SubsamplingFormat(x) for x in json["subsamplings"]],
+            [SubsamplingFormat(s) for s in json["subsamplings"]],
         )
 
     def to_json(self) -> dict:
@@ -256,19 +256,19 @@ class GPUInfo:
     @classmethod
     def from_json(cls, json: dict) -> GPUInfo:
         return cls(
-            [GPUDevice.from_json(x) for x in json["devices"]],
+            [GPUDevice.from_json(d) for d in json["devices"]],
             json["driverBugWorkarounds"],
             [
-                VideoDecodeAcceleratorCapability.from_json(x)
-                for x in json["videoDecoding"]
+                VideoDecodeAcceleratorCapability.from_json(v)
+                for v in json["videoDecoding"]
             ],
             [
-                VideoEncodeAcceleratorCapability.from_json(x)
-                for x in json["videoEncoding"]
+                VideoEncodeAcceleratorCapability.from_json(v)
+                for v in json["videoEncoding"]
             ],
             [
-                ImageDecodeAcceleratorCapability.from_json(x)
-                for x in json["imageDecoding"]
+                ImageDecodeAcceleratorCapability.from_json(i)
+                for i in json["imageDecoding"]
             ],
             json.get("auxAttributes"),
             json.get("featureStatus"),

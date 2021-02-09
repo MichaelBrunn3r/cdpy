@@ -56,8 +56,8 @@ class SamplingProfile:
     @classmethod
     def from_json(cls, json: dict) -> SamplingProfile:
         return cls(
-            [SamplingProfileNode.from_json(x) for x in json["samples"]],
-            [Module.from_json(x) for x in json["modules"]],
+            [SamplingProfileNode.from_json(s) for s in json["samples"]],
+            [Module.from_json(m) for m in json["modules"]],
         )
 
     def to_json(self) -> dict:

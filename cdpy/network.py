@@ -321,7 +321,7 @@ class Request:
             json.get("urlFragment"),
             json.get("postData"),
             json.get("hasPostData"),
-            [PostDataEntry.from_json(x) for x in json["postDataEntries"]]
+            [PostDataEntry.from_json(p) for p in json["postDataEntries"]]
             if "postDataEntries" in json
             else None,
             security.MixedContentType(json["mixedContentType"])
@@ -478,8 +478,8 @@ class SecurityDetails:
             TimeSinceEpoch(json["validFrom"]),
             TimeSinceEpoch(json["validTo"]),
             [
-                SignedCertificateTimestamp.from_json(x)
-                for x in json["signedCertificateTimestampList"]
+                SignedCertificateTimestamp.from_json(s)
+                for s in json["signedCertificateTimestampList"]
             ],
             CertificateTransparencyCompliance(
                 json["certificateTransparencyCompliance"]
@@ -1143,7 +1143,7 @@ class BlockedSetCookieWithReason:
     @classmethod
     def from_json(cls, json: dict) -> BlockedSetCookieWithReason:
         return cls(
-            [SetCookieBlockedReason(x) for x in json["blockedReasons"]],
+            [SetCookieBlockedReason(b) for b in json["blockedReasons"]],
             json["cookieLine"],
             Cookie.from_json(json["cookie"]) if "cookie" in json else None,
         )
@@ -1176,7 +1176,7 @@ class BlockedCookieWithReason:
     @classmethod
     def from_json(cls, json: dict) -> BlockedCookieWithReason:
         return cls(
-            [CookieBlockedReason(x) for x in json["blockedReasons"]],
+            [CookieBlockedReason(b) for b in json["blockedReasons"]],
             Cookie.from_json(json["cookie"]),
         )
 
@@ -1479,7 +1479,7 @@ class SignedExchangeHeader:
             json["requestUrl"],
             json["responseCode"],
             Headers(json["responseHeaders"]),
-            [SignedExchangeSignature.from_json(x) for x in json["signatures"]],
+            [SignedExchangeSignature.from_json(s) for s in json["signatures"]],
             json["headerIntegrity"],
         )
 
@@ -1573,7 +1573,7 @@ class SignedExchangeInfo:
             SecurityDetails.from_json(json["securityDetails"])
             if "securityDetails" in json
             else None,
-            [SignedExchangeError.from_json(x) for x in json["errors"]]
+            [SignedExchangeError.from_json(e) for e in json["errors"]]
             if "errors" in json
             else None,
         )

@@ -104,7 +104,7 @@ class ServiceWorkerVersion:
             ServiceWorkerVersionStatus(json["status"]),
             json.get("scriptLastModified"),
             json.get("scriptResponseTime"),
-            [target.TargetID(x) for x in json["controlledClients"]]
+            [target.TargetID(c) for c in json["controlledClients"]]
             if "controlledClients" in json
             else None,
             target.TargetID(json["targetId"]) if "targetId" in json else None,

@@ -441,19 +441,23 @@ class CDPType:
                 else:
                     arg = attr_json_value
             elif attr.is_list_of_references:
+                var_name = attr.name[0]
                 items_type_name = self.context.get_type_by_ref(
                     attr.items.ref
                 ).create_reference(self.context)
 
                 if category.parse_with_constructor:
                     arg = ast_list_comp(
-                        ast_call(items_type_name, [ast.Name("x")]), "x", attr_json_value
+                        ast_call(items_type_name, [ast.Name(var_name)]),
+                        var_name,
+                        attr_json_value,
                     )
                 elif category.parse_with_from_json:
                     from_json_call = ast_call(
-                        ast.Attribute(ast.Name(items_type_name), "from_json"), ["x"]
+                        ast.Attribute(ast.Name(items_type_name), "from_json"),
+                        [var_name],
                     )
-                    arg = ast_list_comp(from_json_call, "x", attr_json_value)
+                    arg = ast_list_comp(from_json_call, var_name, attr_json_value)
                 else:
                     raise Exception(
                         f"Can't parse argument: {self.context.domain_name}.{self.id}.{attr.name}"

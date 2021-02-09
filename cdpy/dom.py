@@ -194,7 +194,7 @@ class Node:
             json["nodeValue"],
             NodeId(json["parentId"]) if "parentId" in json else None,
             json.get("childNodeCount"),
-            [Node.from_json(x) for x in json["children"]]
+            [Node.from_json(c) for c in json["children"]]
             if "children" in json
             else None,
             json.get("attributes"),
@@ -214,19 +214,19 @@ class Node:
             Node.from_json(json["contentDocument"])
             if "contentDocument" in json
             else None,
-            [Node.from_json(x) for x in json["shadowRoots"]]
+            [Node.from_json(s) for s in json["shadowRoots"]]
             if "shadowRoots" in json
             else None,
             Node.from_json(json["templateContent"])
             if "templateContent" in json
             else None,
-            [Node.from_json(x) for x in json["pseudoElements"]]
+            [Node.from_json(p) for p in json["pseudoElements"]]
             if "pseudoElements" in json
             else None,
             Node.from_json(json["importedDocument"])
             if "importedDocument" in json
             else None,
-            [BackendNode.from_json(x) for x in json["distributedNodes"]]
+            [BackendNode.from_json(d) for d in json["distributedNodes"]]
             if "distributedNodes" in json
             else None,
             json.get("isSVG"),

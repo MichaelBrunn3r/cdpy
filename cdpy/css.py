@@ -46,7 +46,7 @@ class PseudoElementMatches:
     def from_json(cls, json: dict) -> PseudoElementMatches:
         return cls(
             dom.PseudoType(json["pseudoType"]),
-            [RuleMatch.from_json(x) for x in json["matches"]],
+            [RuleMatch.from_json(m) for m in json["matches"]],
         )
 
     def to_json(self) -> dict:
@@ -74,7 +74,7 @@ class InheritedStyleEntry:
     @classmethod
     def from_json(cls, json: dict) -> InheritedStyleEntry:
         return cls(
-            [RuleMatch.from_json(x) for x in json["matchedCSSRules"]],
+            [RuleMatch.from_json(m) for m in json["matchedCSSRules"]],
             CSSStyle.from_json(json["inlineStyle"]) if "inlineStyle" in json else None,
         )
 
@@ -158,7 +158,7 @@ class SelectorList:
 
     @classmethod
     def from_json(cls, json: dict) -> SelectorList:
-        return cls([Value.from_json(x) for x in json["selectors"]], json["text"])
+        return cls([Value.from_json(s) for s in json["selectors"]], json["text"])
 
     def to_json(self) -> dict:
         return {"selectors": [s.to_json() for s in self.selectors], "text": self.text}
@@ -307,7 +307,7 @@ class CSSRule:
             StyleSheetOrigin(json["origin"]),
             CSSStyle.from_json(json["style"]),
             StyleSheetId(json["styleSheetId"]) if "styleSheetId" in json else None,
-            [CSSMedia.from_json(x) for x in json["media"]] if "media" in json else None,
+            [CSSMedia.from_json(m) for m in json["media"]] if "media" in json else None,
         )
 
     def to_json(self) -> dict:
@@ -475,8 +475,8 @@ class CSSStyle:
     @classmethod
     def from_json(cls, json: dict) -> CSSStyle:
         return cls(
-            [CSSProperty.from_json(x) for x in json["cssProperties"]],
-            [ShorthandEntry.from_json(x) for x in json["shorthandEntries"]],
+            [CSSProperty.from_json(c) for c in json["cssProperties"]],
+            [ShorthandEntry.from_json(s) for s in json["shorthandEntries"]],
             StyleSheetId(json["styleSheetId"]) if "styleSheetId" in json else None,
             json.get("cssText"),
             SourceRange.from_json(json["range"]) if "range" in json else None,
@@ -594,7 +594,7 @@ class CSSMedia:
             json.get("sourceURL"),
             SourceRange.from_json(json["range"]) if "range" in json else None,
             StyleSheetId(json["styleSheetId"]) if "styleSheetId" in json else None,
-            [MediaQuery.from_json(x) for x in json["mediaList"]]
+            [MediaQuery.from_json(m) for m in json["mediaList"]]
             if "mediaList" in json
             else None,
         )
@@ -632,7 +632,7 @@ class MediaQuery:
     @classmethod
     def from_json(cls, json: dict) -> MediaQuery:
         return cls(
-            [MediaQueryExpression.from_json(x) for x in json["expressions"]],
+            [MediaQueryExpression.from_json(e) for e in json["expressions"]],
             json["active"],
         )
 
@@ -811,7 +811,7 @@ class FontFace:
             json["unicodeRange"],
             json["src"],
             json["platformFontFamily"],
-            [FontVariationAxis.from_json(x) for x in json["fontVariationAxes"]]
+            [FontVariationAxis.from_json(f) for f in json["fontVariationAxes"]]
             if "fontVariationAxes" in json
             else None,
         )
@@ -853,7 +853,7 @@ class CSSKeyframesRule:
     def from_json(cls, json: dict) -> CSSKeyframesRule:
         return cls(
             Value.from_json(json["animationName"]),
-            [CSSKeyframeRule.from_json(x) for x in json["keyframes"]],
+            [CSSKeyframeRule.from_json(k) for k in json["keyframes"]],
         )
 
     def to_json(self) -> dict:

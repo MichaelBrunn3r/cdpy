@@ -114,7 +114,7 @@ class Frame:
             json["mimeType"],
             SecureContextType(json["secureContextType"]),
             CrossOriginIsolatedContextType(json["crossOriginIsolatedContextType"]),
-            [GatedAPIFeatures(x) for x in json["gatedAPIFeatures"]],
+            [GatedAPIFeatures(g) for g in json["gatedAPIFeatures"]],
             json.get("parentId"),
             json.get("name"),
             json.get("urlFragment"),
@@ -223,8 +223,8 @@ class FrameResourceTree:
     def from_json(cls, json: dict) -> FrameResourceTree:
         return cls(
             Frame.from_json(json["frame"]),
-            [FrameResource.from_json(x) for x in json["resources"]],
-            [FrameResourceTree.from_json(x) for x in json["childFrames"]]
+            [FrameResource.from_json(r) for r in json["resources"]],
+            [FrameResourceTree.from_json(c) for c in json["childFrames"]]
             if "childFrames" in json
             else None,
         )
@@ -260,7 +260,7 @@ class FrameTree:
     def from_json(cls, json: dict) -> FrameTree:
         return cls(
             Frame.from_json(json["frame"]),
-            [FrameTree.from_json(x) for x in json["childFrames"]]
+            [FrameTree.from_json(c) for c in json["childFrames"]]
             if "childFrames" in json
             else None,
         )
@@ -741,7 +741,7 @@ class InstallabilityError:
     def from_json(cls, json: dict) -> InstallabilityError:
         return cls(
             json["errorId"],
-            [InstallabilityErrorArgument.from_json(x) for x in json["errorArguments"]],
+            [InstallabilityErrorArgument.from_json(e) for e in json["errorArguments"]],
         )
 
     def to_json(self) -> dict:

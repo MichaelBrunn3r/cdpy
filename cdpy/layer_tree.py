@@ -198,7 +198,7 @@ class Layer:
             json.get("anchorY"),
             json.get("anchorZ"),
             json.get("invisible"),
-            [ScrollRect.from_json(x) for x in json["scrollRects"]]
+            [ScrollRect.from_json(s) for s in json["scrollRects"]]
             if "scrollRects" in json
             else None,
             StickyPositionConstraint.from_json(json["stickyPositionConstraint"])

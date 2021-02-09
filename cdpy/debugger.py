@@ -150,7 +150,7 @@ class CallFrame:
             json["functionName"],
             Location.from_json(json["location"]),
             json["url"],
-            [Scope.from_json(x) for x in json["scopeChain"]],
+            [Scope.from_json(s) for s in json["scopeChain"]],
             runtime.RemoteObject.from_json(json["this"]),
             Location.from_json(json["functionLocation"])
             if "functionLocation" in json

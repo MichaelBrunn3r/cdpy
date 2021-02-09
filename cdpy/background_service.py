@@ -79,7 +79,7 @@ class BackgroundServiceEvent:
             ServiceName(json["service"]),
             json["eventName"],
             json["instanceId"],
-            [EventMetadata.from_json(x) for x in json["eventMetadata"]],
+            [EventMetadata.from_json(e) for e in json["eventMetadata"]],
         )
 
     def to_json(self) -> dict:

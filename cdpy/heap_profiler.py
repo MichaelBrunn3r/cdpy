@@ -41,7 +41,7 @@ class SamplingHeapProfileNode:
             runtime.CallFrame.from_json(json["callFrame"]),
             json["selfSize"],
             json["id"],
-            [SamplingHeapProfileNode.from_json(x) for x in json["children"]],
+            [SamplingHeapProfileNode.from_json(c) for c in json["children"]],
         )
 
     def to_json(self) -> dict:
@@ -97,7 +97,7 @@ class SamplingHeapProfile:
     def from_json(cls, json: dict) -> SamplingHeapProfile:
         return cls(
             SamplingHeapProfileNode.from_json(json["head"]),
-            [SamplingHeapProfileSample.from_json(x) for x in json["samples"]],
+            [SamplingHeapProfileSample.from_json(s) for s in json["samples"]],
         )
 
     def to_json(self) -> dict:
