@@ -55,11 +55,16 @@ class ModuleContext:
         self.global_context = global_context
         self.domain_name = domain_name
         self.module_name = module_name
-        self.required_domain_modules: set[str] = set()
+        self.required_imports: dict[str, set] = {}
 
-    def require_domain_module(self, module_name: str):
-        """Signals the context that a module needs to be imported"""
-        self.required_domain_modules.add(module_name)
+    def require(self, package: str, name: Optional[str]):
+        if name and package in self.required_imports:
+            self.required_imports[package].add(name)
+        else:
+            names = set()
+            if name:
+                names.add(name)
+            self.required_imports[package] = names
 
     def get_type_by_ref(self, reference: str) -> CDPType | None:
         domain_name, type_name = get_reference_parts(reference)
@@ -91,7 +96,7 @@ def domain_type_reference_to_ast(ref: str, context: ModuleContext):
         return ast.Name(referenced_type)
     else:
         referenced_module = domain_to_module_name(referenced_domain)
-        context.require_domain_module(referenced_module)
+        context.require(".", referenced_module)
         return ast.Name(referenced_module + "." + referenced_type)
 
 
@@ -207,8 +212,11 @@ class CDPProperty:
         return self.items and self.items.ref
 
     @classmethod
-    def from_json(cls, property: dict, context: ModuleContext):
+    def from_json(cls, property: dict, context: ModuleContext) -> CDPProperty:
         items = property.get("items")
+        optional = property.get("optional", False)
+        if optional:
+            context.require("typing", "Optional")
 
         return cls(
             property["name"],
@@ -217,7 +225,7 @@ class CDPProperty:
             property.get("$ref"),
             property.get("enum"),
             CDPItems.from_json(items, context) if items else None,
-            property.get("optional", False),
+            optional,
             property.get("experimental", False),
             property.get("deprecated", False),
             context,
@@ -344,6 +352,7 @@ class CDPType:
         if self.is_simple or self.is_simple_list:
             return self.create_simple_ast()
         elif self.is_enum:
+            self.context.require("enum", None)
             return self.create_enum_ast()
         elif self.is_complex:
             return self.create_complex_ast()
@@ -395,7 +404,7 @@ class CDPType:
             body.append(attr.to_ast())
         body.append(self.create_complex_from_json_function())
 
-        return ast_classdef(self.id, body, ["Type"], ["dataclasses.dataclass"])
+        return ast_classdef(self.id, body, decorators=["dataclasses.dataclass"])
 
     def create_complex_from_json_function(self):
         cls_args = []
@@ -529,14 +538,19 @@ class CDPCommand:
     parameters: list[CDPParameter]
     returns: list[CDPReturn]
     context: ModuleContext
+    has_optional_params: bool
 
     @classmethod
     def from_json(cls, command: dict, context: ModuleContext):
-        parameters = [
-            CDPParameter.from_json(p, context) for p in command.get("parameters", [])
-        ]
+        parameters = []
+        has_optional_params = False
+        for p in command.get("parameters", []):
+            param = CDPParameter.from_json(p, context)
+            parameters.append(param)
+            if param.optional:
+                has_optional_params = True
+
         parameters.sort(key=lambda p: p.optional)
-        returns = command.get("returns", [])
 
         return cls(
             command["name"],
@@ -544,8 +558,9 @@ class CDPCommand:
             command.get("experimental", False),
             command.get("deprecated", False),
             parameters,
-            [CDPReturn.from_json(r, context) for r in returns],
+            [CDPReturn.from_json(r, context) for r in command.get("returns", [])],
             context,
+            has_optional_params,
         )
 
     def to_ast(self):
@@ -565,9 +580,9 @@ class CDPCommand:
             [ast.Str(f"{self.context.domain_name}.{self.name}"), method_params],
         )
 
-        # Remove unset parameters from method dict.
-        # Only if method has optional parameters.
-        if len(self.parameters) > 0 and self.parameters[-1].optional:
+        # Remove unset optional parameters from method dict
+        if self.has_optional_params:
+            self.context.require(".common", "filter_unset_parameters")
             method_dict = ast_call("filter_unset_parameters", [method_dict])
 
         body.append(ast.Return(method_dict))
@@ -674,12 +689,10 @@ class CDPDomain:
         return domain
 
     def to_ast(self):
+        # Default imports
         imports = [
             ast_import_from("__future__", "annotations"),
-            ast.Import([ast.Name("enum")]),
             ast.Import([ast.Name("dataclasses")]),
-            ast_import_from("typing", "Optional"),
-            ast_import_from(".common", "filter_unset_parameters", "Type"),
         ]
         body = []
 
@@ -689,8 +702,12 @@ class CDPDomain:
         for command in self.commands:
             body.append(command.to_ast())
 
-        if len(self.context.required_domain_modules) > 0:
-            imports.append(ast_import_from(".", *self.context.required_domain_modules))
+        # Import dependencies
+        for package, names in self.context.required_imports.items():
+            if len(names) > 0:
+                imports.append(ast_import_from(package, *names))
+            else:
+                imports.append(ast.Import([ast.Name(package)]))
 
         return ast.Module(imports + body, lineno=0, col_offset=0)
 
