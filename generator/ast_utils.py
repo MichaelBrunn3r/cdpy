@@ -68,3 +68,22 @@ def ast_args(args: list[ast.AST], defaults: list[ast.AST] = []):
         posonlyargs=[],
         kwonlyargs=[],
     )
+
+
+def ast_function(
+    name: str,
+    args: ast.arguments,
+    body: list[ast.AST],
+    returns=None,
+    decorators: list[Union[str, ast.AST]] = [],
+):
+    decorators = map(lambda d: ast.Name(d) if type(d) == str else d, decorators)
+
+    return ast.FunctionDef(
+        name=name,
+        args=args,
+        body=body,
+        decorator_list=list(decorators),
+        returns=returns,
+        lineno=0,
+    )

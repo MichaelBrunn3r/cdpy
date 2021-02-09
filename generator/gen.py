@@ -371,12 +371,10 @@ class CDPType:
 
     def create_builtin_repr_function(self):
         """Create the __repr__ function for a simple type"""
-        return ast.FunctionDef(
+        return ast_function(
             "__repr__",
             ast_args([ast.arg("self", None)]),
             [ast_from_str(f"return f'{self.id}({{super().__repr__()}})'")],
-            [],
-            lineno=0,
         )
 
     def create_enum_ast(self):
@@ -451,13 +449,12 @@ class CDPType:
 
             cls_args.append(arg)
 
-        return ast.FunctionDef(
+        return ast_function(
             "from_json",
             ast_args([ast.arg("cls", None), ast.arg("json", ast.Name("dict"))]),
             [ast.Return(ast_call("cls", cls_args))],
-            [ast.Name("classmethod")],
-            ast.Name(self.id),
-            lineno=0,
+            returns=ast.Name(self.id),
+            decorators=["classmethod"],
         )
 
     def create_object_list_ast(self):
@@ -474,13 +471,12 @@ class CDPType:
         )
         items = ast_list_comp(ast_call(items_type_name, [ast.Name("x")]), "x", "json")
 
-        return ast.FunctionDef(
+        return ast_function(
             "from_json",
             ast_args([ast.arg("cls", None), ast.arg("json", ast.Name("dict"))]),
             [ast.Return(ast_call("cls", [items]))],
-            [ast.Name("classmethod")],
             ast.Name(self.id),
-            lineno=0,
+            ["classmethod"],
         )
 
     def create_docstring(self):
@@ -558,9 +554,7 @@ class CDPCommand:
 
         body.append(ast.Return(method_dict))
 
-        return ast.FunctionDef(
-            snake_case(self.name), args, body, decorator_list=[], lineno=0, col_offset=0
-        )
+        return ast_function(snake_case(self.name), args, body)
 
     def create_docstring(self):
         lines = []
