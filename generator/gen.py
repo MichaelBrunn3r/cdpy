@@ -402,7 +402,7 @@ class CDPType:
         for attr in self.attributes:
             attr_json_value = ast.Subscript(ast.Name("json"), ast.Constant(attr.name))
 
-            if attr.is_primitive or attr.is_primitive_list:
+            if attr.is_primitive or attr.is_primitive_list or attr.is_enum:
                 if attr.optional:
                     arg = ast.Attribute(
                         ast.Name("json"),
@@ -410,12 +410,6 @@ class CDPType:
                     )
                 else:
                     arg = attr_json_value
-            elif attr.is_enum:
-                # TODO case not handled
-                logger.warning(
-                    f"Couldn't create enum argument: {self.context.domain_name}.{self.id}.{attr.name}"
-                )
-                continue
             elif attr.is_list_of_references:
                 items_type = self.context.get_type_by_ref(attr.items.ref)
 
@@ -438,10 +432,9 @@ class CDPType:
                     )
                     arg = ast_list_comp(from_json_call, "x", attr_json_value)
                 else:
-                    logger.warning(
-                        f"Couldn't create reference list argument: {self.context.domain_name}.{self.id}.{attr.name}, {attr.items.ref}"
+                    raise Exception(
+                        f"Couldn't create from_json arg: {self.context.domain_name}.{self.id}.{attr.name}, {attr.items.ref}"
                     )
-                    continue
             else:
                 referenced_type = self.context.get_type_by_ref(attr.ref)
 
@@ -461,10 +454,9 @@ class CDPType:
                         ast_call("from_json", [attr_json_value]),
                     )
                 else:
-                    logger.warning(
-                        f"Couldn't create argument: {self.context.domain_name}.{self.id}.{attr.name}, {attr.ref}"
+                    raise Exception(
+                        f"Couldn't create from_json arg: {self.context.domain_name}.{self.id}.{attr.name}, {attr.ref}"
                     )
-                    continue
 
             # Wrap argument in 'if ... else None' if the attribute is optional.
             # Primitives are calling 'dict.get()' instead.
@@ -660,7 +652,7 @@ class CDPDomain:
     context: ModuleContext
 
     @classmethod
-    def from_json(cls, domain: dict, context: ModuleContext):
+    def from_json(cls, domain: dict, context: ModuleContext) -> CDPDomain:
         domain_name = domain["domain"]
         types = domain.get("types", [])
         commands = domain.get("commands", [])
@@ -753,7 +745,9 @@ def generate(version: str):
         module_context = ModuleContext(
             domain_to_module_name(domain_name), domain_name, global_context
         )
-        CDPDomain.from_json(domain_json, module_context)
+        domain = CDPDomain.from_json(domain_json, module_context)
+
+        # logger.info(f"{domain.domain.ljust(20)}: {len(domain.types)} types, {len(domain.commands)} commands, {len(domain.events)} events")
 
     # Create domain modules
     output_dir = Path(GENERATE_DIR.parent, "cdpy")
