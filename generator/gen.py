@@ -692,7 +692,7 @@ class CDPDomain:
         # Default imports
         imports = [
             ast_import_from("__future__", "annotations"),
-            ast.Import([ast.Name("dataclasses")]),
+            ast_import("dataclasses"),
         ]
         body = []
 
@@ -707,7 +707,7 @@ class CDPDomain:
             if len(names) > 0:
                 imports.append(ast_import_from(package, *names))
             else:
-                imports.append(ast.Import([ast.Name(package)]))
+                imports.append(ast_import(package))
 
         return ast.Module(imports + body, lineno=0, col_offset=0)
 

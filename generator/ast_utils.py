@@ -12,6 +12,10 @@ def ast_import_from(module: str, *names):
     return ast.ImportFrom(module, [ast.alias(name=n) for n in names], level=0)
 
 
+def ast_import(*modules: str):
+    return ast.Import([ast.Name(m) for m in modules])
+
+
 def ast_call(callable: str, args: list[ast.AST]):
     return ast.Call(ast.Name(callable), args, [])
 
