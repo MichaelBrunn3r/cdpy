@@ -5,11 +5,11 @@ import enum
 from typing import Optional
 
 from . import dom, page, runtime
-from .common import Type, filter_unset_parameters
+from .common import filter_unset_parameters
 
 
 @dataclasses.dataclass
-class SourceOrderConfig(Type):
+class SourceOrderConfig:
     """Configuration data for drawing the source order of an elements children.
 
     Attributes
@@ -32,50 +32,50 @@ class SourceOrderConfig(Type):
 
 
 @dataclasses.dataclass
-class GridHighlightConfig(Type):
+class GridHighlightConfig:
     """Configuration data for the highlighting of Grid elements.
 
     Attributes
     ----------
-    showGridExtensionLines: Optional[bool] = None
+    showGridExtensionLines: Optional[bool]
             Whether the extension lines from grid cells to the rulers should be shown (default: false).
-    showPositiveLineNumbers: Optional[bool] = None
+    showPositiveLineNumbers: Optional[bool]
             Show Positive line number labels (default: false).
-    showNegativeLineNumbers: Optional[bool] = None
+    showNegativeLineNumbers: Optional[bool]
             Show Negative line number labels (default: false).
-    showAreaNames: Optional[bool] = None
+    showAreaNames: Optional[bool]
             Show area name labels (default: false).
-    showLineNames: Optional[bool] = None
+    showLineNames: Optional[bool]
             Show line name labels (default: false).
-    showTrackSizes: Optional[bool] = None
+    showTrackSizes: Optional[bool]
             Show track size labels (default: false).
-    gridBorderColor: Optional[dom.RGBA] = None
+    gridBorderColor: Optional[dom.RGBA]
             The grid container border highlight color (default: transparent).
-    cellBorderColor: Optional[dom.RGBA] = None
+    cellBorderColor: Optional[dom.RGBA]
             The cell border color (default: transparent). Deprecated, please use rowLineColor and columnLineColor instead.
-    rowLineColor: Optional[dom.RGBA] = None
+    rowLineColor: Optional[dom.RGBA]
             The row line color (default: transparent).
-    columnLineColor: Optional[dom.RGBA] = None
+    columnLineColor: Optional[dom.RGBA]
             The column line color (default: transparent).
-    gridBorderDash: Optional[bool] = None
+    gridBorderDash: Optional[bool]
             Whether the grid border is dashed (default: false).
-    cellBorderDash: Optional[bool] = None
+    cellBorderDash: Optional[bool]
             Whether the cell border is dashed (default: false). Deprecated, please us rowLineDash and columnLineDash instead.
-    rowLineDash: Optional[bool] = None
+    rowLineDash: Optional[bool]
             Whether row lines are dashed (default: false).
-    columnLineDash: Optional[bool] = None
+    columnLineDash: Optional[bool]
             Whether column lines are dashed (default: false).
-    rowGapColor: Optional[dom.RGBA] = None
+    rowGapColor: Optional[dom.RGBA]
             The row gap highlight fill color (default: transparent).
-    rowHatchColor: Optional[dom.RGBA] = None
+    rowHatchColor: Optional[dom.RGBA]
             The row gap hatching fill color (default: transparent).
-    columnGapColor: Optional[dom.RGBA] = None
+    columnGapColor: Optional[dom.RGBA]
             The column gap highlight fill color (default: transparent).
-    columnHatchColor: Optional[dom.RGBA] = None
+    columnHatchColor: Optional[dom.RGBA]
             The column gap hatching fill color (default: transparent).
-    areaBorderColor: Optional[dom.RGBA] = None
+    areaBorderColor: Optional[dom.RGBA]
             The named grid areas border color (Default: transparent).
-    gridBackgroundColor: Optional[dom.RGBA] = None
+    gridBackgroundColor: Optional[dom.RGBA]
             The grid container background color (Default: transparent).
     """
 
@@ -145,26 +145,26 @@ class GridHighlightConfig(Type):
 
 
 @dataclasses.dataclass
-class FlexContainerHighlightConfig(Type):
+class FlexContainerHighlightConfig:
     """Configuration data for the highlighting of Flex container elements.
 
     Attributes
     ----------
-    containerBorder: Optional[LineStyle] = None
+    containerBorder: Optional[LineStyle]
             The style of the container border
-    lineSeparator: Optional[LineStyle] = None
+    lineSeparator: Optional[LineStyle]
             The style of the separator between lines
-    itemSeparator: Optional[LineStyle] = None
+    itemSeparator: Optional[LineStyle]
             The style of the separator between items
-    mainDistributedSpace: Optional[BoxStyle] = None
+    mainDistributedSpace: Optional[BoxStyle]
             Style of content-distribution space on the main axis (justify-content).
-    crossDistributedSpace: Optional[BoxStyle] = None
+    crossDistributedSpace: Optional[BoxStyle]
             Style of content-distribution space on the cross axis (align-content).
-    rowGapSpace: Optional[BoxStyle] = None
+    rowGapSpace: Optional[BoxStyle]
             Style of empty space caused by row gaps (gap/row-gap).
-    columnGapSpace: Optional[BoxStyle] = None
+    columnGapSpace: Optional[BoxStyle]
             Style of empty space caused by columns gaps (gap/column-gap).
-    crossAlignment: Optional[LineStyle] = None
+    crossAlignment: Optional[LineStyle]
             Style of the self-alignment line (align-items).
     """
 
@@ -206,16 +206,16 @@ class FlexContainerHighlightConfig(Type):
 
 
 @dataclasses.dataclass
-class FlexItemHighlightConfig(Type):
+class FlexItemHighlightConfig:
     """Configuration data for the highlighting of Flex item elements.
 
     Attributes
     ----------
-    baseSizeBox: Optional[BoxStyle] = None
+    baseSizeBox: Optional[BoxStyle]
             Style of the box representing the item's base size
-    baseSizeBorder: Optional[LineStyle] = None
+    baseSizeBorder: Optional[LineStyle]
             Style of the border around the box representing the item's base size
-    flexibilityArrow: Optional[LineStyle] = None
+    flexibilityArrow: Optional[LineStyle]
             Style of the arrow representing if the item grew or shrank
     """
 
@@ -237,14 +237,14 @@ class FlexItemHighlightConfig(Type):
 
 
 @dataclasses.dataclass
-class LineStyle(Type):
+class LineStyle:
     """Style information for drawing a line.
 
     Attributes
     ----------
-    color: Optional[dom.RGBA] = None
+    color: Optional[dom.RGBA]
             The color of the line (default: transparent)
-    pattern: Optional[str] = None
+    pattern: Optional[str]
             The line pattern (default: solid)
     """
 
@@ -253,18 +253,21 @@ class LineStyle(Type):
 
     @classmethod
     def from_json(cls, json: dict) -> LineStyle:
-        return cls(dom.RGBA.from_json(json["color"]) if "color" in json else None)
+        return cls(
+            dom.RGBA.from_json(json["color"]) if "color" in json else None,
+            json.get("pattern"),
+        )
 
 
 @dataclasses.dataclass
-class BoxStyle(Type):
+class BoxStyle:
     """Style information for drawing a box.
 
     Attributes
     ----------
-    fillColor: Optional[dom.RGBA] = None
+    fillColor: Optional[dom.RGBA]
             The background color for the box (default: transparent)
-    hatchColor: Optional[dom.RGBA] = None
+    hatchColor: Optional[dom.RGBA]
             The hatching color for the box (default: transparent)
     """
 
@@ -288,46 +291,46 @@ class ContrastAlgorithm(enum.Enum):
 
 
 @dataclasses.dataclass
-class HighlightConfig(Type):
+class HighlightConfig:
     """Configuration data for the highlighting of page elements.
 
     Attributes
     ----------
-    showInfo: Optional[bool] = None
+    showInfo: Optional[bool]
             Whether the node info tooltip should be shown (default: false).
-    showStyles: Optional[bool] = None
+    showStyles: Optional[bool]
             Whether the node styles in the tooltip (default: false).
-    showRulers: Optional[bool] = None
+    showRulers: Optional[bool]
             Whether the rulers should be shown (default: false).
-    showAccessibilityInfo: Optional[bool] = None
+    showAccessibilityInfo: Optional[bool]
             Whether the a11y info should be shown (default: true).
-    showExtensionLines: Optional[bool] = None
+    showExtensionLines: Optional[bool]
             Whether the extension lines from node to the rulers should be shown (default: false).
-    contentColor: Optional[dom.RGBA] = None
+    contentColor: Optional[dom.RGBA]
             The content box highlight fill color (default: transparent).
-    paddingColor: Optional[dom.RGBA] = None
+    paddingColor: Optional[dom.RGBA]
             The padding highlight fill color (default: transparent).
-    borderColor: Optional[dom.RGBA] = None
+    borderColor: Optional[dom.RGBA]
             The border highlight fill color (default: transparent).
-    marginColor: Optional[dom.RGBA] = None
+    marginColor: Optional[dom.RGBA]
             The margin highlight fill color (default: transparent).
-    eventTargetColor: Optional[dom.RGBA] = None
+    eventTargetColor: Optional[dom.RGBA]
             The event target element highlight fill color (default: transparent).
-    shapeColor: Optional[dom.RGBA] = None
+    shapeColor: Optional[dom.RGBA]
             The shape outside fill color (default: transparent).
-    shapeMarginColor: Optional[dom.RGBA] = None
+    shapeMarginColor: Optional[dom.RGBA]
             The shape margin fill color (default: transparent).
-    cssGridColor: Optional[dom.RGBA] = None
+    cssGridColor: Optional[dom.RGBA]
             The grid layout color (default: transparent).
-    colorFormat: Optional[ColorFormat] = None
+    colorFormat: Optional[ColorFormat]
             The color format used to format color styles (default: hex).
-    gridHighlightConfig: Optional[GridHighlightConfig] = None
+    gridHighlightConfig: Optional[GridHighlightConfig]
             The grid layout highlight configuration (default: all transparent).
-    flexContainerHighlightConfig: Optional[FlexContainerHighlightConfig] = None
+    flexContainerHighlightConfig: Optional[FlexContainerHighlightConfig]
             The flex container highlight configuration (default: all transparent).
-    flexItemHighlightConfig: Optional[FlexItemHighlightConfig] = None
+    flexItemHighlightConfig: Optional[FlexItemHighlightConfig]
             The flex item highlight configuration (default: all transparent).
-    contrastAlgorithm: Optional[ContrastAlgorithm] = None
+    contrastAlgorithm: Optional[ContrastAlgorithm]
             The contrast algorithm to use for the contrast ratio (default: aa).
     """
 
@@ -401,7 +404,7 @@ class ColorFormat(enum.Enum):
 
 
 @dataclasses.dataclass
-class GridNodeHighlightConfig(Type):
+class GridNodeHighlightConfig:
     """Configurations for Persistent Grid Highlight
 
     Attributes
@@ -424,7 +427,7 @@ class GridNodeHighlightConfig(Type):
 
 
 @dataclasses.dataclass
-class FlexNodeHighlightConfig(Type):
+class FlexNodeHighlightConfig:
     """
     Attributes
     ----------
@@ -448,16 +451,16 @@ class FlexNodeHighlightConfig(Type):
 
 
 @dataclasses.dataclass
-class HingeConfig(Type):
+class HingeConfig:
     """Configuration for dual screen hinge
 
     Attributes
     ----------
     rect: dom.Rect
             A rectangle represent hinge
-    contentColor: Optional[dom.RGBA] = None
+    contentColor: Optional[dom.RGBA]
             The content box highlight fill color (default: a dark color).
-    outlineColor: Optional[dom.RGBA] = None
+    outlineColor: Optional[dom.RGBA]
             The content box highlight outline color (default: transparent).
     """
 

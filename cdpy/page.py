@@ -5,7 +5,7 @@ import enum
 from typing import Optional
 
 from . import debugger, dom, emulation, io, network, runtime
-from .common import Type, filter_unset_parameters
+from .common import filter_unset_parameters
 
 
 class FrameId(str):
@@ -50,7 +50,7 @@ class GatedAPIFeatures(enum.Enum):
 
 
 @dataclasses.dataclass
-class Frame(Type):
+class Frame:
     """Information about the Frame on the page.
 
     Attributes
@@ -76,15 +76,15 @@ class Frame(Type):
             Indicates whether this is a cross origin isolated context.
     gatedAPIFeatures: list[GatedAPIFeatures]
             Indicated which gated APIs / features are available.
-    parentId: Optional[str] = None
+    parentId: Optional[str]
             Parent frame identifier.
-    name: Optional[str] = None
+    name: Optional[str]
             Frame's name as specified in the tag.
-    urlFragment: Optional[str] = None
+    urlFragment: Optional[str]
             Frame document's URL fragment including the '#'.
-    unreachableUrl: Optional[str] = None
+    unreachableUrl: Optional[str]
             If the frame failed to load, this contains the URL that could not be loaded. Note that unlike url above, this URL may contain a fragment.
-    adFrameType: Optional[AdFrameType] = None
+    adFrameType: Optional[AdFrameType]
             Indicates whether this frame was tagged as an ad.
     """
 
@@ -124,7 +124,7 @@ class Frame(Type):
 
 
 @dataclasses.dataclass
-class FrameResource(Type):
+class FrameResource:
     """Information about the Resource on the page.
 
     Attributes
@@ -135,13 +135,13 @@ class FrameResource(Type):
             Type of this resource.
     mimeType: str
             Resource mimeType as determined by the browser.
-    lastModified: Optional[network.TimeSinceEpoch] = None
+    lastModified: Optional[network.TimeSinceEpoch]
             last-modified timestamp as reported by server.
-    contentSize: Optional[float] = None
+    contentSize: Optional[float]
             Resource content size.
-    failed: Optional[bool] = None
+    failed: Optional[bool]
             True if the resource failed to load.
-    canceled: Optional[bool] = None
+    canceled: Optional[bool]
             True if the resource was canceled during loading.
     """
 
@@ -169,7 +169,7 @@ class FrameResource(Type):
 
 
 @dataclasses.dataclass
-class FrameResourceTree(Type):
+class FrameResourceTree:
     """Information about the Frame hierarchy along with their cached resources.
 
     Attributes
@@ -178,7 +178,7 @@ class FrameResourceTree(Type):
             Frame information for this tree item.
     resources: list[FrameResource]
             Information about frame resources.
-    childFrames: Optional[list[FrameResourceTree]] = None
+    childFrames: Optional[list[FrameResourceTree]]
             Child frames.
     """
 
@@ -198,14 +198,14 @@ class FrameResourceTree(Type):
 
 
 @dataclasses.dataclass
-class FrameTree(Type):
+class FrameTree:
     """Information about the Frame hierarchy.
 
     Attributes
     ----------
     frame: Frame
             Frame information for this tree item.
-    childFrames: Optional[list[FrameTree]] = None
+    childFrames: Optional[list[FrameTree]]
             Child frames.
     """
 
@@ -248,7 +248,7 @@ class TransitionType(enum.Enum):
 
 
 @dataclasses.dataclass
-class NavigationEntry(Type):
+class NavigationEntry:
     """Navigation history entry.
 
     Attributes
@@ -283,7 +283,7 @@ class NavigationEntry(Type):
 
 
 @dataclasses.dataclass
-class ScreencastFrameMetadata(Type):
+class ScreencastFrameMetadata:
     """Screencast frame metadata.
 
     Attributes
@@ -300,7 +300,7 @@ class ScreencastFrameMetadata(Type):
             Position of horizontal scroll in CSS pixels.
     scrollOffsetY: float
             Position of vertical scroll in CSS pixels.
-    timestamp: Optional[network.TimeSinceEpoch] = None
+    timestamp: Optional[network.TimeSinceEpoch]
             Frame swap timestamp.
     """
 
@@ -335,7 +335,7 @@ class DialogType(enum.Enum):
 
 
 @dataclasses.dataclass
-class AppManifestError(Type):
+class AppManifestError:
     """Error while paring app manifest.
 
     Attributes
@@ -361,7 +361,7 @@ class AppManifestError(Type):
 
 
 @dataclasses.dataclass
-class AppManifestParsedProperties(Type):
+class AppManifestParsedProperties:
     """Parsed app manifest properties.
 
     Attributes
@@ -378,7 +378,7 @@ class AppManifestParsedProperties(Type):
 
 
 @dataclasses.dataclass
-class LayoutViewport(Type):
+class LayoutViewport:
     """Layout viewport position and dimensions.
 
     Attributes
@@ -406,7 +406,7 @@ class LayoutViewport(Type):
 
 
 @dataclasses.dataclass
-class VisualViewport(Type):
+class VisualViewport:
     """Visual viewport position, dimensions, and scale.
 
     Attributes
@@ -425,7 +425,7 @@ class VisualViewport(Type):
             Height (CSS pixels), excludes scrollbar if present.
     scale: float
             Scale relative to the ideal viewport (size at width=device-width).
-    zoom: Optional[float] = None
+    zoom: Optional[float]
             Page zoom factor (CSS to device independent pixels ratio).
     """
 
@@ -453,7 +453,7 @@ class VisualViewport(Type):
 
 
 @dataclasses.dataclass
-class Viewport(Type):
+class Viewport:
     """Viewport for capturing screenshot.
 
     Attributes
@@ -482,24 +482,24 @@ class Viewport(Type):
 
 
 @dataclasses.dataclass
-class FontFamilies(Type):
+class FontFamilies:
     """Generic font families collection.
 
     Attributes
     ----------
-    standard: Optional[str] = None
+    standard: Optional[str]
             The standard font-family.
-    fixed: Optional[str] = None
+    fixed: Optional[str]
             The fixed font-family.
-    serif: Optional[str] = None
+    serif: Optional[str]
             The serif font-family.
-    sansSerif: Optional[str] = None
+    sansSerif: Optional[str]
             The sansSerif font-family.
-    cursive: Optional[str] = None
+    cursive: Optional[str]
             The cursive font-family.
-    fantasy: Optional[str] = None
+    fantasy: Optional[str]
             The fantasy font-family.
-    pictograph: Optional[str] = None
+    pictograph: Optional[str]
             The pictograph font-family.
     """
 
@@ -525,14 +525,14 @@ class FontFamilies(Type):
 
 
 @dataclasses.dataclass
-class FontSizes(Type):
+class FontSizes:
     """Default font sizes.
 
     Attributes
     ----------
-    standard: Optional[int] = None
+    standard: Optional[int]
             Default standard font size.
-    fixed: Optional[int] = None
+    fixed: Optional[int]
             Default fixed font size.
     """
 
@@ -567,7 +567,7 @@ class ClientNavigationDisposition(enum.Enum):
 
 
 @dataclasses.dataclass
-class InstallabilityErrorArgument(Type):
+class InstallabilityErrorArgument:
     """
     Attributes
     ----------
@@ -586,7 +586,7 @@ class InstallabilityErrorArgument(Type):
 
 
 @dataclasses.dataclass
-class InstallabilityError(Type):
+class InstallabilityError:
     """The installability error
 
     Attributes

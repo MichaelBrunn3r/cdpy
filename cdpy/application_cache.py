@@ -1,15 +1,12 @@
 from __future__ import annotations
 
 import dataclasses
-import enum
-from typing import Optional
 
 from . import page
-from .common import Type, filter_unset_parameters
 
 
 @dataclasses.dataclass
-class ApplicationCacheResource(Type):
+class ApplicationCacheResource:
     """Detailed application cache resource information.
 
     Attributes
@@ -32,7 +29,7 @@ class ApplicationCacheResource(Type):
 
 
 @dataclasses.dataclass
-class ApplicationCache(Type):
+class ApplicationCache:
     """Detailed application cache information.
 
     Attributes
@@ -67,7 +64,7 @@ class ApplicationCache(Type):
 
 
 @dataclasses.dataclass
-class FrameWithManifest(Type):
+class FrameWithManifest:
     """Frame identifier - manifest URL pair.
 
     Attributes

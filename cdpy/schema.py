@@ -1,14 +1,10 @@
 from __future__ import annotations
 
 import dataclasses
-import enum
-from typing import Optional
-
-from .common import Type, filter_unset_parameters
 
 
 @dataclasses.dataclass
-class Domain(Type):
+class Domain:
     """Description of the protocol domain.
 
     Attributes

@@ -6,7 +6,6 @@ authors = ["Michael Brunner <MichaelBrunn3r@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-pytest = "^6.2.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.2"
@@ -17,7 +16,6 @@ mypy = "^0.800"
 typer = "^0.3.2"
 inflection = "^0.5.1"
 requests = "^2.25.1"
-astor = "^0.8.1"
 pytest-cov = "^2.11.1"
 
 [build-system]

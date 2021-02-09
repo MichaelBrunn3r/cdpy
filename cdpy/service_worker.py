@@ -5,7 +5,6 @@ import enum
 from typing import Optional
 
 from . import target
-from .common import Type, filter_unset_parameters
 
 
 class RegistrationID(str):
@@ -16,7 +15,7 @@ class RegistrationID(str):
 
 
 @dataclasses.dataclass
-class ServiceWorkerRegistration(Type):
+class ServiceWorkerRegistration:
     """ServiceWorker registration.
 
     Attributes
@@ -58,7 +57,7 @@ class ServiceWorkerVersionStatus(enum.Enum):
 
 
 @dataclasses.dataclass
-class ServiceWorkerVersion(Type):
+class ServiceWorkerVersion:
     """ServiceWorker version.
 
     Attributes
@@ -68,13 +67,13 @@ class ServiceWorkerVersion(Type):
     scriptURL: str
     runningStatus: ServiceWorkerVersionRunningStatus
     status: ServiceWorkerVersionStatus
-    scriptLastModified: Optional[float] = None
+    scriptLastModified: Optional[float]
             The Last-Modified header value of the main script.
-    scriptResponseTime: Optional[float] = None
+    scriptResponseTime: Optional[float]
             The time at which the response headers of the main script were received from the server.
             For cached script it is the last time the cache entry was validated.
-    controlledClients: Optional[list[target.TargetID]] = None
-    targetId: Optional[target.TargetID] = None
+    controlledClients: Optional[list[target.TargetID]]
+    targetId: Optional[target.TargetID]
     """
 
     versionId: str
@@ -105,7 +104,7 @@ class ServiceWorkerVersion(Type):
 
 
 @dataclasses.dataclass
-class ServiceWorkerErrorMessage(Type):
+class ServiceWorkerErrorMessage:
     """ServiceWorker error message.
 
     Attributes

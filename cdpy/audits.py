@@ -5,11 +5,11 @@ import enum
 from typing import Optional
 
 from . import dom, network, page, runtime
-from .common import Type, filter_unset_parameters
+from .common import filter_unset_parameters
 
 
 @dataclasses.dataclass
-class AffectedCookie(Type):
+class AffectedCookie:
     """Information about a cookie that is affected by an inspector issue.
 
     Attributes
@@ -30,14 +30,14 @@ class AffectedCookie(Type):
 
 
 @dataclasses.dataclass
-class AffectedRequest(Type):
+class AffectedRequest:
     """Information about a request that is affected by an inspector issue.
 
     Attributes
     ----------
     requestId: network.RequestId
             The unique request id.
-    url: Optional[str] = None
+    url: Optional[str]
     """
 
     requestId: network.RequestId
@@ -49,7 +49,7 @@ class AffectedRequest(Type):
 
 
 @dataclasses.dataclass
-class AffectedFrame(Type):
+class AffectedFrame:
     """Information about the frame affected by an inspector issue.
 
     Attributes
@@ -102,7 +102,7 @@ class SameSiteCookieOperation(enum.Enum):
 
 
 @dataclasses.dataclass
-class SameSiteCookieIssueDetails(Type):
+class SameSiteCookieIssueDetails:
     """This information is currently necessary, as the front-end has a difficult
     time finding a specific cookie. With this, we can convey specific error
     information without the cookie.
@@ -115,9 +115,9 @@ class SameSiteCookieIssueDetails(Type):
     operation: SameSiteCookieOperation
             Optionally identifies the site-for-cookies and the cookie url, which
             may be used by the front-end as additional context.
-    siteForCookies: Optional[str] = None
-    cookieUrl: Optional[str] = None
-    request: Optional[AffectedRequest] = None
+    siteForCookies: Optional[str]
+    cookieUrl: Optional[str]
+    request: Optional[AffectedRequest]
     """
 
     cookie: AffectedCookie
@@ -181,7 +181,7 @@ class MixedContentResourceType(enum.Enum):
 
 
 @dataclasses.dataclass
-class MixedContentIssueDetails(Type):
+class MixedContentIssueDetails:
     """
     Attributes
     ----------
@@ -191,15 +191,15 @@ class MixedContentIssueDetails(Type):
             The unsafe http url causing the mixed content issue.
     mainResourceURL: str
             The url responsible for the call to an unsafe url.
-    resourceType: Optional[MixedContentResourceType] = None
+    resourceType: Optional[MixedContentResourceType]
             The type of resource causing the mixed content issue (css, js, iframe,
             form,...). Marked as optional because it is mapped to from
             blink::mojom::RequestContextType, which will be replaced
             by network::mojom::RequestDestination
-    request: Optional[AffectedRequest] = None
+    request: Optional[AffectedRequest]
             The mixed content request.
             Does not always exist (e.g. for unsafe form submission urls).
-    frame: Optional[AffectedFrame] = None
+    frame: Optional[AffectedFrame]
             Optional because not every mixed content issue is necessarily linked to a frame.
     """
 
@@ -241,7 +241,7 @@ class BlockedByResponseReason(enum.Enum):
 
 
 @dataclasses.dataclass
-class BlockedByResponseIssueDetails(Type):
+class BlockedByResponseIssueDetails:
     """Details for a request that has been blocked with the BLOCKED_BY_RESPONSE
     code. Currently only used for COEP/COOP, but may be extended to include
     some CSP errors in the future.
@@ -250,8 +250,8 @@ class BlockedByResponseIssueDetails(Type):
     ----------
     request: AffectedRequest
     reason: BlockedByResponseReason
-    parentFrame: Optional[AffectedFrame] = None
-    blockedFrame: Optional[AffectedFrame] = None
+    parentFrame: Optional[AffectedFrame]
+    blockedFrame: Optional[AffectedFrame]
     """
 
     request: AffectedRequest
@@ -289,7 +289,7 @@ class HeavyAdReason(enum.Enum):
 
 
 @dataclasses.dataclass
-class HeavyAdIssueDetails(Type):
+class HeavyAdIssueDetails:
     """
     Attributes
     ----------
@@ -325,14 +325,14 @@ class ContentSecurityPolicyViolationType(enum.Enum):
 
 
 @dataclasses.dataclass
-class SourceCodeLocation(Type):
+class SourceCodeLocation:
     """
     Attributes
     ----------
     url: str
     lineNumber: int
     columnNumber: int
-    scriptId: Optional[runtime.ScriptId] = None
+    scriptId: Optional[runtime.ScriptId]
     """
 
     url: str
@@ -351,7 +351,7 @@ class SourceCodeLocation(Type):
 
 
 @dataclasses.dataclass
-class ContentSecurityPolicyIssueDetails(Type):
+class ContentSecurityPolicyIssueDetails:
     """
     Attributes
     ----------
@@ -359,11 +359,11 @@ class ContentSecurityPolicyIssueDetails(Type):
             Specific directive that is violated, causing the CSP issue.
     isReportOnly: bool
     contentSecurityPolicyViolationType: ContentSecurityPolicyViolationType
-    blockedURL: Optional[str] = None
+    blockedURL: Optional[str]
             The url not included in allowed sources.
-    frameAncestor: Optional[AffectedFrame] = None
-    sourceCodeLocation: Optional[SourceCodeLocation] = None
-    violatingNodeId: Optional[dom.BackendNodeId] = None
+    frameAncestor: Optional[AffectedFrame]
+    sourceCodeLocation: Optional[SourceCodeLocation]
+    violatingNodeId: Optional[dom.BackendNodeId]
     """
 
     violatedDirective: str
@@ -403,7 +403,7 @@ class SharedArrayBufferIssueType(enum.Enum):
 
 
 @dataclasses.dataclass
-class SharedArrayBufferIssueDetails(Type):
+class SharedArrayBufferIssueDetails:
     """Details for a request that has been blocked with the BLOCKED_BY_RESPONSE
     code. Currently only used for COEP/COOP, but may be extended to include
     some CSP errors in the future.
@@ -437,18 +437,18 @@ class TwaQualityEnforcementViolationType(enum.Enum):
 
 
 @dataclasses.dataclass
-class TrustedWebActivityIssueDetails(Type):
+class TrustedWebActivityIssueDetails:
     """
     Attributes
     ----------
     url: str
             The url that triggers the violation.
     violationType: TwaQualityEnforcementViolationType
-    httpStatusCode: Optional[int] = None
-    packageName: Optional[str] = None
+    httpStatusCode: Optional[int]
+    packageName: Optional[str]
             The package name of the Trusted Web Activity client app. This field is
             only used when violation type is kDigitalAssetLinks.
-    signature: Optional[str] = None
+    signature: Optional[str]
             The signature of the Trusted Web Activity client app. This field is only
             used when violation type is kDigitalAssetLinks.
     """
@@ -471,7 +471,7 @@ class TrustedWebActivityIssueDetails(Type):
 
 
 @dataclasses.dataclass
-class LowTextContrastIssueDetails(Type):
+class LowTextContrastIssueDetails:
     """
     Attributes
     ----------
@@ -522,21 +522,21 @@ class InspectorIssueCode(enum.Enum):
 
 
 @dataclasses.dataclass
-class InspectorIssueDetails(Type):
+class InspectorIssueDetails:
     """This struct holds a list of optional fields with additional information
     specific to the kind of issue. When adding a new issue code, please also
     add a new optional field to this type.
 
     Attributes
     ----------
-    sameSiteCookieIssueDetails: Optional[SameSiteCookieIssueDetails] = None
-    mixedContentIssueDetails: Optional[MixedContentIssueDetails] = None
-    blockedByResponseIssueDetails: Optional[BlockedByResponseIssueDetails] = None
-    heavyAdIssueDetails: Optional[HeavyAdIssueDetails] = None
-    contentSecurityPolicyIssueDetails: Optional[ContentSecurityPolicyIssueDetails    ] = None
-    sharedArrayBufferIssueDetails: Optional[SharedArrayBufferIssueDetails] = None
-    twaQualityEnforcementDetails: Optional[TrustedWebActivityIssueDetails] = None
-    lowTextContrastIssueDetails: Optional[LowTextContrastIssueDetails] = None
+    sameSiteCookieIssueDetails: Optional[SameSiteCookieIssueDetails]
+    mixedContentIssueDetails: Optional[MixedContentIssueDetails]
+    blockedByResponseIssueDetails: Optional[BlockedByResponseIssueDetails]
+    heavyAdIssueDetails: Optional[HeavyAdIssueDetails]
+    contentSecurityPolicyIssueDetails: Optional[ContentSecurityPolicyIssueDetails]
+    sharedArrayBufferIssueDetails: Optional[SharedArrayBufferIssueDetails]
+    twaQualityEnforcementDetails: Optional[TrustedWebActivityIssueDetails]
+    lowTextContrastIssueDetails: Optional[LowTextContrastIssueDetails]
     """
 
     sameSiteCookieIssueDetails: Optional[SameSiteCookieIssueDetails] = None
@@ -589,7 +589,7 @@ class InspectorIssueDetails(Type):
 
 
 @dataclasses.dataclass
-class InspectorIssue(Type):
+class InspectorIssue:
     """An inspector issue reported from the back-end.
 
     Attributes

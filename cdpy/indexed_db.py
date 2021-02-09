@@ -1,15 +1,14 @@
 from __future__ import annotations
 
 import dataclasses
-import enum
 from typing import Optional
 
 from . import runtime
-from .common import Type, filter_unset_parameters
+from .common import filter_unset_parameters
 
 
 @dataclasses.dataclass
-class DatabaseWithObjectStores(Type):
+class DatabaseWithObjectStores:
     """Database with an array of object stores.
 
     Attributes
@@ -37,7 +36,7 @@ class DatabaseWithObjectStores(Type):
 
 
 @dataclasses.dataclass
-class ObjectStore(Type):
+class ObjectStore:
     """Object store.
 
     Attributes
@@ -68,7 +67,7 @@ class ObjectStore(Type):
 
 
 @dataclasses.dataclass
-class ObjectStoreIndex(Type):
+class ObjectStoreIndex:
     """Object store index.
 
     Attributes
@@ -99,20 +98,20 @@ class ObjectStoreIndex(Type):
 
 
 @dataclasses.dataclass
-class Key(Type):
+class Key:
     """Key.
 
     Attributes
     ----------
     type: str
             Key type.
-    number: Optional[float] = None
+    number: Optional[float]
             Number value.
-    string: Optional[str] = None
+    string: Optional[str]
             String value.
-    date: Optional[float] = None
+    date: Optional[float]
             Date value.
-    array: Optional[list[Key]] = None
+    array: Optional[list[Key]]
             Array value.
     """
 
@@ -125,6 +124,7 @@ class Key(Type):
     @classmethod
     def from_json(cls, json: dict) -> Key:
         return cls(
+            json["type"],
             json.get("number"),
             json.get("string"),
             json.get("date"),
@@ -133,7 +133,7 @@ class Key(Type):
 
 
 @dataclasses.dataclass
-class KeyRange(Type):
+class KeyRange:
     """Key range.
 
     Attributes
@@ -142,9 +142,9 @@ class KeyRange(Type):
             If true lower bound is open.
     upperOpen: bool
             If true upper bound is open.
-    lower: Optional[Key] = None
+    lower: Optional[Key]
             Lower bound.
-    upper: Optional[Key] = None
+    upper: Optional[Key]
             Upper bound.
     """
 
@@ -164,7 +164,7 @@ class KeyRange(Type):
 
 
 @dataclasses.dataclass
-class DataEntry(Type):
+class DataEntry:
     """Data entry.
 
     Attributes
@@ -191,16 +191,16 @@ class DataEntry(Type):
 
 
 @dataclasses.dataclass
-class KeyPath(Type):
+class KeyPath:
     """Key path.
 
     Attributes
     ----------
     type: str
             Key path type.
-    string: Optional[str] = None
+    string: Optional[str]
             String value.
-    array: Optional[list[str]] = None
+    array: Optional[list[str]]
             Array value.
     """
 
@@ -210,7 +210,7 @@ class KeyPath(Type):
 
     @classmethod
     def from_json(cls, json: dict) -> KeyPath:
-        return cls(json.get("string"), json.get("array"))
+        return cls(json["type"], json.get("string"), json.get("array"))
 
 
 def clear_object_store(securityOrigin: str, databaseName: str, objectStoreName: str):

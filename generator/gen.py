@@ -9,7 +9,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
-import astor
 import inflection
 import requests
 import typer
@@ -249,12 +248,11 @@ class CDPProperty:
         return ast.arg(self.name, ast.Name(annotation))
 
     def to_docstring(self):
-        lines = [
-            astor.to_source(self.to_ast())
-            .replace('"', "")
-            .replace("'", "")
-            .replace("\n", "")
-        ]
+        annotation = create_type_annotation(
+            self.type, self.ref, self.items, self.optional, self.context
+        )
+        lines = [f"{self.name}: {annotation}"]
+
         if self.description and not self.description.isspace():
             lines += map(lambda l: "\t" + l, self.description.split("\n"))
         return lines
@@ -378,6 +376,7 @@ class CDPType:
             ast_args([ast.arg("self", None)]),
             [ast_from_str(f"return f'{self.id}({{super().__repr__()}})'")],
             [],
+            lineno=0,
         )
 
     def create_enum_ast(self):
@@ -386,7 +385,9 @@ class CDPType:
 
         # Add enum values
         for v in self.enum_values:
-            body.append(ast.Assign([ast.Name(snake_case(v).upper())], ast.Str(v)))
+            body.append(
+                ast.Assign([ast.Name(snake_case(v).upper())], ast.Str(v), lineno=0)
+            )
 
         return ast_classdef(self.id, body, ["enum.Enum"])
 
@@ -407,9 +408,9 @@ class CDPType:
 
             if category.does_not_require_parsing:
                 if attr.optional:
-                    arg = ast.Attribute(
-                        ast.Name("json"),
-                        ast_call("get", [ast.Constant(attr.name)]),
+                    arg = ast_call(
+                        ast.Attribute(ast.Name("json"), "get"),
+                        [ast.Constant(attr.name)],
                     )
                 else:
                     arg = attr_json_value
@@ -423,9 +424,8 @@ class CDPType:
                         ast_call(items_type_name, [ast.Name("x")]), "x", attr_json_value
                     )
                 elif category.parse_with_from_json:
-                    from_json_call = ast.Attribute(
-                        ast.Name(items_type_name),
-                        ast_call("from_json", [ast.Name("x")]),
+                    from_json_call = ast_call(
+                        ast.Attribute(ast.Name(items_type_name), "from_json"), ["x"]
                     )
                     arg = ast_list_comp(from_json_call, "x", attr_json_value)
             else:
@@ -436,9 +436,9 @@ class CDPType:
                 if category.parse_with_constructor:
                     arg = ast_call(referenced_type_name, [attr_json_value])
                 elif category.parse_with_from_json:
-                    arg = ast.Attribute(
-                        ast.Name(referenced_type_name),
-                        ast_call("from_json", [attr_json_value]),
+                    arg = ast_call(
+                        ast.Attribute(ast.Name(referenced_type_name), "from_json"),
+                        [attr_json_value],
                     )
 
             # Wrap argument in 'if ... else None' if the attribute is optional.
@@ -457,6 +457,7 @@ class CDPType:
             [ast.Return(ast_call("cls", cls_args))],
             [ast.Name("classmethod")],
             ast.Name(self.id),
+            lineno=0,
         )
 
     def create_object_list_ast(self):
@@ -479,6 +480,7 @@ class CDPType:
             [ast.Return(ast_call("cls", [items]))],
             [ast.Name("classmethod")],
             ast.Name(self.id),
+            lineno=0,
         )
 
     def create_docstring(self):
@@ -678,7 +680,7 @@ class CDPDomain:
             else:
                 imports.append(ast_import(package))
 
-        return ast.Module(imports + body, lineno=0, col_offset=0)
+        return ast.Module(imports + body, lineno=0, col_offset=0, type_ignores=[])
 
 
 def fetch_and_save_protocol(url: str, filename_template: str) -> tuple[int, int]:
@@ -741,7 +743,7 @@ def generate(version: str):
     for domain in global_context.domains.values():
         output_path = Path(output_dir, domain.context.module_name + ".py")
         with output_path.open("w") as f:
-            f.write(astor.to_source(domain.to_ast()))
+            f.write(ast.unparse(domain.to_ast()))
 
 
 @app.command()

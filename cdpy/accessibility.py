@@ -5,7 +5,7 @@ import enum
 from typing import Optional
 
 from . import dom, runtime
-from .common import Type, filter_unset_parameters
+from .common import filter_unset_parameters
 
 
 class AXNodeId(str):
@@ -63,28 +63,28 @@ class AXValueNativeSourceType(enum.Enum):
 
 
 @dataclasses.dataclass
-class AXValueSource(Type):
+class AXValueSource:
     """A single source for a computed AX property.
 
     Attributes
     ----------
     type: AXValueSourceType
             What type of source this is.
-    value: Optional[AXValue] = None
+    value: Optional[AXValue]
             The value of this property source.
-    attribute: Optional[str] = None
+    attribute: Optional[str]
             The name of the relevant attribute, if any.
-    attributeValue: Optional[AXValue] = None
+    attributeValue: Optional[AXValue]
             The value of the relevant attribute, if any.
-    superseded: Optional[bool] = None
+    superseded: Optional[bool]
             Whether this source is superseded by a higher priority source.
-    nativeSource: Optional[AXValueNativeSourceType] = None
+    nativeSource: Optional[AXValueNativeSourceType]
             The native markup source for this value, e.g. a <label> element.
-    nativeSourceValue: Optional[AXValue] = None
+    nativeSourceValue: Optional[AXValue]
             The value, such as a node or node list, of the native source.
-    invalid: Optional[bool] = None
+    invalid: Optional[bool]
             Whether the value for this property is invalid.
-    invalidReason: Optional[str] = None
+    invalidReason: Optional[str]
             Reason for the value being invalid, if it is.
     """
 
@@ -120,15 +120,15 @@ class AXValueSource(Type):
 
 
 @dataclasses.dataclass
-class AXRelatedNode(Type):
+class AXRelatedNode:
     """
     Attributes
     ----------
     backendDOMNodeId: dom.BackendNodeId
             The BackendNodeId of the related DOM node.
-    idref: Optional[str] = None
+    idref: Optional[str]
             The IDRef value provided, if any.
-    text: Optional[str] = None
+    text: Optional[str]
             The text alternative of this node in the current context.
     """
 
@@ -146,7 +146,7 @@ class AXRelatedNode(Type):
 
 
 @dataclasses.dataclass
-class AXProperty(Type):
+class AXProperty:
     """
     Attributes
     ----------
@@ -165,18 +165,18 @@ class AXProperty(Type):
 
 
 @dataclasses.dataclass
-class AXValue(Type):
+class AXValue:
     """A single computed AX property.
 
     Attributes
     ----------
     type: AXValueType
             The type of this value.
-    value: Optional[any] = None
+    value: Optional[any]
             The computed value of this property.
-    relatedNodes: Optional[list[AXRelatedNode]] = None
+    relatedNodes: Optional[list[AXRelatedNode]]
             One or more related nodes, if applicable.
-    sources: Optional[list[AXValueSource]] = None
+    sources: Optional[list[AXValueSource]]
             The sources which contributed to the computation of this property.
     """
 
@@ -250,7 +250,7 @@ class AXPropertyName(enum.Enum):
 
 
 @dataclasses.dataclass
-class AXNode(Type):
+class AXNode:
     """A node in the accessibility tree.
 
     Attributes
@@ -259,21 +259,21 @@ class AXNode(Type):
             Unique identifier for this node.
     ignored: bool
             Whether this node is ignored for accessibility
-    ignoredReasons: Optional[list[AXProperty]] = None
+    ignoredReasons: Optional[list[AXProperty]]
             Collection of reasons why this node is hidden.
-    role: Optional[AXValue] = None
+    role: Optional[AXValue]
             This `Node`'s role, whether explicit or implicit.
-    name: Optional[AXValue] = None
+    name: Optional[AXValue]
             The accessible name for this `Node`.
-    description: Optional[AXValue] = None
+    description: Optional[AXValue]
             The accessible description for this `Node`.
-    value: Optional[AXValue] = None
+    value: Optional[AXValue]
             The value for this `Node`.
-    properties: Optional[list[AXProperty]] = None
+    properties: Optional[list[AXProperty]]
             All other properties
-    childIds: Optional[list[AXNodeId]] = None
+    childIds: Optional[list[AXNodeId]]
             IDs for each of this node's child nodes.
-    backendDOMNodeId: Optional[dom.BackendNodeId] = None
+    backendDOMNodeId: Optional[dom.BackendNodeId]
             The backend ID for the associated DOM node, if any.
     """
 

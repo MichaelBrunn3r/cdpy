@@ -1,15 +1,13 @@
 from __future__ import annotations
 
 import dataclasses
-import enum
 from typing import Optional
 
 from . import network, runtime
-from .common import Type, filter_unset_parameters
 
 
 @dataclasses.dataclass
-class LogEntry(Type):
+class LogEntry:
     """Log entry.
 
     Attributes
@@ -22,17 +20,17 @@ class LogEntry(Type):
             Logged text.
     timestamp: runtime.Timestamp
             Timestamp when this entry was added.
-    url: Optional[str] = None
+    url: Optional[str]
             URL of the resource if known.
-    lineNumber: Optional[int] = None
+    lineNumber: Optional[int]
             Line number in the resource.
-    stackTrace: Optional[runtime.StackTrace] = None
+    stackTrace: Optional[runtime.StackTrace]
             JavaScript stack trace.
-    networkRequestId: Optional[network.RequestId] = None
+    networkRequestId: Optional[network.RequestId]
             Identifier of the network request associated with this entry.
-    workerId: Optional[str] = None
+    workerId: Optional[str]
             Identifier of the worker associated with this entry.
-    args: Optional[list[runtime.RemoteObject]] = None
+    args: Optional[list[runtime.RemoteObject]]
             Call arguments.
     """
 
@@ -50,6 +48,8 @@ class LogEntry(Type):
     @classmethod
     def from_json(cls, json: dict) -> LogEntry:
         return cls(
+            json["source"],
+            json["level"],
             json["text"],
             runtime.Timestamp(json["timestamp"]),
             json.get("url"),
@@ -68,7 +68,7 @@ class LogEntry(Type):
 
 
 @dataclasses.dataclass
-class ViolationSetting(Type):
+class ViolationSetting:
     """Violation configuration setting.
 
     Attributes
@@ -84,7 +84,7 @@ class ViolationSetting(Type):
 
     @classmethod
     def from_json(cls, json: dict) -> ViolationSetting:
-        return cls(json["threshold"])
+        return cls(json["name"], json["threshold"])
 
 
 def clear():

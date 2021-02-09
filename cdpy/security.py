@@ -5,7 +5,6 @@ import enum
 from typing import Optional
 
 from . import network
-from .common import Type, filter_unset_parameters
 
 
 class CertificateId(int):
@@ -37,7 +36,7 @@ class SecurityState(enum.Enum):
 
 
 @dataclasses.dataclass
-class CertificateSecurityState(Type):
+class CertificateSecurityState:
     """Details about the security state of the page certificate.
 
     Attributes
@@ -72,11 +71,11 @@ class CertificateSecurityState(Type):
             True if the connection is using an obsolete SSL cipher.
     obsoleteSslSignature: bool
             True if the connection is using an obsolete SSL signature.
-    keyExchangeGroup: Optional[str] = None
+    keyExchangeGroup: Optional[str]
             (EC)DH group used by the connection, if applicable.
-    mac: Optional[str] = None
+    mac: Optional[str]
             TLS MAC. Note that AEAD ciphers do not have separate MACs.
-    certificateNetworkError: Optional[str] = None
+    certificateNetworkError: Optional[str]
             The highest priority network error code, if the certificate has an error.
     """
 
@@ -131,13 +130,13 @@ class SafetyTipStatus(enum.Enum):
 
 
 @dataclasses.dataclass
-class SafetyTipInfo(Type):
+class SafetyTipInfo:
     """
     Attributes
     ----------
     safetyTipStatus: SafetyTipStatus
             Describes whether the page triggers any safety tips or reputation warnings. Default is unknown.
-    safeUrl: Optional[str] = None
+    safeUrl: Optional[str]
             The URL the safety tip suggested ("Did you mean?"). Only filled in for lookalike matches.
     """
 
@@ -150,7 +149,7 @@ class SafetyTipInfo(Type):
 
 
 @dataclasses.dataclass
-class VisibleSecurityState(Type):
+class VisibleSecurityState:
     """Security state information about the page.
 
     Attributes
@@ -159,9 +158,9 @@ class VisibleSecurityState(Type):
             The security level of the page.
     securityStateIssueIds: list[str]
             Array of security state issues ids.
-    certificateSecurityState: Optional[CertificateSecurityState] = None
+    certificateSecurityState: Optional[CertificateSecurityState]
             Security state details about the page certificate.
-    safetyTipInfo: Optional[SafetyTipInfo] = None
+    safetyTipInfo: Optional[SafetyTipInfo]
             The type of Safety Tip triggered on the page. Note that this field will be set even if the Safety Tip UI was not actually shown.
     """
 
@@ -185,7 +184,7 @@ class VisibleSecurityState(Type):
 
 
 @dataclasses.dataclass
-class SecurityStateExplanation(Type):
+class SecurityStateExplanation:
     """An explanation of an factor contributing to the security state.
 
     Attributes
@@ -202,7 +201,7 @@ class SecurityStateExplanation(Type):
             The type of mixed content described by the explanation.
     certificate: list[str]
             Page certificate.
-    recommendations: Optional[list[str]] = None
+    recommendations: Optional[list[str]]
             Recommendations to fix any issues.
     """
 
@@ -228,7 +227,7 @@ class SecurityStateExplanation(Type):
 
 
 @dataclasses.dataclass
-class InsecureContentStatus(Type):
+class InsecureContentStatus:
     """Information about insecure content on the page.
 
     Attributes

@@ -1,14 +1,10 @@
 from __future__ import annotations
 
 import dataclasses
-import enum
-from typing import Optional
-
-from .common import Type, filter_unset_parameters
 
 
 @dataclasses.dataclass
-class StorageId(Type):
+class StorageId:
     """DOM Storage identifier.
 
     Attributes

@@ -4,7 +4,7 @@ import dataclasses
 import enum
 from typing import Optional
 
-from .common import Type, filter_unset_parameters
+from .common import filter_unset_parameters
 
 
 class MemoryDumpConfig(dict):
@@ -15,25 +15,25 @@ class MemoryDumpConfig(dict):
 
 
 @dataclasses.dataclass
-class TraceConfig(Type):
+class TraceConfig:
     """
     Attributes
     ----------
-    recordMode: Optional[str] = None
+    recordMode: Optional[str]
             Controls how the trace buffer stores data.
-    enableSampling: Optional[bool] = None
+    enableSampling: Optional[bool]
             Turns on JavaScript stack sampling.
-    enableSystrace: Optional[bool] = None
+    enableSystrace: Optional[bool]
             Turns on system tracing.
-    enableArgumentFilter: Optional[bool] = None
+    enableArgumentFilter: Optional[bool]
             Turns on argument filter.
-    includedCategories: Optional[list[str]] = None
+    includedCategories: Optional[list[str]]
             Included category filters.
-    excludedCategories: Optional[list[str]] = None
+    excludedCategories: Optional[list[str]]
             Excluded category filters.
-    syntheticDelays: Optional[list[str]] = None
+    syntheticDelays: Optional[list[str]]
             Configuration to synthesize the delays in tracing.
-    memoryDumpConfig: Optional[MemoryDumpConfig] = None
+    memoryDumpConfig: Optional[MemoryDumpConfig]
             Configuration for memory dump triggers. Used only when "memory-infra" category is enabled.
     """
 
@@ -49,6 +49,7 @@ class TraceConfig(Type):
     @classmethod
     def from_json(cls, json: dict) -> TraceConfig:
         return cls(
+            json.get("recordMode"),
             json.get("enableSampling"),
             json.get("enableSystrace"),
             json.get("enableArgumentFilter"),

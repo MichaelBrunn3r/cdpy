@@ -4,7 +4,7 @@ import dataclasses
 import enum
 from typing import Optional
 
-from .common import Type, filter_unset_parameters
+from .common import filter_unset_parameters
 
 
 class CacheId(str):
@@ -26,7 +26,7 @@ class CachedResponseType(enum.Enum):
 
 
 @dataclasses.dataclass
-class DataEntry(Type):
+class DataEntry:
     """Data entry.
 
     Attributes
@@ -73,7 +73,7 @@ class DataEntry(Type):
 
 
 @dataclasses.dataclass
-class Cache(Type):
+class Cache:
     """Cache identifier.
 
     Attributes
@@ -96,7 +96,7 @@ class Cache(Type):
 
 
 @dataclasses.dataclass
-class Header(Type):
+class Header:
     """
     Attributes
     ----------
@@ -113,7 +113,7 @@ class Header(Type):
 
 
 @dataclasses.dataclass
-class CachedResponse(Type):
+class CachedResponse:
     """Cached response
 
     Attributes

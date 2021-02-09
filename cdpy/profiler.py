@@ -1,15 +1,14 @@
 from __future__ import annotations
 
 import dataclasses
-import enum
 from typing import Optional
 
 from . import runtime
-from .common import Type, filter_unset_parameters
+from .common import filter_unset_parameters
 
 
 @dataclasses.dataclass
-class ProfileNode(Type):
+class ProfileNode:
     """Profile node. Holds callsite information, execution statistics and child nodes.
 
     Attributes
@@ -18,14 +17,14 @@ class ProfileNode(Type):
             Unique id of the node.
     callFrame: runtime.CallFrame
             Function location.
-    hitCount: Optional[int] = None
+    hitCount: Optional[int]
             Number of samples where this node was on top of the call stack.
-    children: Optional[list[int]] = None
+    children: Optional[list[int]]
             Child node ids.
-    deoptReason: Optional[str] = None
+    deoptReason: Optional[str]
             The reason of being not optimized. The function may be deoptimized or marked as don't
             optimize.
-    positionTicks: Optional[list[PositionTickInfo]] = None
+    positionTicks: Optional[list[PositionTickInfo]]
             An array of source position ticks.
     """
 
@@ -51,7 +50,7 @@ class ProfileNode(Type):
 
 
 @dataclasses.dataclass
-class Profile(Type):
+class Profile:
     """Profile.
 
     Attributes
@@ -62,9 +61,9 @@ class Profile(Type):
             Profiling start timestamp in microseconds.
     endTime: float
             Profiling end timestamp in microseconds.
-    samples: Optional[list[int]] = None
+    samples: Optional[list[int]]
             Ids of samples top nodes.
-    timeDeltas: Optional[list[int]] = None
+    timeDeltas: Optional[list[int]]
             Time intervals between adjacent samples in microseconds. The first delta is relative to the
             profile startTime.
     """
@@ -87,7 +86,7 @@ class Profile(Type):
 
 
 @dataclasses.dataclass
-class PositionTickInfo(Type):
+class PositionTickInfo:
     """Specifies a number of samples attributed to a certain source position.
 
     Attributes
@@ -107,7 +106,7 @@ class PositionTickInfo(Type):
 
 
 @dataclasses.dataclass
-class CoverageRange(Type):
+class CoverageRange:
     """Coverage data for a source range.
 
     Attributes
@@ -130,7 +129,7 @@ class CoverageRange(Type):
 
 
 @dataclasses.dataclass
-class FunctionCoverage(Type):
+class FunctionCoverage:
     """Coverage data for a JavaScript function.
 
     Attributes
@@ -157,7 +156,7 @@ class FunctionCoverage(Type):
 
 
 @dataclasses.dataclass
-class ScriptCoverage(Type):
+class ScriptCoverage:
     """Coverage data for a JavaScript script.
 
     Attributes
@@ -184,7 +183,7 @@ class ScriptCoverage(Type):
 
 
 @dataclasses.dataclass
-class TypeObject(Type):
+class TypeObject:
     """Describes a type collected during runtime.
 
     Attributes
@@ -201,7 +200,7 @@ class TypeObject(Type):
 
 
 @dataclasses.dataclass
-class TypeProfileEntry(Type):
+class TypeProfileEntry:
     """Source offset and types for a parameter or return value.
 
     Attributes
@@ -221,7 +220,7 @@ class TypeProfileEntry(Type):
 
 
 @dataclasses.dataclass
-class ScriptTypeProfile(Type):
+class ScriptTypeProfile:
     """Type profile data collected during runtime for a JavaScript script.
 
     Attributes
@@ -248,7 +247,7 @@ class ScriptTypeProfile(Type):
 
 
 @dataclasses.dataclass
-class CounterInfo(Type):
+class CounterInfo:
     """Collected counter information.
 
     Attributes
@@ -268,7 +267,7 @@ class CounterInfo(Type):
 
 
 @dataclasses.dataclass
-class RuntimeCallCounterInfo(Type):
+class RuntimeCallCounterInfo:
     """Runtime call counter information.
 
     Attributes

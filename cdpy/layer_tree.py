@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import dataclasses
-import enum
 from typing import Optional
 
 from . import dom
-from .common import Type, filter_unset_parameters
+from .common import filter_unset_parameters
 
 
 class LayerId(str):
@@ -23,7 +22,7 @@ class SnapshotId(str):
 
 
 @dataclasses.dataclass
-class ScrollRect(Type):
+class ScrollRect:
     """Rectangle where scrolling happens on the main thread.
 
     Attributes
@@ -39,11 +38,11 @@ class ScrollRect(Type):
 
     @classmethod
     def from_json(cls, json: dict) -> ScrollRect:
-        return cls(dom.Rect.from_json(json["rect"]))
+        return cls(dom.Rect.from_json(json["rect"]), json["type"])
 
 
 @dataclasses.dataclass
-class StickyPositionConstraint(Type):
+class StickyPositionConstraint:
     """Sticky position constraints.
 
     Attributes
@@ -52,9 +51,9 @@ class StickyPositionConstraint(Type):
             Layout rectangle of the sticky element before being shifted
     containingBlockRect: dom.Rect
             Layout rectangle of the containing block of the sticky element
-    nearestLayerShiftingStickyBox: Optional[LayerId] = None
+    nearestLayerShiftingStickyBox: Optional[LayerId]
             The nearest sticky layer that shifts the sticky box
-    nearestLayerShiftingContainingBlock: Optional[LayerId] = None
+    nearestLayerShiftingContainingBlock: Optional[LayerId]
             The nearest sticky layer that shifts the containing block
     """
 
@@ -78,7 +77,7 @@ class StickyPositionConstraint(Type):
 
 
 @dataclasses.dataclass
-class PictureTile(Type):
+class PictureTile:
     """Serialized fragment of layer picture along with its offset within the layer.
 
     Attributes
@@ -101,7 +100,7 @@ class PictureTile(Type):
 
 
 @dataclasses.dataclass
-class Layer(Type):
+class Layer:
     """Information about a compositing layer.
 
     Attributes
@@ -121,23 +120,23 @@ class Layer(Type):
     drawsContent: bool
             Indicates whether this layer hosts any content, rather than being used for
             transform/scrolling purposes only.
-    parentLayerId: Optional[LayerId] = None
+    parentLayerId: Optional[LayerId]
             The id of parent (not present for root).
-    backendNodeId: Optional[dom.BackendNodeId] = None
+    backendNodeId: Optional[dom.BackendNodeId]
             The backend id for the node associated with this layer.
-    transform: Optional[list[float]] = None
+    transform: Optional[list[float]]
             Transformation matrix for layer, default is identity matrix
-    anchorX: Optional[float] = None
+    anchorX: Optional[float]
             Transform anchor point X, absent if no transform specified
-    anchorY: Optional[float] = None
+    anchorY: Optional[float]
             Transform anchor point Y, absent if no transform specified
-    anchorZ: Optional[float] = None
+    anchorZ: Optional[float]
             Transform anchor point Z, absent if no transform specified
-    invisible: Optional[bool] = None
+    invisible: Optional[bool]
             Set if layer is not visible.
-    scrollRects: Optional[list[ScrollRect]] = None
+    scrollRects: Optional[list[ScrollRect]]
             Rectangles scrolling on main thread only.
-    stickyPositionConstraint: Optional[StickyPositionConstraint] = None
+    stickyPositionConstraint: Optional[StickyPositionConstraint]
             Sticky position constraint information
     """
 

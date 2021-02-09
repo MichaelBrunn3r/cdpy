@@ -4,11 +4,9 @@ import dataclasses
 import enum
 from typing import Optional
 
-from .common import Type, filter_unset_parameters
-
 
 @dataclasses.dataclass
-class GPUDevice(Type):
+class GPUDevice:
     """Describes a single graphics processor (GPU).
 
     Attributes
@@ -25,9 +23,9 @@ class GPUDevice(Type):
             String description of the GPU driver vendor.
     driverVersion: str
             String description of the GPU driver version.
-    subSysId: Optional[float] = None
+    subSysId: Optional[float]
             Sub sys ID of the GPU, only available on Windows.
-    revision: Optional[float] = None
+    revision: Optional[float]
             Revision of the GPU, only available on Windows.
     """
 
@@ -55,7 +53,7 @@ class GPUDevice(Type):
 
 
 @dataclasses.dataclass
-class Size(Type):
+class Size:
     """Describes the width and height dimensions of an entity.
 
     Attributes
@@ -75,7 +73,7 @@ class Size(Type):
 
 
 @dataclasses.dataclass
-class VideoDecodeAcceleratorCapability(Type):
+class VideoDecodeAcceleratorCapability:
     """Describes a supported video decoding profile with its associated minimum and
     maximum resolutions.
 
@@ -103,7 +101,7 @@ class VideoDecodeAcceleratorCapability(Type):
 
 
 @dataclasses.dataclass
-class VideoEncodeAcceleratorCapability(Type):
+class VideoEncodeAcceleratorCapability:
     """Describes a supported video encoding profile with its associated maximum
     resolution and maximum framerate.
 
@@ -152,7 +150,7 @@ class ImageType(enum.Enum):
 
 
 @dataclasses.dataclass
-class ImageDecodeAcceleratorCapability(Type):
+class ImageDecodeAcceleratorCapability:
     """Describes a supported image decoding profile with its associated minimum and
     maximum resolutions and subsampling.
 
@@ -184,7 +182,7 @@ class ImageDecodeAcceleratorCapability(Type):
 
 
 @dataclasses.dataclass
-class GPUInfo(Type):
+class GPUInfo:
     """Provides information about the GPU(s) on the system.
 
     Attributes
@@ -199,9 +197,9 @@ class GPUInfo(Type):
             Supported accelerated video encoding capabilities.
     imageDecoding: list[ImageDecodeAcceleratorCapability]
             Supported accelerated image decoding capabilities.
-    auxAttributes: Optional[dict] = None
+    auxAttributes: Optional[dict]
             An optional dictionary of additional GPU related attributes.
-    featureStatus: Optional[dict] = None
+    featureStatus: Optional[dict]
             An optional dictionary of graphics features and their status.
     """
 
@@ -236,7 +234,7 @@ class GPUInfo(Type):
 
 
 @dataclasses.dataclass
-class ProcessInfo(Type):
+class ProcessInfo:
     """Represents process info.
 
     Attributes

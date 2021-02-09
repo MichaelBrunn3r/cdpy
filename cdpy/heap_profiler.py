@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import dataclasses
-import enum
 from typing import Optional
 
 from . import runtime
-from .common import Type, filter_unset_parameters
+from .common import filter_unset_parameters
 
 
 class HeapSnapshotObjectId(str):
@@ -16,7 +15,7 @@ class HeapSnapshotObjectId(str):
 
 
 @dataclasses.dataclass
-class SamplingHeapProfileNode(Type):
+class SamplingHeapProfileNode:
     """Sampling Heap Profile node. Holds callsite information, allocation statistics and child nodes.
 
     Attributes
@@ -47,7 +46,7 @@ class SamplingHeapProfileNode(Type):
 
 
 @dataclasses.dataclass
-class SamplingHeapProfileSample(Type):
+class SamplingHeapProfileSample:
     """A single sample from a sampling profile.
 
     Attributes
@@ -71,7 +70,7 @@ class SamplingHeapProfileSample(Type):
 
 
 @dataclasses.dataclass
-class SamplingHeapProfile(Type):
+class SamplingHeapProfile:
     """Sampling profile.
 
     Attributes

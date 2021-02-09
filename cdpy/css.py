@@ -5,7 +5,6 @@ import enum
 from typing import Optional
 
 from . import dom, page
-from .common import Type, filter_unset_parameters
 
 
 class StyleSheetId(str):
@@ -28,7 +27,7 @@ class StyleSheetOrigin(enum.Enum):
 
 
 @dataclasses.dataclass
-class PseudoElementMatches(Type):
+class PseudoElementMatches:
     """CSS rule collection for a single pseudo style.
 
     Attributes
@@ -51,14 +50,14 @@ class PseudoElementMatches(Type):
 
 
 @dataclasses.dataclass
-class InheritedStyleEntry(Type):
+class InheritedStyleEntry:
     """Inherited CSS rule collection from ancestor node.
 
     Attributes
     ----------
     matchedCSSRules: list[RuleMatch]
             Matches of CSS rules matching the ancestor node in the style inheritance chain.
-    inlineStyle: Optional[CSSStyle] = None
+    inlineStyle: Optional[CSSStyle]
             The ancestor node's inline style, if any, in the style inheritance chain.
     """
 
@@ -74,7 +73,7 @@ class InheritedStyleEntry(Type):
 
 
 @dataclasses.dataclass
-class RuleMatch(Type):
+class RuleMatch:
     """Match data for a CSS rule.
 
     Attributes
@@ -94,14 +93,14 @@ class RuleMatch(Type):
 
 
 @dataclasses.dataclass
-class Value(Type):
+class Value:
     """Data for a simple selector (these are delimited by commas in a selector list).
 
     Attributes
     ----------
     text: str
             Value text.
-    range: Optional[SourceRange] = None
+    range: Optional[SourceRange]
             Value range in the underlying resource (if available).
     """
 
@@ -117,7 +116,7 @@ class Value(Type):
 
 
 @dataclasses.dataclass
-class SelectorList(Type):
+class SelectorList:
     """Selector list data.
 
     Attributes
@@ -137,7 +136,7 @@ class SelectorList(Type):
 
 
 @dataclasses.dataclass
-class CSSStyleSheetHeader(Type):
+class CSSStyleSheetHeader:
     """CSS stylesheet metainformation.
 
     Attributes
@@ -174,11 +173,11 @@ class CSSStyleSheetHeader(Type):
             Line offset of the end of the stylesheet within the resource (zero based).
     endColumn: float
             Column offset of the end of the stylesheet within the resource (zero based).
-    sourceMapURL: Optional[str] = None
+    sourceMapURL: Optional[str]
             URL of source map associated with the stylesheet (if any).
-    ownerNode: Optional[dom.BackendNodeId] = None
+    ownerNode: Optional[dom.BackendNodeId]
             The backend id for the owner node of the stylesheet.
-    hasSourceURL: Optional[bool] = None
+    hasSourceURL: Optional[bool]
             Whether the sourceURL field value comes from the sourceURL comment.
     """
 
@@ -224,7 +223,7 @@ class CSSStyleSheetHeader(Type):
 
 
 @dataclasses.dataclass
-class CSSRule(Type):
+class CSSRule:
     """CSS rule representation.
 
     Attributes
@@ -235,10 +234,10 @@ class CSSRule(Type):
             Parent stylesheet's origin.
     style: CSSStyle
             Associated style declaration.
-    styleSheetId: Optional[StyleSheetId] = None
+    styleSheetId: Optional[StyleSheetId]
             The css style sheet identifier (absent for user agent stylesheet and user-specified
             stylesheet rules) this rule came from.
-    media: Optional[list[CSSMedia]] = None
+    media: Optional[list[CSSMedia]]
             Media list array (for rules involving media queries). The array enumerates media queries
             starting with the innermost one, going outwards.
     """
@@ -261,7 +260,7 @@ class CSSRule(Type):
 
 
 @dataclasses.dataclass
-class RuleUsage(Type):
+class RuleUsage:
     """CSS coverage information.
 
     Attributes
@@ -293,7 +292,7 @@ class RuleUsage(Type):
 
 
 @dataclasses.dataclass
-class SourceRange(Type):
+class SourceRange:
     """Text range within a resource. All numbers are zero-based.
 
     Attributes
@@ -321,7 +320,7 @@ class SourceRange(Type):
 
 
 @dataclasses.dataclass
-class ShorthandEntry(Type):
+class ShorthandEntry:
     """
     Attributes
     ----------
@@ -329,7 +328,7 @@ class ShorthandEntry(Type):
             Shorthand name.
     value: str
             Shorthand value.
-    important: Optional[bool] = None
+    important: Optional[bool]
             Whether the property has "!important" annotation (implies `false` if absent).
     """
 
@@ -343,7 +342,7 @@ class ShorthandEntry(Type):
 
 
 @dataclasses.dataclass
-class CSSComputedStyleProperty(Type):
+class CSSComputedStyleProperty:
     """
     Attributes
     ----------
@@ -362,7 +361,7 @@ class CSSComputedStyleProperty(Type):
 
 
 @dataclasses.dataclass
-class CSSStyle(Type):
+class CSSStyle:
     """CSS style representation.
 
     Attributes
@@ -371,12 +370,12 @@ class CSSStyle(Type):
             CSS properties in the style.
     shorthandEntries: list[ShorthandEntry]
             Computed values for all shorthands found in the style.
-    styleSheetId: Optional[StyleSheetId] = None
+    styleSheetId: Optional[StyleSheetId]
             The css style sheet identifier (absent for user agent stylesheet and user-specified
             stylesheet rules) this rule came from.
-    cssText: Optional[str] = None
+    cssText: Optional[str]
             Style declaration text (if available).
-    range: Optional[SourceRange] = None
+    range: Optional[SourceRange]
             Style declaration range in the enclosing stylesheet (if available).
     """
 
@@ -398,7 +397,7 @@ class CSSStyle(Type):
 
 
 @dataclasses.dataclass
-class CSSProperty(Type):
+class CSSProperty:
     """CSS property declaration data.
 
     Attributes
@@ -407,17 +406,17 @@ class CSSProperty(Type):
             The property name.
     value: str
             The property value.
-    important: Optional[bool] = None
+    important: Optional[bool]
             Whether the property has "!important" annotation (implies `false` if absent).
-    implicit: Optional[bool] = None
+    implicit: Optional[bool]
             Whether the property is implicit (implies `false` if absent).
-    text: Optional[str] = None
+    text: Optional[str]
             The full property text as specified in the style.
-    parsedOk: Optional[bool] = None
+    parsedOk: Optional[bool]
             Whether the property is understood by the browser (implies `true` if absent).
-    disabled: Optional[bool] = None
+    disabled: Optional[bool]
             Whether the property is disabled by the user (present for source-based properties only).
-    range: Optional[SourceRange] = None
+    range: Optional[SourceRange]
             The entire property range in the enclosing style declaration (if available).
     """
 
@@ -445,7 +444,7 @@ class CSSProperty(Type):
 
 
 @dataclasses.dataclass
-class CSSMedia(Type):
+class CSSMedia:
     """CSS media rule descriptor.
 
     Attributes
@@ -457,14 +456,14 @@ class CSSMedia(Type):
             specified by an @import rule, "linkedSheet" if specified by a "media" attribute in a linked
             stylesheet's LINK tag, "inlineSheet" if specified by a "media" attribute in an inline
             stylesheet's STYLE tag.
-    sourceURL: Optional[str] = None
+    sourceURL: Optional[str]
             URL of the document containing the media query description.
-    range: Optional[SourceRange] = None
+    range: Optional[SourceRange]
             The associated rule (@media or @import) header range in the enclosing stylesheet (if
             available).
-    styleSheetId: Optional[StyleSheetId] = None
+    styleSheetId: Optional[StyleSheetId]
             Identifier of the stylesheet containing this object (if exists).
-    mediaList: Optional[list[MediaQuery]] = None
+    mediaList: Optional[list[MediaQuery]]
             Array of media queries.
     """
 
@@ -479,6 +478,7 @@ class CSSMedia(Type):
     def from_json(cls, json: dict) -> CSSMedia:
         return cls(
             json["text"],
+            json["source"],
             json.get("sourceURL"),
             SourceRange.from_json(json["range"]) if "range" in json else None,
             StyleSheetId(json["styleSheetId"]) if "styleSheetId" in json else None,
@@ -489,7 +489,7 @@ class CSSMedia(Type):
 
 
 @dataclasses.dataclass
-class MediaQuery(Type):
+class MediaQuery:
     """Media query descriptor.
 
     Attributes
@@ -512,7 +512,7 @@ class MediaQuery(Type):
 
 
 @dataclasses.dataclass
-class MediaQueryExpression(Type):
+class MediaQueryExpression:
     """Media query expression descriptor.
 
     Attributes
@@ -523,9 +523,9 @@ class MediaQueryExpression(Type):
             Media query expression units.
     feature: str
             Media query expression feature.
-    valueRange: Optional[SourceRange] = None
+    valueRange: Optional[SourceRange]
             The associated range of the value text in the enclosing stylesheet (if available).
-    computedLength: Optional[float] = None
+    computedLength: Optional[float]
             Computed length of media query expression (if applicable).
     """
 
@@ -547,7 +547,7 @@ class MediaQueryExpression(Type):
 
 
 @dataclasses.dataclass
-class PlatformFontUsage(Type):
+class PlatformFontUsage:
     """Information about amount of glyphs that were rendered with given font.
 
     Attributes
@@ -570,7 +570,7 @@ class PlatformFontUsage(Type):
 
 
 @dataclasses.dataclass
-class FontVariationAxis(Type):
+class FontVariationAxis:
     """Information about font variation axes for variable fonts
 
     Attributes
@@ -605,7 +605,7 @@ class FontVariationAxis(Type):
 
 
 @dataclasses.dataclass
-class FontFace(Type):
+class FontFace:
     """Properties of a web font: https://www.w3.org/TR/2008/REC-CSS2-20080411/fonts.html#font-descriptions
     and additional information such as platformFontFamily and fontVariationAxes.
 
@@ -627,7 +627,7 @@ class FontFace(Type):
             The src.
     platformFontFamily: str
             The resolved platform font family
-    fontVariationAxes: Optional[list[FontVariationAxis]] = None
+    fontVariationAxes: Optional[list[FontVariationAxis]]
             Available variation settings (a.k.a. "axes").
     """
 
@@ -659,7 +659,7 @@ class FontFace(Type):
 
 
 @dataclasses.dataclass
-class CSSKeyframesRule(Type):
+class CSSKeyframesRule:
     """CSS keyframes rule representation.
 
     Attributes
@@ -682,7 +682,7 @@ class CSSKeyframesRule(Type):
 
 
 @dataclasses.dataclass
-class CSSKeyframeRule(Type):
+class CSSKeyframeRule:
     """CSS keyframe rule representation.
 
     Attributes
@@ -693,7 +693,7 @@ class CSSKeyframeRule(Type):
             Associated key text.
     style: CSSStyle
             Associated style declaration.
-    styleSheetId: Optional[StyleSheetId] = None
+    styleSheetId: Optional[StyleSheetId]
             The css style sheet identifier (absent for user agent stylesheet and user-specified
             stylesheet rules) this rule came from.
     """
@@ -714,7 +714,7 @@ class CSSKeyframeRule(Type):
 
 
 @dataclasses.dataclass
-class StyleDeclarationEdit(Type):
+class StyleDeclarationEdit:
     """A descriptor of operation to mutate style declaration text.
 
     Attributes

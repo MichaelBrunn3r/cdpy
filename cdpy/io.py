@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import dataclasses
-import enum
 from typing import Optional
 
 from . import runtime
-from .common import Type, filter_unset_parameters
+from .common import filter_unset_parameters
 
 
 class StreamHandle(str):

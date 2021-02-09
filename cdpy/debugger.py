@@ -5,7 +5,7 @@ import enum
 from typing import Optional
 
 from . import runtime
-from .common import Type, filter_unset_parameters
+from .common import filter_unset_parameters
 
 
 class BreakpointId(str):
@@ -23,7 +23,7 @@ class CallFrameId(str):
 
 
 @dataclasses.dataclass
-class Location(Type):
+class Location:
     """Location in the source code.
 
     Attributes
@@ -32,7 +32,7 @@ class Location(Type):
             Script identifier as reported in the `Debugger.scriptParsed`.
     lineNumber: int
             Line number in the script (0-based).
-    columnNumber: Optional[int] = None
+    columnNumber: Optional[int]
             Column number in the script (0-based).
     """
 
@@ -50,7 +50,7 @@ class Location(Type):
 
 
 @dataclasses.dataclass
-class ScriptPosition(Type):
+class ScriptPosition:
     """Location in the source code.
 
     Attributes
@@ -68,7 +68,7 @@ class ScriptPosition(Type):
 
 
 @dataclasses.dataclass
-class LocationRange(Type):
+class LocationRange:
     """Location range within one script.
 
     Attributes
@@ -92,7 +92,7 @@ class LocationRange(Type):
 
 
 @dataclasses.dataclass
-class CallFrame(Type):
+class CallFrame:
     """JavaScript call frame. Array of call frames form the call stack.
 
     Attributes
@@ -109,9 +109,9 @@ class CallFrame(Type):
             Scope chain for this call frame.
     this: runtime.RemoteObject
             `this` object for this call frame.
-    functionLocation: Optional[Location] = None
+    functionLocation: Optional[Location]
             Location in the source code.
-    returnValue: Optional[runtime.RemoteObject] = None
+    returnValue: Optional[runtime.RemoteObject]
             The value being returned, if the function is at return point.
     """
 
@@ -143,7 +143,7 @@ class CallFrame(Type):
 
 
 @dataclasses.dataclass
-class Scope(Type):
+class Scope:
     """Scope description.
 
     Attributes
@@ -154,10 +154,10 @@ class Scope(Type):
             Object representing the scope. For `global` and `with` scopes it represents the actual
             object; for the rest of the scopes, it is artificial transient object enumerating scope
             variables as its properties.
-    name: Optional[str] = None
-    startLocation: Optional[Location] = None
+    name: Optional[str]
+    startLocation: Optional[Location]
             Location in the source code where scope starts
-    endLocation: Optional[Location] = None
+    endLocation: Optional[Location]
             Location in the source code where scope ends
     """
 
@@ -170,6 +170,7 @@ class Scope(Type):
     @classmethod
     def from_json(cls, json: dict) -> Scope:
         return cls(
+            json["type"],
             runtime.RemoteObject.from_json(json["object"]),
             json.get("name"),
             Location.from_json(json["startLocation"])
@@ -180,7 +181,7 @@ class Scope(Type):
 
 
 @dataclasses.dataclass
-class SearchMatch(Type):
+class SearchMatch:
     """Search match for resource.
 
     Attributes
@@ -200,7 +201,7 @@ class SearchMatch(Type):
 
 
 @dataclasses.dataclass
-class BreakLocation(Type):
+class BreakLocation:
     """
     Attributes
     ----------
@@ -208,9 +209,9 @@ class BreakLocation(Type):
             Script identifier as reported in the `Debugger.scriptParsed`.
     lineNumber: int
             Line number in the script (0-based).
-    columnNumber: Optional[int] = None
+    columnNumber: Optional[int]
             Column number in the script (0-based).
-    type: Optional[str] = None
+    type: Optional[str]
     """
 
     scriptId: runtime.ScriptId
@@ -224,6 +225,7 @@ class BreakLocation(Type):
             runtime.ScriptId(json["scriptId"]),
             json["lineNumber"],
             json.get("columnNumber"),
+            json.get("type"),
         )
 
 
@@ -235,14 +237,14 @@ class ScriptLanguage(enum.Enum):
 
 
 @dataclasses.dataclass
-class DebugSymbols(Type):
+class DebugSymbols:
     """Debug symbols available for a wasm script.
 
     Attributes
     ----------
     type: str
             Type of the debug symbols.
-    externalURL: Optional[str] = None
+    externalURL: Optional[str]
             URL of the external symbol source.
     """
 
@@ -251,7 +253,7 @@ class DebugSymbols(Type):
 
     @classmethod
     def from_json(cls, json: dict) -> DebugSymbols:
-        return cls(json.get("externalURL"))
+        return cls(json["type"], json.get("externalURL"))
 
 
 def continue_to_location(location: Location, targetCallFrames: Optional[str] = None):

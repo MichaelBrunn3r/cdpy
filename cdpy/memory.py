@@ -4,7 +4,7 @@ import dataclasses
 import enum
 from typing import Optional
 
-from .common import Type, filter_unset_parameters
+from .common import filter_unset_parameters
 
 
 class PressureLevel(enum.Enum):
@@ -15,7 +15,7 @@ class PressureLevel(enum.Enum):
 
 
 @dataclasses.dataclass
-class SamplingProfileNode(Type):
+class SamplingProfileNode:
     """Heap profile sample.
 
     Attributes
@@ -38,7 +38,7 @@ class SamplingProfileNode(Type):
 
 
 @dataclasses.dataclass
-class SamplingProfile(Type):
+class SamplingProfile:
     """Array of heap profile samples.
 
     Attributes
@@ -59,7 +59,7 @@ class SamplingProfile(Type):
 
 
 @dataclasses.dataclass
-class Module(Type):
+class Module:
     """Executable module information
 
     Attributes

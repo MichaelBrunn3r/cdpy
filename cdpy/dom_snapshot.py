@@ -1,15 +1,14 @@
 from __future__ import annotations
 
 import dataclasses
-import enum
 from typing import Optional
 
 from . import dom, dom_debugger, page
-from .common import Type, filter_unset_parameters
+from .common import filter_unset_parameters
 
 
 @dataclasses.dataclass
-class DOMNode(Type):
+class DOMNode:
     """A Node in the DOM tree.
 
     Attributes
@@ -22,59 +21,59 @@ class DOMNode(Type):
             `Node`'s nodeValue.
     backendNodeId: dom.BackendNodeId
             `Node`'s id, corresponds to DOM.Node.backendNodeId.
-    textValue: Optional[str] = None
+    textValue: Optional[str]
             Only set for textarea elements, contains the text value.
-    inputValue: Optional[str] = None
+    inputValue: Optional[str]
             Only set for input elements, contains the input's associated text value.
-    inputChecked: Optional[bool] = None
+    inputChecked: Optional[bool]
             Only set for radio and checkbox input elements, indicates if the element has been checked
-    optionSelected: Optional[bool] = None
+    optionSelected: Optional[bool]
             Only set for option elements, indicates if the element has been selected
-    childNodeIndexes: Optional[list[int]] = None
+    childNodeIndexes: Optional[list[int]]
             The indexes of the node's child nodes in the `domNodes` array returned by `getSnapshot`, if
             any.
-    attributes: Optional[list[NameValue]] = None
+    attributes: Optional[list[NameValue]]
             Attributes of an `Element` node.
-    pseudoElementIndexes: Optional[list[int]] = None
+    pseudoElementIndexes: Optional[list[int]]
             Indexes of pseudo elements associated with this node in the `domNodes` array returned by
             `getSnapshot`, if any.
-    layoutNodeIndex: Optional[int] = None
+    layoutNodeIndex: Optional[int]
             The index of the node's related layout tree node in the `layoutTreeNodes` array returned by
             `getSnapshot`, if any.
-    documentURL: Optional[str] = None
+    documentURL: Optional[str]
             Document URL that `Document` or `FrameOwner` node points to.
-    baseURL: Optional[str] = None
+    baseURL: Optional[str]
             Base URL that `Document` or `FrameOwner` node uses for URL completion.
-    contentLanguage: Optional[str] = None
+    contentLanguage: Optional[str]
             Only set for documents, contains the document's content language.
-    documentEncoding: Optional[str] = None
+    documentEncoding: Optional[str]
             Only set for documents, contains the document's character set encoding.
-    publicId: Optional[str] = None
+    publicId: Optional[str]
             `DocumentType` node's publicId.
-    systemId: Optional[str] = None
+    systemId: Optional[str]
             `DocumentType` node's systemId.
-    frameId: Optional[page.FrameId] = None
+    frameId: Optional[page.FrameId]
             Frame ID for frame owner elements and also for the document node.
-    contentDocumentIndex: Optional[int] = None
+    contentDocumentIndex: Optional[int]
             The index of a frame owner element's content document in the `domNodes` array returned by
             `getSnapshot`, if any.
-    pseudoType: Optional[dom.PseudoType] = None
+    pseudoType: Optional[dom.PseudoType]
             Type of a pseudo element node.
-    shadowRootType: Optional[dom.ShadowRootType] = None
+    shadowRootType: Optional[dom.ShadowRootType]
             Shadow root type.
-    isClickable: Optional[bool] = None
+    isClickable: Optional[bool]
             Whether this DOM node responds to mouse clicks. This includes nodes that have had click
             event listeners attached via JavaScript as well as anchor tags that naturally navigate when
             clicked.
-    eventListeners: Optional[list[dom_debugger.EventListener]] = None
+    eventListeners: Optional[list[dom_debugger.EventListener]]
             Details of the node's event listeners, if any.
-    currentSourceURL: Optional[str] = None
+    currentSourceURL: Optional[str]
             The selected url for nodes with a srcset attribute.
-    originURL: Optional[str] = None
+    originURL: Optional[str]
             The url of the script (if any) that generates this node.
-    scrollOffsetX: Optional[float] = None
+    scrollOffsetX: Optional[float]
             Scroll offsets, set when this node is a Document.
-    scrollOffsetY: Optional[float] = None
+    scrollOffsetY: Optional[float]
     """
 
     nodeType: int
@@ -147,7 +146,7 @@ class DOMNode(Type):
 
 
 @dataclasses.dataclass
-class InlineTextBox(Type):
+class InlineTextBox:
     """Details of post layout rendered text positions. The exact layout should not be regarded as
     stable and may change between versions.
 
@@ -177,7 +176,7 @@ class InlineTextBox(Type):
 
 
 @dataclasses.dataclass
-class LayoutTreeNode(Type):
+class LayoutTreeNode:
     """Details of an element in the DOM tree with a LayoutObject.
 
     Attributes
@@ -186,17 +185,17 @@ class LayoutTreeNode(Type):
             The index of the related DOM node in the `domNodes` array returned by `getSnapshot`.
     boundingBox: dom.Rect
             The bounding box in document coordinates. Note that scroll offset of the document is ignored.
-    layoutText: Optional[str] = None
+    layoutText: Optional[str]
             Contents of the LayoutText, if any.
-    inlineTextNodes: Optional[list[InlineTextBox]] = None
+    inlineTextNodes: Optional[list[InlineTextBox]]
             The post-layout inline text nodes, if any.
-    styleIndex: Optional[int] = None
+    styleIndex: Optional[int]
             Index into the `computedStyles` array returned by `getSnapshot`.
-    paintOrder: Optional[int] = None
+    paintOrder: Optional[int]
             Global paint order index, which is determined by the stacking order of the nodes. Nodes
             that are painted together will have the same index. Only provided if includePaintOrder in
             getSnapshot was true.
-    isStackingContext: Optional[bool] = None
+    isStackingContext: Optional[bool]
             Set to true to indicate the element begins a new stacking context.
     """
 
@@ -224,7 +223,7 @@ class LayoutTreeNode(Type):
 
 
 @dataclasses.dataclass
-class ComputedStyle(Type):
+class ComputedStyle:
     """A subset of the full ComputedStyle as defined by the request whitelist.
 
     Attributes
@@ -241,7 +240,7 @@ class ComputedStyle(Type):
 
 
 @dataclasses.dataclass
-class NameValue(Type):
+class NameValue:
     """A name/value pair.
 
     Attributes
@@ -276,7 +275,7 @@ class ArrayOfStrings(list[StringIndex]):
 
 
 @dataclasses.dataclass
-class RareStringData(Type):
+class RareStringData:
     """Data that is only present on rare nodes.
 
     Attributes
@@ -294,7 +293,7 @@ class RareStringData(Type):
 
 
 @dataclasses.dataclass
-class RareBooleanData(Type):
+class RareBooleanData:
     """
     Attributes
     ----------
@@ -309,7 +308,7 @@ class RareBooleanData(Type):
 
 
 @dataclasses.dataclass
-class RareIntegerData(Type):
+class RareIntegerData:
     """
     Attributes
     ----------
@@ -333,7 +332,7 @@ class Rectangle(list[float]):
 
 
 @dataclasses.dataclass
-class DocumentSnapshot(Type):
+class DocumentSnapshot:
     """Document snapshot.
 
     Attributes
@@ -360,13 +359,13 @@ class DocumentSnapshot(Type):
             The nodes in the layout tree.
     textBoxes: TextBoxSnapshot
             The post-layout inline text nodes.
-    scrollOffsetX: Optional[float] = None
+    scrollOffsetX: Optional[float]
             Horizontal scroll offset.
-    scrollOffsetY: Optional[float] = None
+    scrollOffsetY: Optional[float]
             Vertical scroll offset.
-    contentWidth: Optional[float] = None
+    contentWidth: Optional[float]
             Document content width.
-    contentHeight: Optional[float] = None
+    contentHeight: Optional[float]
             Document content height.
     """
 
@@ -408,42 +407,42 @@ class DocumentSnapshot(Type):
 
 
 @dataclasses.dataclass
-class NodeTreeSnapshot(Type):
+class NodeTreeSnapshot:
     """Table containing nodes.
 
     Attributes
     ----------
-    parentIndex: Optional[list[int]] = None
+    parentIndex: Optional[list[int]]
             Parent node index.
-    nodeType: Optional[list[int]] = None
+    nodeType: Optional[list[int]]
             `Node`'s nodeType.
-    nodeName: Optional[list[StringIndex]] = None
+    nodeName: Optional[list[StringIndex]]
             `Node`'s nodeName.
-    nodeValue: Optional[list[StringIndex]] = None
+    nodeValue: Optional[list[StringIndex]]
             `Node`'s nodeValue.
-    backendNodeId: Optional[list[dom.BackendNodeId]] = None
+    backendNodeId: Optional[list[dom.BackendNodeId]]
             `Node`'s id, corresponds to DOM.Node.backendNodeId.
-    attributes: Optional[list[ArrayOfStrings]] = None
+    attributes: Optional[list[ArrayOfStrings]]
             Attributes of an `Element` node. Flatten name, value pairs.
-    textValue: Optional[RareStringData] = None
+    textValue: Optional[RareStringData]
             Only set for textarea elements, contains the text value.
-    inputValue: Optional[RareStringData] = None
+    inputValue: Optional[RareStringData]
             Only set for input elements, contains the input's associated text value.
-    inputChecked: Optional[RareBooleanData] = None
+    inputChecked: Optional[RareBooleanData]
             Only set for radio and checkbox input elements, indicates if the element has been checked
-    optionSelected: Optional[RareBooleanData] = None
+    optionSelected: Optional[RareBooleanData]
             Only set for option elements, indicates if the element has been selected
-    contentDocumentIndex: Optional[RareIntegerData] = None
+    contentDocumentIndex: Optional[RareIntegerData]
             The index of the document in the list of the snapshot documents.
-    pseudoType: Optional[RareStringData] = None
+    pseudoType: Optional[RareStringData]
             Type of a pseudo element node.
-    isClickable: Optional[RareBooleanData] = None
+    isClickable: Optional[RareBooleanData]
             Whether this DOM node responds to mouse clicks. This includes nodes that have had click
             event listeners attached via JavaScript as well as anchor tags that naturally navigate when
             clicked.
-    currentSourceURL: Optional[RareStringData] = None
+    currentSourceURL: Optional[RareStringData]
             The selected url for nodes with a srcset attribute.
-    originURL: Optional[RareStringData] = None
+    originURL: Optional[RareStringData]
             The url of the script (if any) that generates this node.
     """
 
@@ -474,6 +473,9 @@ class NodeTreeSnapshot(Type):
             else None,
             [dom.BackendNodeId(x) for x in json["backendNodeId"]]
             if "backendNodeId" in json
+            else None,
+            [ArrayOfStrings.from_json(x) for x in json["attributes"]]
+            if "attributes" in json
             else None,
             RareStringData.from_json(json["textValue"])
             if "textValue" in json
@@ -506,7 +508,7 @@ class NodeTreeSnapshot(Type):
 
 
 @dataclasses.dataclass
-class LayoutTreeSnapshot(Type):
+class LayoutTreeSnapshot:
     """Table of details of an element in the DOM tree with a LayoutObject.
 
     Attributes
@@ -521,15 +523,15 @@ class LayoutTreeSnapshot(Type):
             Contents of the LayoutText, if any.
     stackingContexts: RareBooleanData
             Stacking context information.
-    paintOrders: Optional[list[int]] = None
+    paintOrders: Optional[list[int]]
             Global paint order index, which is determined by the stacking order of the nodes. Nodes
             that are painted together will have the same index. Only provided if includePaintOrder in
             captureSnapshot was true.
-    offsetRects: Optional[list[Rectangle]] = None
+    offsetRects: Optional[list[Rectangle]]
             The offset rect of nodes. Only available when includeDOMRects is set to true
-    scrollRects: Optional[list[Rectangle]] = None
+    scrollRects: Optional[list[Rectangle]]
             The scroll rect of nodes. Only available when includeDOMRects is set to true
-    clientRects: Optional[list[Rectangle]] = None
+    clientRects: Optional[list[Rectangle]]
             The client rect of nodes. Only available when includeDOMRects is set to true
     """
 
@@ -547,6 +549,7 @@ class LayoutTreeSnapshot(Type):
     def from_json(cls, json: dict) -> LayoutTreeSnapshot:
         return cls(
             json["nodeIndex"],
+            [ArrayOfStrings.from_json(x) for x in json["styles"]],
             [Rectangle(x) for x in json["bounds"]],
             [StringIndex(x) for x in json["text"]],
             RareBooleanData.from_json(json["stackingContexts"]),
@@ -564,7 +567,7 @@ class LayoutTreeSnapshot(Type):
 
 
 @dataclasses.dataclass
-class TextBoxSnapshot(Type):
+class TextBoxSnapshot:
     """Table of details of the post layout rendered text positions. The exact layout should not be regarded as
     stable and may change between versions.
 

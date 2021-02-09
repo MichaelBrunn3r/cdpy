@@ -5,7 +5,7 @@ import enum
 from typing import Optional
 
 from . import browser, network
-from .common import Type, filter_unset_parameters
+from .common import filter_unset_parameters
 
 
 class StorageType(enum.Enum):
@@ -25,7 +25,7 @@ class StorageType(enum.Enum):
 
 
 @dataclasses.dataclass
-class UsageForType(Type):
+class UsageForType:
     """Usage for a storage type.
 
     Attributes
@@ -45,7 +45,7 @@ class UsageForType(Type):
 
 
 @dataclasses.dataclass
-class TrustTokens(Type):
+class TrustTokens:
     """Pair of issuer origin and number of available (signed, but not used) Trust
     Tokens from that issuer.
 

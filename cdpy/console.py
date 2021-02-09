@@ -1,14 +1,11 @@
 from __future__ import annotations
 
 import dataclasses
-import enum
 from typing import Optional
-
-from .common import Type, filter_unset_parameters
 
 
 @dataclasses.dataclass
-class ConsoleMessage(Type):
+class ConsoleMessage:
     """Console message.
 
     Attributes
@@ -19,11 +16,11 @@ class ConsoleMessage(Type):
             Message severity.
     text: str
             Message text.
-    url: Optional[str] = None
+    url: Optional[str]
             URL of the message origin.
-    line: Optional[int] = None
+    line: Optional[int]
             Line number in the resource that generated this message (1-based).
-    column: Optional[int] = None
+    column: Optional[int]
             Column number in the resource that generated this message (1-based).
     """
 
@@ -36,7 +33,14 @@ class ConsoleMessage(Type):
 
     @classmethod
     def from_json(cls, json: dict) -> ConsoleMessage:
-        return cls(json["text"], json.get("url"), json.get("line"), json.get("column"))
+        return cls(
+            json["source"],
+            json["level"],
+            json["text"],
+            json.get("url"),
+            json.get("line"),
+            json.get("column"),
+        )
 
 
 def clear_messages():

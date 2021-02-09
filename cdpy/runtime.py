@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 import dataclasses
-import enum
 from typing import Optional
 
-from .common import Type, filter_unset_parameters
+from .common import filter_unset_parameters
 
 
 class ScriptId(str):
@@ -31,29 +30,29 @@ class UnserializableValue(str):
 
 
 @dataclasses.dataclass
-class RemoteObject(Type):
+class RemoteObject:
     """Mirror object referencing original JavaScript object.
 
     Attributes
     ----------
     type: str
             Object type.
-    subtype: Optional[str] = None
+    subtype: Optional[str]
             Object subtype hint. Specified for `object` or `wasm` type values only.
-    className: Optional[str] = None
+    className: Optional[str]
             Object class (constructor) name. Specified for `object` type values only.
-    value: Optional[any] = None
+    value: Optional[any]
             Remote object value in case of primitive values or JSON values (if it was requested).
-    unserializableValue: Optional[UnserializableValue] = None
+    unserializableValue: Optional[UnserializableValue]
             Primitive value which can not be JSON-stringified does not have `value`, but gets this
             property.
-    description: Optional[str] = None
+    description: Optional[str]
             String representation of the object.
-    objectId: Optional[RemoteObjectId] = None
+    objectId: Optional[RemoteObjectId]
             Unique object identifier (for non-primitive values).
-    preview: Optional[ObjectPreview] = None
+    preview: Optional[ObjectPreview]
             Preview containing abbreviated property values. Specified for `object` type values only.
-    customPreview: Optional[CustomPreview] = None
+    customPreview: Optional[CustomPreview]
     """
 
     type: str
@@ -69,6 +68,8 @@ class RemoteObject(Type):
     @classmethod
     def from_json(cls, json: dict) -> RemoteObject:
         return cls(
+            json["type"],
+            json.get("subtype"),
             json.get("className"),
             json.get("value"),
             UnserializableValue(json["unserializableValue"])
@@ -84,14 +85,14 @@ class RemoteObject(Type):
 
 
 @dataclasses.dataclass
-class CustomPreview(Type):
+class CustomPreview:
     """
     Attributes
     ----------
     header: str
             The JSON-stringified result of formatter.header(object, config) call.
             It contains json ML array that represents RemoteObject.
-    bodyGetterId: Optional[RemoteObjectId] = None
+    bodyGetterId: Optional[RemoteObjectId]
             If formatter returns true as a result of formatter.hasBody call then bodyGetterId will
             contain RemoteObjectId for the function that returns result of formatter.body(object, config) call.
             The result value is json ML array.
@@ -109,7 +110,7 @@ class CustomPreview(Type):
 
 
 @dataclasses.dataclass
-class ObjectPreview(Type):
+class ObjectPreview:
     """Object containing abbreviated remote object value.
 
     Attributes
@@ -120,11 +121,11 @@ class ObjectPreview(Type):
             True iff some of the properties or entries of the original object did not fit.
     properties: list[PropertyPreview]
             List of the properties.
-    subtype: Optional[str] = None
+    subtype: Optional[str]
             Object subtype hint. Specified for `object` type values only.
-    description: Optional[str] = None
+    description: Optional[str]
             String representation of the object.
-    entries: Optional[list[EntryPreview]] = None
+    entries: Optional[list[EntryPreview]]
             List of the entries. Specified for `map` and `set` subtype values only.
     """
 
@@ -138,8 +139,10 @@ class ObjectPreview(Type):
     @classmethod
     def from_json(cls, json: dict) -> ObjectPreview:
         return cls(
+            json["type"],
             json["overflow"],
             [PropertyPreview.from_json(x) for x in json["properties"]],
+            json.get("subtype"),
             json.get("description"),
             [EntryPreview.from_json(x) for x in json["entries"]]
             if "entries" in json
@@ -148,7 +151,7 @@ class ObjectPreview(Type):
 
 
 @dataclasses.dataclass
-class PropertyPreview(Type):
+class PropertyPreview:
     """
     Attributes
     ----------
@@ -156,11 +159,11 @@ class PropertyPreview(Type):
             Property name.
     type: str
             Object type. Accessor means that the property itself is an accessor property.
-    value: Optional[str] = None
+    value: Optional[str]
             User-friendly property value string.
-    valuePreview: Optional[ObjectPreview] = None
+    valuePreview: Optional[ObjectPreview]
             Nested value preview.
-    subtype: Optional[str] = None
+    subtype: Optional[str]
             Object subtype hint. Specified for `object` type values only.
     """
 
@@ -174,21 +177,23 @@ class PropertyPreview(Type):
     def from_json(cls, json: dict) -> PropertyPreview:
         return cls(
             json["name"],
+            json["type"],
             json.get("value"),
             ObjectPreview.from_json(json["valuePreview"])
             if "valuePreview" in json
             else None,
+            json.get("subtype"),
         )
 
 
 @dataclasses.dataclass
-class EntryPreview(Type):
+class EntryPreview:
     """
     Attributes
     ----------
     value: ObjectPreview
             Preview of the value.
-    key: Optional[ObjectPreview] = None
+    key: Optional[ObjectPreview]
             Preview of the key. Specified for map-like collection entries.
     """
 
@@ -204,7 +209,7 @@ class EntryPreview(Type):
 
 
 @dataclasses.dataclass
-class PropertyDescriptor(Type):
+class PropertyDescriptor:
     """Object property descriptor.
 
     Attributes
@@ -217,21 +222,21 @@ class PropertyDescriptor(Type):
     enumerable: bool
             True if this property shows up during enumeration of the properties on the corresponding
             object.
-    value: Optional[RemoteObject] = None
+    value: Optional[RemoteObject]
             The value associated with the property.
-    writable: Optional[bool] = None
+    writable: Optional[bool]
             True if the value associated with the property may be changed (data descriptors only).
-    get: Optional[RemoteObject] = None
+    get: Optional[RemoteObject]
             A function which serves as a getter for the property, or `undefined` if there is no getter
             (accessor descriptors only).
-    set: Optional[RemoteObject] = None
+    set: Optional[RemoteObject]
             A function which serves as a setter for the property, or `undefined` if there is no setter
             (accessor descriptors only).
-    wasThrown: Optional[bool] = None
+    wasThrown: Optional[bool]
             True if the result was thrown during the evaluation.
-    isOwn: Optional[bool] = None
+    isOwn: Optional[bool]
             True if the property is owned for the object.
-    symbol: Optional[RemoteObject] = None
+    symbol: Optional[RemoteObject]
             Property symbol object, if the property is of the `symbol` type.
     """
 
@@ -263,14 +268,14 @@ class PropertyDescriptor(Type):
 
 
 @dataclasses.dataclass
-class InternalPropertyDescriptor(Type):
+class InternalPropertyDescriptor:
     """Object internal property descriptor. This property isn't normally visible in JavaScript code.
 
     Attributes
     ----------
     name: str
             Conventional property name.
-    value: Optional[RemoteObject] = None
+    value: Optional[RemoteObject]
             The value associated with the property.
     """
 
@@ -286,19 +291,19 @@ class InternalPropertyDescriptor(Type):
 
 
 @dataclasses.dataclass
-class PrivatePropertyDescriptor(Type):
+class PrivatePropertyDescriptor:
     """Object private field descriptor.
 
     Attributes
     ----------
     name: str
             Private property name.
-    value: Optional[RemoteObject] = None
+    value: Optional[RemoteObject]
             The value associated with the private property.
-    get: Optional[RemoteObject] = None
+    get: Optional[RemoteObject]
             A function which serves as a getter for the private property,
             or `undefined` if there is no getter (accessor descriptors only).
-    set: Optional[RemoteObject] = None
+    set: Optional[RemoteObject]
             A function which serves as a setter for the private property,
             or `undefined` if there is no setter (accessor descriptors only).
     """
@@ -319,17 +324,17 @@ class PrivatePropertyDescriptor(Type):
 
 
 @dataclasses.dataclass
-class CallArgument(Type):
+class CallArgument:
     """Represents function call argument. Either remote object id `objectId`, primitive `value`,
     unserializable primitive value or neither of (for undefined) them should be specified.
 
     Attributes
     ----------
-    value: Optional[any] = None
+    value: Optional[any]
             Primitive value or serializable javascript object.
-    unserializableValue: Optional[UnserializableValue] = None
+    unserializableValue: Optional[UnserializableValue]
             Primitive value which can not be JSON-stringified.
-    objectId: Optional[RemoteObjectId] = None
+    objectId: Optional[RemoteObjectId]
             Remote object handle.
     """
 
@@ -356,7 +361,7 @@ class ExecutionContextId(int):
 
 
 @dataclasses.dataclass
-class ExecutionContextDescription(Type):
+class ExecutionContextDescription:
     """Description of an isolated world.
 
     Attributes
@@ -368,7 +373,7 @@ class ExecutionContextDescription(Type):
             Execution context origin.
     name: str
             Human readable name describing given context.
-    auxData: Optional[dict] = None
+    auxData: Optional[dict]
             Embedder-specific auxiliary data.
     """
 
@@ -388,7 +393,7 @@ class ExecutionContextDescription(Type):
 
 
 @dataclasses.dataclass
-class ExceptionDetails(Type):
+class ExceptionDetails:
     """Detailed information about exception (or error) that was thrown during script compilation or
     execution.
 
@@ -402,15 +407,15 @@ class ExceptionDetails(Type):
             Line number of the exception location (0-based).
     columnNumber: int
             Column number of the exception location (0-based).
-    scriptId: Optional[ScriptId] = None
+    scriptId: Optional[ScriptId]
             Script ID of the exception location.
-    url: Optional[str] = None
+    url: Optional[str]
             URL of the exception location, to be used when the script was not reported.
-    stackTrace: Optional[StackTrace] = None
+    stackTrace: Optional[StackTrace]
             JavaScript stack trace if available.
-    exception: Optional[RemoteObject] = None
+    exception: Optional[RemoteObject]
             Exception object if available.
-    executionContextId: Optional[ExecutionContextId] = None
+    executionContextId: Optional[ExecutionContextId]
             Identifier of the context where exception happened.
     """
 
@@ -456,7 +461,7 @@ class TimeDelta(float):
 
 
 @dataclasses.dataclass
-class CallFrame(Type):
+class CallFrame:
     """Stack entry for runtime errors and assertions.
 
     Attributes
@@ -491,19 +496,19 @@ class CallFrame(Type):
 
 
 @dataclasses.dataclass
-class StackTrace(Type):
+class StackTrace:
     """Call frames for assertions or error messages.
 
     Attributes
     ----------
     callFrames: list[CallFrame]
             JavaScript function name.
-    description: Optional[str] = None
+    description: Optional[str]
             String label of this stack trace. For async traces this may be a name of the function that
             initiated the async call.
-    parent: Optional[StackTrace] = None
+    parent: Optional[StackTrace]
             Asynchronous JavaScript stack trace that preceded this stack, if available.
-    parentId: Optional[StackTraceId] = None
+    parentId: Optional[StackTraceId]
             Asynchronous JavaScript stack trace that preceded this stack, if available.
     """
 
@@ -530,14 +535,14 @@ class UniqueDebuggerId(str):
 
 
 @dataclasses.dataclass
-class StackTraceId(Type):
+class StackTraceId:
     """If `debuggerId` is set stack trace comes from another debugger and can be resolved there. This
     allows to track cross-debugger calls. See `Runtime.StackTrace` and `Debugger.paused` for usages.
 
     Attributes
     ----------
     id: str
-    debuggerId: Optional[UniqueDebuggerId] = None
+    debuggerId: Optional[UniqueDebuggerId]
     """
 
     id: str

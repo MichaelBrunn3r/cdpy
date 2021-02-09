@@ -1,10 +1,6 @@
 from __future__ import annotations
 
 import dataclasses
-import enum
-from typing import Optional
-
-from .common import Type, filter_unset_parameters
 
 
 class PlayerId(str):
@@ -22,7 +18,7 @@ class Timestamp(float):
 
 
 @dataclasses.dataclass
-class PlayerMessage(Type):
+class PlayerMessage:
     """Have one type per entry in MediaLogRecord::Type
     Corresponds to kMessage
 
@@ -46,11 +42,11 @@ class PlayerMessage(Type):
 
     @classmethod
     def from_json(cls, json: dict) -> PlayerMessage:
-        return cls(json["message"])
+        return cls(json["level"], json["message"])
 
 
 @dataclasses.dataclass
-class PlayerProperty(Type):
+class PlayerProperty:
     """Corresponds to kMediaPropertyChange
 
     Attributes
@@ -68,7 +64,7 @@ class PlayerProperty(Type):
 
 
 @dataclasses.dataclass
-class PlayerEvent(Type):
+class PlayerEvent:
     """Corresponds to kMediaEventTriggered
 
     Attributes
@@ -86,7 +82,7 @@ class PlayerEvent(Type):
 
 
 @dataclasses.dataclass
-class PlayerError(Type):
+class PlayerError:
     """Corresponds to kMediaError
 
     Attributes
@@ -105,7 +101,7 @@ class PlayerError(Type):
 
     @classmethod
     def from_json(cls, json: dict) -> PlayerError:
-        return cls(json["errorCode"])
+        return cls(json["type"], json["errorCode"])
 
 
 def enable():

@@ -4,8 +4,6 @@ import dataclasses
 import enum
 from typing import Optional
 
-from .common import Type, filter_unset_parameters
-
 
 class GraphObjectId(str):
     """An unique ID for a graph object (AudioContext, AudioNode, AudioParam) in Web Audio API"""
@@ -66,7 +64,7 @@ class AutomationRate(enum.Enum):
 
 
 @dataclasses.dataclass
-class ContextRealtimeData(Type):
+class ContextRealtimeData:
     """Fields in AudioContext that change in real-time.
 
     Attributes
@@ -99,7 +97,7 @@ class ContextRealtimeData(Type):
 
 
 @dataclasses.dataclass
-class BaseAudioContext(Type):
+class BaseAudioContext:
     """Protocol object for BaseAudioContext
 
     Attributes
@@ -113,7 +111,7 @@ class BaseAudioContext(Type):
             Number of output channels supported by audio hardware in use.
     sampleRate: float
             Context sample rate.
-    realtimeData: Optional[ContextRealtimeData] = None
+    realtimeData: Optional[ContextRealtimeData]
     """
 
     contextId: GraphObjectId
@@ -140,7 +138,7 @@ class BaseAudioContext(Type):
 
 
 @dataclasses.dataclass
-class AudioListener(Type):
+class AudioListener:
     """Protocol object for AudioListener
 
     Attributes
@@ -158,7 +156,7 @@ class AudioListener(Type):
 
 
 @dataclasses.dataclass
-class AudioNode(Type):
+class AudioNode:
     """Protocol object for AudioNode
 
     Attributes
@@ -197,7 +195,7 @@ class AudioNode(Type):
 
 
 @dataclasses.dataclass
-class AudioParam(Type):
+class AudioParam:
     """Protocol object for AudioParam
 
     Attributes

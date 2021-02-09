@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import dataclasses
-import enum
 from typing import Optional
 
 from . import browser, page
-from .common import Type, filter_unset_parameters
+from .common import filter_unset_parameters
 
 
 class TargetID(str):
@@ -23,7 +22,7 @@ class SessionID(str):
 
 
 @dataclasses.dataclass
-class TargetInfo(Type):
+class TargetInfo:
     """
     Attributes
     ----------
@@ -35,11 +34,11 @@ class TargetInfo(Type):
             Whether the target has an attached client.
     canAccessOpener: bool
             Whether the target has access to the originating window.
-    openerId: Optional[TargetID] = None
+    openerId: Optional[TargetID]
             Opener target Id
-    openerFrameId: Optional[page.FrameId] = None
+    openerFrameId: Optional[page.FrameId]
             Frame id of originating window (is only set if target has an opener).
-    browserContextId: Optional[browser.BrowserContextID] = None
+    browserContextId: Optional[browser.BrowserContextID]
     """
 
     targetId: TargetID
@@ -70,7 +69,7 @@ class TargetInfo(Type):
 
 
 @dataclasses.dataclass
-class RemoteLocation(Type):
+class RemoteLocation:
     """
     Attributes
     ----------

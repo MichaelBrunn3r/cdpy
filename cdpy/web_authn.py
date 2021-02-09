@@ -4,8 +4,6 @@ import dataclasses
 import enum
 from typing import Optional
 
-from .common import Type, filter_unset_parameters
-
 
 class AuthenticatorId(str):
     """"""
@@ -39,26 +37,26 @@ class AuthenticatorTransport(enum.Enum):
 
 
 @dataclasses.dataclass
-class VirtualAuthenticatorOptions(Type):
+class VirtualAuthenticatorOptions:
     """
     Attributes
     ----------
     protocol: AuthenticatorProtocol
     transport: AuthenticatorTransport
-    ctap2Version: Optional[Ctap2Version] = None
+    ctap2Version: Optional[Ctap2Version]
             Defaults to ctap2_0. Ignored if |protocol| == u2f.
-    hasResidentKey: Optional[bool] = None
+    hasResidentKey: Optional[bool]
             Defaults to false.
-    hasUserVerification: Optional[bool] = None
+    hasUserVerification: Optional[bool]
             Defaults to false.
-    hasLargeBlob: Optional[bool] = None
+    hasLargeBlob: Optional[bool]
             If set to true, the authenticator will support the largeBlob extension.
             https://w3c.github.io/webauthn#largeBlob
             Defaults to false.
-    automaticPresenceSimulation: Optional[bool] = None
+    automaticPresenceSimulation: Optional[bool]
             If set to true, tests of user presence will succeed immediately.
             Otherwise, they will not be resolved. Defaults to true.
-    isUserVerified: Optional[bool] = None
+    isUserVerified: Optional[bool]
             Sets whether User Verification succeeds or fails for an authenticator.
             Defaults to false.
     """
@@ -87,7 +85,7 @@ class VirtualAuthenticatorOptions(Type):
 
 
 @dataclasses.dataclass
-class Credential(Type):
+class Credential:
     """
     Attributes
     ----------
@@ -99,13 +97,13 @@ class Credential(Type):
             Signature counter. This is incremented by one for each successful
             assertion.
             See https://w3c.github.io/webauthn/#signature-counter
-    rpId: Optional[str] = None
+    rpId: Optional[str]
             Relying Party ID the credential is scoped to. Must be set when adding a
             credential.
-    userHandle: Optional[str] = None
+    userHandle: Optional[str]
             An opaque byte sequence with a maximum size of 64 bytes mapping the
             credential to a specific user. (Encoded as a base64 string when passed over JSON)
-    largeBlob: Optional[str] = None
+    largeBlob: Optional[str]
             The large blob associated with the credential.
             See https://w3c.github.io/webauthn/#sctn-large-blob-extension (Encoded as a base64 string when passed over JSON)
     """

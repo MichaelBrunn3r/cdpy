@@ -1,20 +1,19 @@
 from __future__ import annotations
 
 import dataclasses
-import enum
 from typing import Optional
 
-from .common import Type, filter_unset_parameters
+from .common import filter_unset_parameters
 
 
 @dataclasses.dataclass
-class Sink(Type):
+class Sink:
     """
     Attributes
     ----------
     name: str
     id: str
-    session: Optional[str] = None
+    session: Optional[str]
             Text describing the current session. Present only if there is an active
             session on the sink.
     """

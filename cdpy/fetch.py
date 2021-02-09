@@ -5,7 +5,7 @@ import enum
 from typing import Optional
 
 from . import io, network
-from .common import Type, filter_unset_parameters
+from .common import filter_unset_parameters
 
 
 class RequestId(str):
@@ -26,16 +26,16 @@ class RequestStage(enum.Enum):
 
 
 @dataclasses.dataclass
-class RequestPattern(Type):
+class RequestPattern:
     """
     Attributes
     ----------
-    urlPattern: Optional[str] = None
+    urlPattern: Optional[str]
             Wildcards ('*' -> zero or more, '?' -> exactly one) are allowed. Escape character is
             backslash. Omitting is equivalent to "*".
-    resourceType: Optional[network.ResourceType] = None
+    resourceType: Optional[network.ResourceType]
             If set, only requests for matching resource types will be intercepted.
-    requestStage: Optional[RequestStage] = None
+    requestStage: Optional[RequestStage]
             Stage at wich to begin intercepting requests. Default is Request.
     """
 
@@ -55,7 +55,7 @@ class RequestPattern(Type):
 
 
 @dataclasses.dataclass
-class HeaderEntry(Type):
+class HeaderEntry:
     """Response HTTP header entry
 
     Attributes
@@ -73,7 +73,7 @@ class HeaderEntry(Type):
 
 
 @dataclasses.dataclass
-class AuthChallenge(Type):
+class AuthChallenge:
     """Authorization challenge for HTTP status code 401 or 407.
 
     Attributes
@@ -84,7 +84,7 @@ class AuthChallenge(Type):
             The authentication scheme used, such as basic or digest
     realm: str
             The realm of the challenge. May be empty.
-    source: Optional[str] = None
+    source: Optional[str]
             Source of the authentication challenge.
     """
 
@@ -95,11 +95,11 @@ class AuthChallenge(Type):
 
     @classmethod
     def from_json(cls, json: dict) -> AuthChallenge:
-        return cls(json["origin"], json["scheme"], json["realm"])
+        return cls(json["origin"], json["scheme"], json["realm"], json.get("source"))
 
 
 @dataclasses.dataclass
-class AuthChallengeResponse(Type):
+class AuthChallengeResponse:
     """Response to an AuthChallenge.
 
     Attributes
@@ -108,10 +108,10 @@ class AuthChallengeResponse(Type):
             The decision on what to do in response to the authorization challenge.  Default means
             deferring to the default behavior of the net stack, which will likely either the Cancel
             authentication or display a popup dialog box.
-    username: Optional[str] = None
+    username: Optional[str]
             The username to provide, possibly empty. Should only be set if response is
             ProvideCredentials.
-    password: Optional[str] = None
+    password: Optional[str]
             The password to provide, possibly empty. Should only be set if response is
             ProvideCredentials.
     """
@@ -122,7 +122,7 @@ class AuthChallengeResponse(Type):
 
     @classmethod
     def from_json(cls, json: dict) -> AuthChallengeResponse:
-        return cls(json.get("username"), json.get("password"))
+        return cls(json["response"], json.get("username"), json.get("password"))
 
 
 def disable():

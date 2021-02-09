@@ -5,7 +5,7 @@ import enum
 from typing import Optional
 
 from . import debugger, emulation, io, page, runtime, security
-from .common import Type, filter_unset_parameters
+from .common import filter_unset_parameters
 
 
 class ResourceType(enum.Enum):
@@ -126,7 +126,7 @@ class CookiePriority(enum.Enum):
 
 
 @dataclasses.dataclass
-class ResourceTiming(Type):
+class ResourceTiming:
     """Timing information for the request.
 
     Attributes
@@ -224,12 +224,12 @@ class ResourcePriority(enum.Enum):
 
 
 @dataclasses.dataclass
-class PostDataEntry(Type):
+class PostDataEntry:
     """Post data entry for HTTP request
 
     Attributes
     ----------
-    bytes: Optional[str] = None
+    bytes: Optional[str]
     """
 
     bytes: Optional[str] = None
@@ -240,7 +240,7 @@ class PostDataEntry(Type):
 
 
 @dataclasses.dataclass
-class Request(Type):
+class Request:
     """HTTP request data.
 
     Attributes
@@ -255,19 +255,19 @@ class Request(Type):
             Priority of the resource request at the time request is sent.
     referrerPolicy: str
             The referrer policy of the request, as defined in https://www.w3.org/TR/referrer-policy/
-    urlFragment: Optional[str] = None
+    urlFragment: Optional[str]
             Fragment of the requested URL starting with hash, if present.
-    postData: Optional[str] = None
+    postData: Optional[str]
             HTTP POST request data.
-    hasPostData: Optional[bool] = None
+    hasPostData: Optional[bool]
             True when the request has POST data. Note that postData might still be omitted when this flag is true when the data is too long.
-    postDataEntries: Optional[list[PostDataEntry]] = None
+    postDataEntries: Optional[list[PostDataEntry]]
             Request body elements. This will be converted from base64 to binary
-    mixedContentType: Optional[security.MixedContentType] = None
+    mixedContentType: Optional[security.MixedContentType]
             The mixed content type of the request.
-    isLinkPreload: Optional[bool] = None
+    isLinkPreload: Optional[bool]
             Whether is loaded via link preload.
-    trustTokenParams: Optional[TrustTokenParams] = None
+    trustTokenParams: Optional[TrustTokenParams]
             Set for requests when the TrustToken API is used. Contains the parameters
             passed by the developer (e.g. via "fetch") as understood by the backend.
     """
@@ -292,6 +292,7 @@ class Request(Type):
             json["method"],
             Headers(json["headers"]),
             ResourcePriority(json["initialPriority"]),
+            json["referrerPolicy"],
             json.get("urlFragment"),
             json.get("postData"),
             json.get("hasPostData"),
@@ -309,7 +310,7 @@ class Request(Type):
 
 
 @dataclasses.dataclass
-class SignedCertificateTimestamp(Type):
+class SignedCertificateTimestamp:
     """Details of a signed certificate timestamp (SCT).
 
     Attributes
@@ -356,7 +357,7 @@ class SignedCertificateTimestamp(Type):
 
 
 @dataclasses.dataclass
-class SecurityDetails(Type):
+class SecurityDetails:
     """Security details about a request.
 
     Attributes
@@ -383,9 +384,9 @@ class SecurityDetails(Type):
             List of signed certificate timestamps (SCTs).
     certificateTransparencyCompliance: CertificateTransparencyCompliance
             Whether the request complied with Certificate Transparency policy
-    keyExchangeGroup: Optional[str] = None
+    keyExchangeGroup: Optional[str]
             (EC)DH group used by the connection, if applicable.
-    mac: Optional[str] = None
+    mac: Optional[str]
             TLS MAC. Note that AEAD ciphers do not have separate MACs.
     """
 
@@ -488,7 +489,7 @@ class CorsError(enum.Enum):
 
 
 @dataclasses.dataclass
-class CorsErrorStatus(Type):
+class CorsErrorStatus:
     """
     Attributes
     ----------
@@ -514,7 +515,7 @@ class ServiceWorkerResponseSource(enum.Enum):
 
 
 @dataclasses.dataclass
-class TrustTokenParams(Type):
+class TrustTokenParams:
     """Determines what type of Trust Token operation is executed and
     depending on the type, some additional parameters. The values
     are specified in third_party/blink/renderer/core/fetch/trust_token.idl.
@@ -525,7 +526,7 @@ class TrustTokenParams(Type):
     refreshPolicy: str
             Only set for "token-redemption" type and determine whether
             to request a fresh SRR or use a still valid cached SRR.
-    issuers: Optional[list[str]] = None
+    issuers: Optional[list[str]]
             Origins of issuers from whom to request tokens or redemption
             records.
     """
@@ -536,7 +537,11 @@ class TrustTokenParams(Type):
 
     @classmethod
     def from_json(cls, json: dict) -> TrustTokenParams:
-        return cls(TrustTokenOperationType(json["type"]), json.get("issuers"))
+        return cls(
+            TrustTokenOperationType(json["type"]),
+            json["refreshPolicy"],
+            json.get("issuers"),
+        )
 
 
 class TrustTokenOperationType(enum.Enum):
@@ -548,7 +553,7 @@ class TrustTokenOperationType(enum.Enum):
 
 
 @dataclasses.dataclass
-class Response(Type):
+class Response:
     """HTTP response data.
 
     Attributes
@@ -571,33 +576,33 @@ class Response(Type):
             Total number of bytes received for this request so far.
     securityState: security.SecurityState
             Security state of the request resource.
-    headersText: Optional[str] = None
+    headersText: Optional[str]
             HTTP response headers text.
-    requestHeaders: Optional[Headers] = None
+    requestHeaders: Optional[Headers]
             Refined HTTP request headers that were actually transmitted over the network.
-    requestHeadersText: Optional[str] = None
+    requestHeadersText: Optional[str]
             HTTP request headers text.
-    remoteIPAddress: Optional[str] = None
+    remoteIPAddress: Optional[str]
             Remote IP address.
-    remotePort: Optional[int] = None
+    remotePort: Optional[int]
             Remote port.
-    fromDiskCache: Optional[bool] = None
+    fromDiskCache: Optional[bool]
             Specifies that the request was served from the disk cache.
-    fromServiceWorker: Optional[bool] = None
+    fromServiceWorker: Optional[bool]
             Specifies that the request was served from the ServiceWorker.
-    fromPrefetchCache: Optional[bool] = None
+    fromPrefetchCache: Optional[bool]
             Specifies that the request was served from the prefetch cache.
-    timing: Optional[ResourceTiming] = None
+    timing: Optional[ResourceTiming]
             Timing information for the given request.
-    serviceWorkerResponseSource: Optional[ServiceWorkerResponseSource] = None
+    serviceWorkerResponseSource: Optional[ServiceWorkerResponseSource]
             Response source of response from ServiceWorker.
-    responseTime: Optional[TimeSinceEpoch] = None
+    responseTime: Optional[TimeSinceEpoch]
             The time at which the returned response was generated.
-    cacheStorageCacheName: Optional[str] = None
+    cacheStorageCacheName: Optional[str]
             Cache Storage Cache Name.
-    protocol: Optional[str] = None
+    protocol: Optional[str]
             Protocol used to fetch this request.
-    securityDetails: Optional[SecurityDetails] = None
+    securityDetails: Optional[SecurityDetails]
             Security details for the request.
     """
 
@@ -659,7 +664,7 @@ class Response(Type):
 
 
 @dataclasses.dataclass
-class WebSocketRequest(Type):
+class WebSocketRequest:
     """WebSocket request data.
 
     Attributes
@@ -676,7 +681,7 @@ class WebSocketRequest(Type):
 
 
 @dataclasses.dataclass
-class WebSocketResponse(Type):
+class WebSocketResponse:
     """WebSocket response data.
 
     Attributes
@@ -687,11 +692,11 @@ class WebSocketResponse(Type):
             HTTP response status text.
     headers: Headers
             HTTP response headers.
-    headersText: Optional[str] = None
+    headersText: Optional[str]
             HTTP response headers text.
-    requestHeaders: Optional[Headers] = None
+    requestHeaders: Optional[Headers]
             HTTP request headers.
-    requestHeadersText: Optional[str] = None
+    requestHeadersText: Optional[str]
             HTTP request headers text.
     """
 
@@ -715,7 +720,7 @@ class WebSocketResponse(Type):
 
 
 @dataclasses.dataclass
-class WebSocketFrame(Type):
+class WebSocketFrame:
     """WebSocket message data. This represents an entire WebSocket message, not just a fragmented frame as the name suggests.
 
     Attributes
@@ -740,7 +745,7 @@ class WebSocketFrame(Type):
 
 
 @dataclasses.dataclass
-class CachedResource(Type):
+class CachedResource:
     """Information about the cached resource.
 
     Attributes
@@ -751,7 +756,7 @@ class CachedResource(Type):
             Type of this resource.
     bodySize: float
             Cached response body size.
-    response: Optional[Response] = None
+    response: Optional[Response]
             Cached response data.
     """
 
@@ -771,24 +776,24 @@ class CachedResource(Type):
 
 
 @dataclasses.dataclass
-class Initiator(Type):
+class Initiator:
     """Information about the request initiator.
 
     Attributes
     ----------
     type: str
             Type of this initiator.
-    stack: Optional[runtime.StackTrace] = None
+    stack: Optional[runtime.StackTrace]
             Initiator JavaScript stack trace, set for Script only.
-    url: Optional[str] = None
+    url: Optional[str]
             Initiator URL, set for Parser type or for Script type (when script is importing module) or for SignedExchange type.
-    lineNumber: Optional[float] = None
+    lineNumber: Optional[float]
             Initiator line number, set for Parser type or for Script type (when script is importing
             module) (0-based).
-    columnNumber: Optional[float] = None
+    columnNumber: Optional[float]
             Initiator column number, set for Parser type or for Script type (when script is importing
             module) (0-based).
-    requestId: Optional[RequestId] = None
+    requestId: Optional[RequestId]
             Set if another request triggered this request (e.g. preflight).
     """
 
@@ -802,6 +807,7 @@ class Initiator(Type):
     @classmethod
     def from_json(cls, json: dict) -> Initiator:
         return cls(
+            json["type"],
             runtime.StackTrace.from_json(json["stack"]) if "stack" in json else None,
             json.get("url"),
             json.get("lineNumber"),
@@ -811,7 +817,7 @@ class Initiator(Type):
 
 
 @dataclasses.dataclass
-class Cookie(Type):
+class Cookie:
     """Cookie object
 
     Attributes
@@ -838,7 +844,7 @@ class Cookie(Type):
             Cookie Priority
     sameParty: bool
             True if cookie is SameParty.
-    sameSite: Optional[CookieSameSite] = None
+    sameSite: Optional[CookieSameSite]
             Cookie SameSite type.
     """
 
@@ -918,7 +924,7 @@ class CookieBlockedReason(enum.Enum):
 
 
 @dataclasses.dataclass
-class BlockedSetCookieWithReason(Type):
+class BlockedSetCookieWithReason:
     """A cookie which was not stored from a response with the corresponding reason.
 
     Attributes
@@ -928,7 +934,7 @@ class BlockedSetCookieWithReason(Type):
     cookieLine: str
             The string representing this individual cookie as it would appear in the header.
             This is not the entire "cookie" or "set-cookie" header which could have multiple cookies.
-    cookie: Optional[Cookie] = None
+    cookie: Optional[Cookie]
             The cookie object which represents the cookie which was not stored. It is optional because
             sometimes complete cookie information is not available, such as in the case of parsing
             errors.
@@ -948,7 +954,7 @@ class BlockedSetCookieWithReason(Type):
 
 
 @dataclasses.dataclass
-class BlockedCookieWithReason(Type):
+class BlockedCookieWithReason:
     """A cookie with was not sent with a request with the corresponding reason.
 
     Attributes
@@ -971,7 +977,7 @@ class BlockedCookieWithReason(Type):
 
 
 @dataclasses.dataclass
-class CookieParam(Type):
+class CookieParam:
     """Cookie parameter object
 
     Attributes
@@ -980,22 +986,22 @@ class CookieParam(Type):
             Cookie name.
     value: str
             Cookie value.
-    url: Optional[str] = None
+    url: Optional[str]
             The request-URI to associate with the setting of the cookie. This value can affect the
             default domain and path values of the created cookie.
-    domain: Optional[str] = None
+    domain: Optional[str]
             Cookie domain.
-    path: Optional[str] = None
+    path: Optional[str]
             Cookie path.
-    secure: Optional[bool] = None
+    secure: Optional[bool]
             True if cookie is secure.
-    httpOnly: Optional[bool] = None
+    httpOnly: Optional[bool]
             True if cookie is http-only.
-    sameSite: Optional[CookieSameSite] = None
+    sameSite: Optional[CookieSameSite]
             Cookie SameSite type.
-    expires: Optional[TimeSinceEpoch] = None
+    expires: Optional[TimeSinceEpoch]
             Cookie expiration date, session cookie if not set
-    priority: Optional[CookiePriority] = None
+    priority: Optional[CookiePriority]
             Cookie Priority.
     """
 
@@ -1027,7 +1033,7 @@ class CookieParam(Type):
 
 
 @dataclasses.dataclass
-class AuthChallenge(Type):
+class AuthChallenge:
     """Authorization challenge for HTTP status code 401 or 407.
 
     Attributes
@@ -1038,7 +1044,7 @@ class AuthChallenge(Type):
             The authentication scheme used, such as basic or digest
     realm: str
             The realm of the challenge. May be empty.
-    source: Optional[str] = None
+    source: Optional[str]
             Source of the authentication challenge.
     """
 
@@ -1049,11 +1055,11 @@ class AuthChallenge(Type):
 
     @classmethod
     def from_json(cls, json: dict) -> AuthChallenge:
-        return cls(json["origin"], json["scheme"], json["realm"])
+        return cls(json["origin"], json["scheme"], json["realm"], json.get("source"))
 
 
 @dataclasses.dataclass
-class AuthChallengeResponse(Type):
+class AuthChallengeResponse:
     """Response to an AuthChallenge.
 
     Attributes
@@ -1062,10 +1068,10 @@ class AuthChallengeResponse(Type):
             The decision on what to do in response to the authorization challenge.  Default means
             deferring to the default behavior of the net stack, which will likely either the Cancel
             authentication or display a popup dialog box.
-    username: Optional[str] = None
+    username: Optional[str]
             The username to provide, possibly empty. Should only be set if response is
             ProvideCredentials.
-    password: Optional[str] = None
+    password: Optional[str]
             The password to provide, possibly empty. Should only be set if response is
             ProvideCredentials.
     """
@@ -1076,7 +1082,7 @@ class AuthChallengeResponse(Type):
 
     @classmethod
     def from_json(cls, json: dict) -> AuthChallengeResponse:
-        return cls(json.get("username"), json.get("password"))
+        return cls(json["response"], json.get("username"), json.get("password"))
 
 
 class InterceptionStage(enum.Enum):
@@ -1089,17 +1095,17 @@ class InterceptionStage(enum.Enum):
 
 
 @dataclasses.dataclass
-class RequestPattern(Type):
+class RequestPattern:
     """Request pattern for interception.
 
     Attributes
     ----------
-    urlPattern: Optional[str] = None
+    urlPattern: Optional[str]
             Wildcards ('*' -> zero or more, '?' -> exactly one) are allowed. Escape character is
             backslash. Omitting is equivalent to "*".
-    resourceType: Optional[ResourceType] = None
+    resourceType: Optional[ResourceType]
             If set, only requests for matching resource types will be intercepted.
-    interceptionStage: Optional[InterceptionStage] = None
+    interceptionStage: Optional[InterceptionStage]
             Stage at wich to begin intercepting requests. Default is Request.
     """
 
@@ -1119,7 +1125,7 @@ class RequestPattern(Type):
 
 
 @dataclasses.dataclass
-class SignedExchangeSignature(Type):
+class SignedExchangeSignature:
     """Information about a signed exchange signature.
     https://wicg.github.io/webpackage/draft-yasskin-httpbis-origin-signed-exchanges-impl.html#rfc.section.3.1
 
@@ -1137,11 +1143,11 @@ class SignedExchangeSignature(Type):
             Signed exchange signature date.
     expires: int
             Signed exchange signature expires.
-    certUrl: Optional[str] = None
+    certUrl: Optional[str]
             Signed exchange signature cert Url.
-    certSha256: Optional[str] = None
+    certSha256: Optional[str]
             The hex string of signed exchange signature cert sha256.
-    certificates: Optional[list[str]] = None
+    certificates: Optional[list[str]]
             The encoded certificates.
     """
 
@@ -1171,7 +1177,7 @@ class SignedExchangeSignature(Type):
 
 
 @dataclasses.dataclass
-class SignedExchangeHeader(Type):
+class SignedExchangeHeader:
     """Information about a signed exchange header.
     https://wicg.github.io/webpackage/draft-yasskin-httpbis-origin-signed-exchanges-impl.html#cbor-representation
 
@@ -1218,16 +1224,16 @@ class SignedExchangeErrorField(enum.Enum):
 
 
 @dataclasses.dataclass
-class SignedExchangeError(Type):
+class SignedExchangeError:
     """Information about a signed exchange response.
 
     Attributes
     ----------
     message: str
             Error message.
-    signatureIndex: Optional[int] = None
+    signatureIndex: Optional[int]
             The index of the signature which caused the error.
-    errorField: Optional[SignedExchangeErrorField] = None
+    errorField: Optional[SignedExchangeErrorField]
             The field which caused the error.
     """
 
@@ -1247,18 +1253,18 @@ class SignedExchangeError(Type):
 
 
 @dataclasses.dataclass
-class SignedExchangeInfo(Type):
+class SignedExchangeInfo:
     """Information about a signed exchange response.
 
     Attributes
     ----------
     outerResponse: Response
             The outer response of signed HTTP exchange which was received from network.
-    header: Optional[SignedExchangeHeader] = None
+    header: Optional[SignedExchangeHeader]
             Information about the signed exchange header.
-    securityDetails: Optional[SecurityDetails] = None
+    securityDetails: Optional[SecurityDetails]
             Security details for the signed exchange header.
-    errors: Optional[list[SignedExchangeError]] = None
+    errors: Optional[list[SignedExchangeError]]
             Errors occurred while handling the signed exchagne.
     """
 
@@ -1300,7 +1306,7 @@ class IPAddressSpace(enum.Enum):
 
 
 @dataclasses.dataclass
-class ClientSecurityState(Type):
+class ClientSecurityState:
     """
     Attributes
     ----------
@@ -1332,14 +1338,14 @@ class CrossOriginOpenerPolicyValue(enum.Enum):
 
 
 @dataclasses.dataclass
-class CrossOriginOpenerPolicyStatus(Type):
+class CrossOriginOpenerPolicyStatus:
     """
     Attributes
     ----------
     value: CrossOriginOpenerPolicyValue
     reportOnlyValue: CrossOriginOpenerPolicyValue
-    reportingEndpoint: Optional[str] = None
-    reportOnlyReportingEndpoint: Optional[str] = None
+    reportingEndpoint: Optional[str]
+    reportOnlyReportingEndpoint: Optional[str]
     """
 
     value: CrossOriginOpenerPolicyValue
@@ -1365,14 +1371,14 @@ class CrossOriginEmbedderPolicyValue(enum.Enum):
 
 
 @dataclasses.dataclass
-class CrossOriginEmbedderPolicyStatus(Type):
+class CrossOriginEmbedderPolicyStatus:
     """
     Attributes
     ----------
     value: CrossOriginEmbedderPolicyValue
     reportOnlyValue: CrossOriginEmbedderPolicyValue
-    reportingEndpoint: Optional[str] = None
-    reportOnlyReportingEndpoint: Optional[str] = None
+    reportingEndpoint: Optional[str]
+    reportOnlyReportingEndpoint: Optional[str]
     """
 
     value: CrossOriginEmbedderPolicyValue
@@ -1391,12 +1397,12 @@ class CrossOriginEmbedderPolicyStatus(Type):
 
 
 @dataclasses.dataclass
-class SecurityIsolationStatus(Type):
+class SecurityIsolationStatus:
     """
     Attributes
     ----------
-    coop: Optional[CrossOriginOpenerPolicyStatus] = None
-    coep: Optional[CrossOriginEmbedderPolicyStatus] = None
+    coop: Optional[CrossOriginOpenerPolicyStatus]
+    coep: Optional[CrossOriginEmbedderPolicyStatus]
     """
 
     coop: Optional[CrossOriginOpenerPolicyStatus] = None
@@ -1415,19 +1421,19 @@ class SecurityIsolationStatus(Type):
 
 
 @dataclasses.dataclass
-class LoadNetworkResourcePageResult(Type):
+class LoadNetworkResourcePageResult:
     """An object providing the result of a network resource load.
 
     Attributes
     ----------
     success: bool
-    netError: Optional[float] = None
+    netError: Optional[float]
             Optional values used for error reporting.
-    netErrorName: Optional[str] = None
-    httpStatusCode: Optional[float] = None
-    stream: Optional[io.StreamHandle] = None
+    netErrorName: Optional[str]
+    httpStatusCode: Optional[float]
+    stream: Optional[io.StreamHandle]
             If successful, one of the following two fields holds the result.
-    headers: Optional[Headers] = None
+    headers: Optional[Headers]
             Response headers.
     """
 
@@ -1451,7 +1457,7 @@ class LoadNetworkResourcePageResult(Type):
 
 
 @dataclasses.dataclass
-class LoadNetworkResourceOptions(Type):
+class LoadNetworkResourceOptions:
     """An options object that may be extended later to better support CORS,
     CORB and streaming.
 

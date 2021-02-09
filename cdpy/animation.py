@@ -1,15 +1,13 @@
 from __future__ import annotations
 
 import dataclasses
-import enum
 from typing import Optional
 
 from . import dom, runtime
-from .common import Type, filter_unset_parameters
 
 
 @dataclasses.dataclass
-class Animation(Type):
+class Animation:
     """Animation instance.
 
     Attributes
@@ -30,9 +28,9 @@ class Animation(Type):
             `Animation`'s current time.
     type: str
             Animation type of `Animation`.
-    source: Optional[AnimationEffect] = None
+    source: Optional[AnimationEffect]
             `Animation`'s source animation node.
-    cssId: Optional[str] = None
+    cssId: Optional[str]
             A unique ID for `Animation` representing the sources that triggered this CSS
             animation/transition.
     """
@@ -58,13 +56,14 @@ class Animation(Type):
             json["playbackRate"],
             json["startTime"],
             json["currentTime"],
+            json["type"],
             AnimationEffect.from_json(json["source"]) if "source" in json else None,
             json.get("cssId"),
         )
 
 
 @dataclasses.dataclass
-class AnimationEffect(Type):
+class AnimationEffect:
     """AnimationEffect instance
 
     Attributes
@@ -85,9 +84,9 @@ class AnimationEffect(Type):
             `AnimationEffect`'s fill mode.
     easing: str
             `AnimationEffect`'s timing function.
-    backendNodeId: Optional[dom.BackendNodeId] = None
+    backendNodeId: Optional[dom.BackendNodeId]
             `AnimationEffect`'s target node.
-    keyframesRule: Optional[KeyframesRule] = None
+    keyframesRule: Optional[KeyframesRule]
             `AnimationEffect`'s keyframes.
     """
 
@@ -123,14 +122,14 @@ class AnimationEffect(Type):
 
 
 @dataclasses.dataclass
-class KeyframesRule(Type):
+class KeyframesRule:
     """Keyframes Rule
 
     Attributes
     ----------
     keyframes: list[KeyframeStyle]
             List of animation keyframes.
-    name: Optional[str] = None
+    name: Optional[str]
             CSS keyframed animation's name.
     """
 
@@ -145,7 +144,7 @@ class KeyframesRule(Type):
 
 
 @dataclasses.dataclass
-class KeyframeStyle(Type):
+class KeyframeStyle:
     """Keyframe Style
 
     Attributes

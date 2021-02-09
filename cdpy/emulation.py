@@ -5,11 +5,11 @@ import enum
 from typing import Optional
 
 from . import dom, network, page
-from .common import Type, filter_unset_parameters
+from .common import filter_unset_parameters
 
 
 @dataclasses.dataclass
-class ScreenOrientation(Type):
+class ScreenOrientation:
     """Screen orientation.
 
     Attributes
@@ -25,11 +25,11 @@ class ScreenOrientation(Type):
 
     @classmethod
     def from_json(cls, json: dict) -> ScreenOrientation:
-        return cls(json["angle"])
+        return cls(json["type"], json["angle"])
 
 
 @dataclasses.dataclass
-class DisplayFeature(Type):
+class DisplayFeature:
     """
     Attributes
     ----------
@@ -50,11 +50,11 @@ class DisplayFeature(Type):
 
     @classmethod
     def from_json(cls, json: dict) -> DisplayFeature:
-        return cls(json["offset"], json["maskLength"])
+        return cls(json["orientation"], json["offset"], json["maskLength"])
 
 
 @dataclasses.dataclass
-class MediaFeature(Type):
+class MediaFeature:
     """
     Attributes
     ----------
@@ -83,7 +83,7 @@ class VirtualTimePolicy(enum.Enum):
 
 
 @dataclasses.dataclass
-class UserAgentBrandVersion(Type):
+class UserAgentBrandVersion:
     """Used to specify User Agent Cient Hints to emulate. See https://wicg.github.io/ua-client-hints
 
     Attributes
@@ -101,7 +101,7 @@ class UserAgentBrandVersion(Type):
 
 
 @dataclasses.dataclass
-class UserAgentMetadata(Type):
+class UserAgentMetadata:
     """Used to specify User Agent Cient Hints to emulate. See https://wicg.github.io/ua-client-hints
     Missing optional values will be filled in by the target with what it would normally use.
 
@@ -112,8 +112,8 @@ class UserAgentMetadata(Type):
     architecture: str
     model: str
     mobile: bool
-    brands: Optional[list[UserAgentBrandVersion]] = None
-    fullVersion: Optional[str] = None
+    brands: Optional[list[UserAgentBrandVersion]]
+    fullVersion: Optional[str]
     """
 
     platform: str

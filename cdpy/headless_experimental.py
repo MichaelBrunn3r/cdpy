@@ -1,21 +1,20 @@
 from __future__ import annotations
 
 import dataclasses
-import enum
 from typing import Optional
 
-from .common import Type, filter_unset_parameters
+from .common import filter_unset_parameters
 
 
 @dataclasses.dataclass
-class ScreenshotParams(Type):
+class ScreenshotParams:
     """Encoding options for a screenshot.
 
     Attributes
     ----------
-    format: Optional[str] = None
+    format: Optional[str]
             Image compression format (defaults to png).
-    quality: Optional[int] = None
+    quality: Optional[int]
             Compression quality from range [0..100] (jpeg only).
     """
 
@@ -24,7 +23,7 @@ class ScreenshotParams(Type):
 
     @classmethod
     def from_json(cls, json: dict) -> ScreenshotParams:
-        return cls(json.get("quality"))
+        return cls(json.get("format"), json.get("quality"))
 
 
 def begin_frame(

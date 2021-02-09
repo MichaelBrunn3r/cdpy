@@ -5,7 +5,7 @@ import enum
 from typing import Optional
 
 from . import page, runtime
-from .common import Type, filter_unset_parameters
+from .common import filter_unset_parameters
 
 
 class NodeId(int):
@@ -25,7 +25,7 @@ class BackendNodeId(int):
 
 
 @dataclasses.dataclass
-class BackendNode(Type):
+class BackendNode:
     """Backend node with a friendly name.
 
     Attributes
@@ -81,7 +81,7 @@ class ShadowRootType(enum.Enum):
 
 
 @dataclasses.dataclass
-class Node(Type):
+class Node:
     """DOM interaction is implemented in terms of mirror objects that represent the actual DOM nodes.
     DOMNode is a base node mirror type.
 
@@ -101,49 +101,49 @@ class Node(Type):
             `Node`'s localName.
     nodeValue: str
             `Node`'s nodeValue.
-    parentId: Optional[NodeId] = None
+    parentId: Optional[NodeId]
             The id of the parent node if any.
-    childNodeCount: Optional[int] = None
+    childNodeCount: Optional[int]
             Child count for `Container` nodes.
-    children: Optional[list[Node]] = None
+    children: Optional[list[Node]]
             Child nodes of this node when requested with children.
-    attributes: Optional[list[str]] = None
+    attributes: Optional[list[str]]
             Attributes of the `Element` node in the form of flat array `[name1, value1, name2, value2]`.
-    documentURL: Optional[str] = None
+    documentURL: Optional[str]
             Document URL that `Document` or `FrameOwner` node points to.
-    baseURL: Optional[str] = None
+    baseURL: Optional[str]
             Base URL that `Document` or `FrameOwner` node uses for URL completion.
-    publicId: Optional[str] = None
+    publicId: Optional[str]
             `DocumentType`'s publicId.
-    systemId: Optional[str] = None
+    systemId: Optional[str]
             `DocumentType`'s systemId.
-    internalSubset: Optional[str] = None
+    internalSubset: Optional[str]
             `DocumentType`'s internalSubset.
-    xmlVersion: Optional[str] = None
+    xmlVersion: Optional[str]
             `Document`'s XML version in case of XML documents.
-    name: Optional[str] = None
+    name: Optional[str]
             `Attr`'s name.
-    value: Optional[str] = None
+    value: Optional[str]
             `Attr`'s value.
-    pseudoType: Optional[PseudoType] = None
+    pseudoType: Optional[PseudoType]
             Pseudo element type for this node.
-    shadowRootType: Optional[ShadowRootType] = None
+    shadowRootType: Optional[ShadowRootType]
             Shadow root type.
-    frameId: Optional[page.FrameId] = None
+    frameId: Optional[page.FrameId]
             Frame ID for frame owner elements.
-    contentDocument: Optional[Node] = None
+    contentDocument: Optional[Node]
             Content document for frame owner elements.
-    shadowRoots: Optional[list[Node]] = None
+    shadowRoots: Optional[list[Node]]
             Shadow root list for given element host.
-    templateContent: Optional[Node] = None
+    templateContent: Optional[Node]
             Content document fragment for template elements.
-    pseudoElements: Optional[list[Node]] = None
+    pseudoElements: Optional[list[Node]]
             Pseudo elements associated with this node.
-    importedDocument: Optional[Node] = None
+    importedDocument: Optional[Node]
             Import document for the HTMLImport links.
-    distributedNodes: Optional[list[BackendNode]] = None
+    distributedNodes: Optional[list[BackendNode]]
             Distributed nodes for given insertion point.
-    isSVG: Optional[bool] = None
+    isSVG: Optional[bool]
             Whether the node is SVG.
     """
 
@@ -227,7 +227,7 @@ class Node(Type):
 
 
 @dataclasses.dataclass
-class RGBA(Type):
+class RGBA:
     """A structure holding an RGBA color.
 
     Attributes
@@ -238,7 +238,7 @@ class RGBA(Type):
             The green component, in the [0-255] range.
     b: int
             The blue component, in the [0-255] range.
-    a: Optional[float] = None
+    a: Optional[float]
             The alpha component, in the [0-1] range (default: 1).
     """
 
@@ -260,7 +260,7 @@ class Quad(list[float]):
 
 
 @dataclasses.dataclass
-class BoxModel(Type):
+class BoxModel:
     """Box model.
 
     Attributes
@@ -277,7 +277,7 @@ class BoxModel(Type):
             Node width
     height: int
             Node height
-    shapeOutside: Optional[ShapeOutsideInfo] = None
+    shapeOutside: Optional[ShapeOutsideInfo]
             Shape outside coordinates
     """
 
@@ -305,7 +305,7 @@ class BoxModel(Type):
 
 
 @dataclasses.dataclass
-class ShapeOutsideInfo(Type):
+class ShapeOutsideInfo:
     """CSS Shape Outside details.
 
     Attributes
@@ -328,7 +328,7 @@ class ShapeOutsideInfo(Type):
 
 
 @dataclasses.dataclass
-class Rect(Type):
+class Rect:
     """Rectangle.
 
     Attributes
@@ -354,7 +354,7 @@ class Rect(Type):
 
 
 @dataclasses.dataclass
-class CSSComputedStyleProperty(Type):
+class CSSComputedStyleProperty:
     """
     Attributes
     ----------

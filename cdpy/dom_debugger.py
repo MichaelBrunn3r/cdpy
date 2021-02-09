@@ -5,7 +5,7 @@ import enum
 from typing import Optional
 
 from . import dom, runtime
-from .common import Type, filter_unset_parameters
+from .common import filter_unset_parameters
 
 
 class DOMBreakpointType(enum.Enum):
@@ -24,7 +24,7 @@ class CSPViolationType(enum.Enum):
 
 
 @dataclasses.dataclass
-class EventListener(Type):
+class EventListener:
     """Object event listener.
 
     Attributes
@@ -43,11 +43,11 @@ class EventListener(Type):
             Line number in the script (0-based).
     columnNumber: int
             Column number in the script (0-based).
-    handler: Optional[runtime.RemoteObject] = None
+    handler: Optional[runtime.RemoteObject]
             Event handler function value.
-    originalHandler: Optional[runtime.RemoteObject] = None
+    originalHandler: Optional[runtime.RemoteObject]
             Event original handler function value.
-    backendNodeId: Optional[dom.BackendNodeId] = None
+    backendNodeId: Optional[dom.BackendNodeId]
             Node the listener is added to (if any).
     """
 

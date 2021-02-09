@@ -5,7 +5,7 @@ import enum
 from typing import Optional
 
 from . import target
-from .common import Type, filter_unset_parameters
+from .common import filter_unset_parameters
 
 
 class BrowserContextID(str):
@@ -32,20 +32,20 @@ class WindowState(enum.Enum):
 
 
 @dataclasses.dataclass
-class Bounds(Type):
+class Bounds:
     """Browser window bounds information
 
     Attributes
     ----------
-    left: Optional[int] = None
+    left: Optional[int]
             The offset from the left edge of the screen to the window in pixels.
-    top: Optional[int] = None
+    top: Optional[int]
             The offset from the top edge of the screen to the window in pixels.
-    width: Optional[int] = None
+    width: Optional[int]
             The window width in pixels.
-    height: Optional[int] = None
+    height: Optional[int]
             The window height in pixels.
-    windowState: Optional[WindowState] = None
+    windowState: Optional[WindowState]
             The window state. Default to normal.
     """
 
@@ -103,7 +103,7 @@ class PermissionSetting(enum.Enum):
 
 
 @dataclasses.dataclass
-class PermissionDescriptor(Type):
+class PermissionDescriptor:
     """Definition of PermissionDescriptor defined in the Permissions API:
     https://w3c.github.io/permissions/#dictdef-permissiondescriptor.
 
@@ -112,14 +112,14 @@ class PermissionDescriptor(Type):
     name: str
             Name of permission.
             See https://cs.chromium.org/chromium/src/third_party/blink/renderer/modules/permissions/permission_descriptor.idl for valid permission names.
-    sysex: Optional[bool] = None
+    sysex: Optional[bool]
             For "midi" permission, may also specify sysex control.
-    userVisibleOnly: Optional[bool] = None
+    userVisibleOnly: Optional[bool]
             For "push" permission, may specify userVisibleOnly.
             Note that userVisibleOnly = true is the only currently supported type.
-    allowWithoutSanitization: Optional[bool] = None
+    allowWithoutSanitization: Optional[bool]
             For "clipboard" permission, may specify allowWithoutSanitization.
-    panTiltZoom: Optional[bool] = None
+    panTiltZoom: Optional[bool]
             For "camera" permission, may specify panTiltZoom.
     """
 
@@ -148,7 +148,7 @@ class BrowserCommandId(enum.Enum):
 
 
 @dataclasses.dataclass
-class Bucket(Type):
+class Bucket:
     """Chrome histogram bucket.
 
     Attributes
@@ -171,7 +171,7 @@ class Bucket(Type):
 
 
 @dataclasses.dataclass
-class Histogram(Type):
+class Histogram:
     """Chrome histogram.
 
     Attributes

@@ -1,15 +1,13 @@
 from __future__ import annotations
 
 import dataclasses
-import enum
 from typing import Optional
 
 from . import dom, network, page
-from .common import Type, filter_unset_parameters
 
 
 @dataclasses.dataclass
-class LargestContentfulPaint(Type):
+class LargestContentfulPaint:
     """See https://github.com/WICG/LargestContentfulPaint and largest_contentful_paint.idl
 
     Attributes
@@ -18,11 +16,11 @@ class LargestContentfulPaint(Type):
     loadTime: network.TimeSinceEpoch
     size: float
             The number of pixels being painted.
-    elementId: Optional[str] = None
+    elementId: Optional[str]
             The id attribute of the element, if available.
-    url: Optional[str] = None
+    url: Optional[str]
             The URL of the image (may be trimmed).
-    nodeId: Optional[dom.BackendNodeId] = None
+    nodeId: Optional[dom.BackendNodeId]
     """
 
     renderTime: network.TimeSinceEpoch
@@ -45,13 +43,13 @@ class LargestContentfulPaint(Type):
 
 
 @dataclasses.dataclass
-class LayoutShiftAttribution(Type):
+class LayoutShiftAttribution:
     """
     Attributes
     ----------
     previousRect: dom.Rect
     currentRect: dom.Rect
-    nodeId: Optional[dom.BackendNodeId] = None
+    nodeId: Optional[dom.BackendNodeId]
     """
 
     previousRect: dom.Rect
@@ -68,7 +66,7 @@ class LayoutShiftAttribution(Type):
 
 
 @dataclasses.dataclass
-class LayoutShift(Type):
+class LayoutShift:
     """See https://wicg.github.io/layout-instability/#sec-layout-shift and layout_shift.idl
 
     Attributes
@@ -96,7 +94,7 @@ class LayoutShift(Type):
 
 
 @dataclasses.dataclass
-class TimelineEvent(Type):
+class TimelineEvent:
     """
     Attributes
     ----------
@@ -109,10 +107,10 @@ class TimelineEvent(Type):
             Name may be empty depending on the type.
     time: network.TimeSinceEpoch
             Time in seconds since Epoch, monotonically increasing within document lifetime.
-    duration: Optional[float] = None
+    duration: Optional[float]
             Event duration, if applicable.
-    lcpDetails: Optional[LargestContentfulPaint] = None
-    layoutShiftDetails: Optional[LayoutShift] = None
+    lcpDetails: Optional[LargestContentfulPaint]
+    layoutShiftDetails: Optional[LayoutShift]
     """
 
     frameId: page.FrameId

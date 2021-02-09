@@ -2,10 +2,8 @@ from __future__ import annotations
 
 import dataclasses
 import enum
-from typing import Optional
 
 from . import network, service_worker
-from .common import Type, filter_unset_parameters
 
 
 class ServiceName(enum.Enum):
@@ -23,7 +21,7 @@ class ServiceName(enum.Enum):
 
 
 @dataclasses.dataclass
-class EventMetadata(Type):
+class EventMetadata:
     """A key-value pair for additional event information to pass along.
 
     Attributes
@@ -41,7 +39,7 @@ class EventMetadata(Type):
 
 
 @dataclasses.dataclass
-class BackgroundServiceEvent(Type):
+class BackgroundServiceEvent:
     """
     Attributes
     ----------

@@ -1,10 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
-import enum
 from typing import Optional
-
-from .common import Type, filter_unset_parameters
 
 
 class DatabaseId(str):
@@ -15,7 +12,7 @@ class DatabaseId(str):
 
 
 @dataclasses.dataclass
-class Database(Type):
+class Database:
     """Database object.
 
     Attributes
@@ -43,7 +40,7 @@ class Database(Type):
 
 
 @dataclasses.dataclass
-class Error(Type):
+class Error:
     """Database error.
 
     Attributes
