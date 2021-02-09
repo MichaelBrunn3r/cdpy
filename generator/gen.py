@@ -128,34 +128,52 @@ class CDPItems:
 
 
 class CDPPropertyCategory(enum.Enum):
-    PRIMITIVE = 0
-    PRIMITIVE_LIST = 1
-    ENUM = 2
-    SIMPLE_TYPE_REFERENCE = 3
-    SIMPLE_TYPE_REFERENCE_LIST = 4
-    ENUM_REFERENCE = 5
-    ENUM_REFERENCE_LIST = 6
-    COMPLEX_TYPE_REFERENCE = 7
-    COMPLEX_TYPE_REFERENCE_LIST = 8
+    BUILTIN = 0
+    BUILTIN_LIST = 1
+    TYPELESS_ENUM = 2
+    SIMPLE = 3
+    SIMPLE_LIST = 4
+    ENUM = 5
+    ENUM_LIST = 6
+    OBJECT = 7
+    OBJECT_LIST = 8
 
     @property
     def does_not_require_parsing(self):
-        return self in (self.PRIMITIVE, self.PRIMITIVE_LIST, self.ENUM)
+        return self in (self.BUILTIN, self.BUILTIN_LIST, self.TYPELESS_ENUM)
 
     @property
     def parse_with_from_json(self):
         """Wether the types of this category should be parsed with a from_json call (e.g. SomeType.from_json(json))"""
-        return self in (self.COMPLEX_TYPE_REFERENCE, self.COMPLEX_TYPE_REFERENCE_LIST)
+        return self in (self.OBJECT, self.OBJECT_LIST)
 
     @property
     def parse_with_constructor(self):
         """Wether the types of this category should be parsed with a constructor (e.g. SomeType(json), [SomeType(j) for j in json])"""
         return self in (
-            self.SIMPLE_TYPE_REFERENCE,
-            self.ENUM_REFERENCE,
-            self.SIMPLE_TYPE_REFERENCE_LIST,
-            self.ENUM_REFERENCE_LIST,
+            self.SIMPLE,
+            self.ENUM,
+            self.SIMPLE_LIST,
+            self.ENUM_LIST,
         )
+
+    def from_cdp_type(type: CDPType, is_list: bool):
+        """Returns a category according to a properties type"""
+        if is_list:
+            return {
+                CDPTypeCategory.BUILTIN: CDPPropertyCategory.SIMPLE_LIST,
+                CDPTypeCategory.BUILTIN_LIST: CDPPropertyCategory.SIMPLE_LIST,
+                CDPTypeCategory.ENUM: CDPPropertyCategory.ENUM_LIST,
+                CDPTypeCategory.OBJECT: CDPPropertyCategory.OBJECT_LIST,
+                CDPTypeCategory.OBJECT_LIST: CDPPropertyCategory.OBJECT_LIST,
+            }.get(type.category)
+        else:
+            return {
+                CDPTypeCategory.BUILTIN: CDPPropertyCategory.SIMPLE,
+                CDPTypeCategory.BUILTIN_LIST: CDPPropertyCategory.SIMPLE,
+                CDPTypeCategory.ENUM: CDPPropertyCategory.ENUM,
+                CDPTypeCategory.OBJECT: CDPPropertyCategory.OBJECT,
+            }.get(type.category)
 
 
 @dataclass
@@ -178,56 +196,18 @@ class CDPProperty:
                 # Property is a list
                 if self.items.type:
                     # Property is a list of primitves/builtins
-                    self._category = CDPPropertyCategory.PRIMITIVE_LIST
+                    self._category = CDPPropertyCategory.BUILTIN_LIST
                 else:
                     # Property is a list of cdp types
                     items_type = self.context.get_type_by_ref(self.items.ref)
-                    if items_type.category in [
-                        CDPTypeCategory.SIMPLE,
-                        CDPTypeCategory.SIMPLE_LIST,
-                    ]:
-                        # Items are simple or simple lists
-                        self._category = CDPPropertyCategory.SIMPLE_TYPE_REFERENCE_LIST
-                    elif (
-                        self.context.get_type_by_ref(self.items.ref).category
-                        == CDPTypeCategory.ENUM
-                    ):
-                        # Items are cdp enum types
-                        self._category = CDPPropertyCategory.ENUM_REFERENCE_LIST
-                    elif items_type.category in [
-                        CDPTypeCategory.COMPLEX,
-                        CDPTypeCategory.COMPLEX_LIST,
-                    ]:
-                        # Items are complex cdp types (i.e. have attributes) or lists of complex cdp types
-                        self._category = CDPPropertyCategory.COMPLEX_TYPE_REFERENCE_LIST
-                    else:
-                        raise Exception("Can't determin cdp property type")
+                    self._category = CDPPropertyCategory.from_cdp_type(items_type, True)
             elif self.enum_values:
-                self._category = CDPPropertyCategory.ENUM
+                self._category = CDPPropertyCategory.TYPELESS_ENUM
             elif self.ref:
                 ref_type = self.context.get_type_by_ref(self.ref)
-                if ref_type.category in [
-                    CDPTypeCategory.SIMPLE,
-                    CDPTypeCategory.SIMPLE_LIST,
-                ]:
-                    # Property is a simple cdp type (i.e. inherits from a primitive/builtin)
-                    self._category = CDPPropertyCategory.SIMPLE_TYPE_REFERENCE
-                elif (
-                    self.context.get_type_by_ref(self.ref).category
-                    == CDPTypeCategory.ENUM
-                ):
-                    # Property is a cdp enum type
-                    self._category = CDPPropertyCategory.ENUM_REFERENCE
-                elif (
-                    self.context.get_type_by_ref(self.ref).category
-                    == CDPTypeCategory.COMPLEX
-                ):
-                    # Property is a complex cdp type (i.e. type has attributes)
-                    self._category = CDPPropertyCategory.COMPLEX_TYPE_REFERENCE
-                else:
-                    raise Exception("Can't determin cdp property type")
+                self._category = CDPPropertyCategory.from_cdp_type(ref_type, False)
             elif self.type:
-                self._category = CDPPropertyCategory.PRIMITIVE
+                self._category = CDPPropertyCategory.BUILTIN
             else:
                 raise Exception("Can't determin cdp property type")
 
@@ -237,9 +217,9 @@ class CDPProperty:
     def is_list_of_references(self):
         """Checks if the property is a list and its items are references to an type"""
         return self.category in [
-            CDPPropertyCategory.SIMPLE_TYPE_REFERENCE_LIST,
-            CDPPropertyCategory.ENUM_REFERENCE_LIST,
-            CDPPropertyCategory.COMPLEX_TYPE_REFERENCE_LIST,
+            CDPPropertyCategory.SIMPLE_LIST,
+            CDPPropertyCategory.ENUM_LIST,
+            CDPPropertyCategory.OBJECT_LIST,
         ]
 
     @classmethod
@@ -305,11 +285,11 @@ class CDPAttribute(CDPProperty):
 
 
 class CDPTypeCategory(enum.Enum):
-    SIMPLE = 0
-    SIMPLE_LIST = 1
+    BUILTIN = 0
+    BUILTIN_LIST = 1
     ENUM = 2
-    COMPLEX = 3
-    COMPLEX_LIST = 4
+    OBJECT = 3
+    OBJECT_LIST = 4
 
 
 @dataclass
@@ -327,15 +307,15 @@ class CDPType:
         if not hasattr(self, "_category"):
             if self.items:
                 if self.items.type:
-                    self._category = CDPTypeCategory.SIMPLE_LIST
+                    self._category = CDPTypeCategory.BUILTIN_LIST
                 else:
-                    self._category = CDPTypeCategory.COMPLEX_LIST
+                    self._category = CDPTypeCategory.OBJECT_LIST
             elif self.enum_values:
                 self._category = CDPTypeCategory.ENUM
             elif self.attributes:
-                self._category = CDPTypeCategory.COMPLEX
+                self._category = CDPTypeCategory.OBJECT
             else:
-                self._category = CDPTypeCategory.SIMPLE
+                self._category = CDPTypeCategory.BUILTIN
 
         return self._category
 
@@ -367,31 +347,31 @@ class CDPType:
         )
 
     def to_ast(self):
-        if self.category in [CDPTypeCategory.SIMPLE, CDPTypeCategory.SIMPLE_LIST]:
-            return self.create_simple_ast()
+        if self.category in [CDPTypeCategory.BUILTIN, CDPTypeCategory.BUILTIN_LIST]:
+            return self.create_builtin_ast()
         elif self.category == CDPTypeCategory.ENUM:
             self.context.require("enum", None)
             return self.create_enum_ast()
-        elif self.category == CDPTypeCategory.COMPLEX:
-            return self.create_complex_ast()
-        elif self.category == CDPTypeCategory.COMPLEX_LIST:
-            return self.create_complex_list_ast()
+        elif self.category == CDPTypeCategory.OBJECT:
+            return self.create_object_ast()
+        elif self.category == CDPTypeCategory.OBJECT_LIST:
+            return self.create_object_list_ast()
         else:
             raise Exception(
                 f"Can't generate AST for type '{self.context.domain_name}.{self.id}'"
             )
 
-    def create_simple_ast(self):
+    def create_builtin_ast(self):
         """Create the AST for a simple type or simple list type"""
         base = create_type_annotation(self.type, None, self.items, False, self.context)
 
         return ast_classdef(
             self.id,
-            [self.create_docstring(), self.create_simple_repr_function()],
+            [self.create_docstring(), self.create_builtin_repr_function()],
             [base],
         )
 
-    def create_simple_repr_function(self):
+    def create_builtin_repr_function(self):
         """Create the __repr__ function for a simple type"""
         return ast.FunctionDef(
             "__repr__",
@@ -410,16 +390,16 @@ class CDPType:
 
         return ast_classdef(self.id, body, ["enum.Enum"])
 
-    def create_complex_ast(self):
+    def create_object_ast(self):
         body = [self.create_docstring()]
 
         for attr in self.attributes:
             body.append(attr.to_ast())
-        body.append(self.create_complex_from_json_function())
+        body.append(self.create_object_from_json_function())
 
         return ast_classdef(self.id, body, decorators=["dataclasses.dataclass"])
 
-    def create_complex_from_json_function(self):
+    def create_object_from_json_function(self):
         cls_args = []
         for attr in self.attributes:
             category = attr.category
@@ -479,23 +459,18 @@ class CDPType:
             ast.Name(self.id),
         )
 
-    def create_complex_list_ast(self):
-        body = [self.create_docstring(), self.create_complex_list_from_json_function()]
+    def create_object_list_ast(self):
+        body = [self.create_docstring(), self.create_object_list_from_json_function()]
         base = ast.Name(
             create_type_annotation(self.type, None, self.items, False, self.context)
         )
 
         return ast_classdef(self.id, body, [base])
 
-    def create_complex_list_from_json_function(self):
-        items_type = self.context.get_type_by_ref(self.items.ref)
-
-        # If the referenced type is from another module, add that module before the type name
-        if items_type.context.domain_name != self.context.domain_name:
-            items_type_name = items_type.context.module_name + "." + items_type.id
-        else:
-            items_type_name = items_type.id
-
+    def create_object_list_from_json_function(self):
+        items_type_name = self.context.get_type_by_ref(self.items.ref).create_reference(
+            self.context
+        )
         items = ast_list_comp(ast_call(items_type_name, [ast.Name("x")]), "x", "json")
 
         return ast.FunctionDef(
