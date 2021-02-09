@@ -4,6 +4,7 @@ import dataclasses
 from typing import Optional
 
 from . import dom, network, page
+from .common import filter_none
 
 
 @dataclasses.dataclass
@@ -41,6 +42,18 @@ class LargestContentfulPaint:
             dom.BackendNodeId(json["nodeId"]) if "nodeId" in json else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "renderTime": float(self.renderTime),
+                "loadTime": float(self.loadTime),
+                "size": self.size,
+                "elementId": self.elementId,
+                "url": self.url,
+                "nodeId": int(self.nodeId) if self.nodeId else None,
+            }
+        )
+
 
 @dataclasses.dataclass
 class LayoutShiftAttribution:
@@ -62,6 +75,15 @@ class LayoutShiftAttribution:
             dom.Rect.from_json(json["previousRect"]),
             dom.Rect.from_json(json["currentRect"]),
             dom.BackendNodeId(json["nodeId"]) if "nodeId" in json else None,
+        )
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "previousRect": self.previousRect.to_json(),
+                "currentRect": self.currentRect.to_json(),
+                "nodeId": int(self.nodeId) if self.nodeId else None,
+            }
         )
 
 
@@ -91,6 +113,14 @@ class LayoutShift:
             network.TimeSinceEpoch(json["lastInputTime"]),
             [LayoutShiftAttribution.from_json(x) for x in json["sources"]],
         )
+
+    def to_json(self) -> dict:
+        return {
+            "value": self.value,
+            "hadRecentInput": self.hadRecentInput,
+            "lastInputTime": float(self.lastInputTime),
+            "sources": [s.to_json() for s in self.sources],
+        }
 
 
 @dataclasses.dataclass
@@ -135,6 +165,21 @@ class TimelineEvent:
             LayoutShift.from_json(json["layoutShiftDetails"])
             if "layoutShiftDetails" in json
             else None,
+        )
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "frameId": str(self.frameId),
+                "type": self.type,
+                "name": self.name,
+                "time": float(self.time),
+                "duration": self.duration,
+                "lcpDetails": self.lcpDetails.to_json() if self.lcpDetails else None,
+                "layoutShiftDetails": self.layoutShiftDetails.to_json()
+                if self.layoutShiftDetails
+                else None,
+            }
         )
 
 

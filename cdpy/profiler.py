@@ -4,7 +4,7 @@ import dataclasses
 from typing import Optional
 
 from . import runtime
-from .common import filter_unset_parameters
+from .common import filter_none, filter_unset_parameters
 
 
 @dataclasses.dataclass
@@ -48,6 +48,20 @@ class ProfileNode:
             else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "id": self.id,
+                "callFrame": self.callFrame.to_json(),
+                "hitCount": self.hitCount,
+                "children": self.children,
+                "deoptReason": self.deoptReason,
+                "positionTicks": [p.to_json() for p in self.positionTicks]
+                if self.positionTicks
+                else None,
+            }
+        )
+
 
 @dataclasses.dataclass
 class Profile:
@@ -84,6 +98,17 @@ class Profile:
             json.get("timeDeltas"),
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "nodes": [n.to_json() for n in self.nodes],
+                "startTime": self.startTime,
+                "endTime": self.endTime,
+                "samples": self.samples,
+                "timeDeltas": self.timeDeltas,
+            }
+        )
+
 
 @dataclasses.dataclass
 class PositionTickInfo:
@@ -103,6 +128,9 @@ class PositionTickInfo:
     @classmethod
     def from_json(cls, json: dict) -> PositionTickInfo:
         return cls(json["line"], json["ticks"])
+
+    def to_json(self) -> dict:
+        return {"line": self.line, "ticks": self.ticks}
 
 
 @dataclasses.dataclass
@@ -126,6 +154,13 @@ class CoverageRange:
     @classmethod
     def from_json(cls, json: dict) -> CoverageRange:
         return cls(json["startOffset"], json["endOffset"], json["count"])
+
+    def to_json(self) -> dict:
+        return {
+            "startOffset": self.startOffset,
+            "endOffset": self.endOffset,
+            "count": self.count,
+        }
 
 
 @dataclasses.dataclass
@@ -154,6 +189,13 @@ class FunctionCoverage:
             json["isBlockCoverage"],
         )
 
+    def to_json(self) -> dict:
+        return {
+            "functionName": self.functionName,
+            "ranges": [r.to_json() for r in self.ranges],
+            "isBlockCoverage": self.isBlockCoverage,
+        }
+
 
 @dataclasses.dataclass
 class ScriptCoverage:
@@ -181,6 +223,13 @@ class ScriptCoverage:
             [FunctionCoverage.from_json(x) for x in json["functions"]],
         )
 
+    def to_json(self) -> dict:
+        return {
+            "scriptId": str(self.scriptId),
+            "url": self.url,
+            "functions": [f.to_json() for f in self.functions],
+        }
+
 
 @dataclasses.dataclass
 class TypeObject:
@@ -197,6 +246,9 @@ class TypeObject:
     @classmethod
     def from_json(cls, json: dict) -> TypeObject:
         return cls(json["name"])
+
+    def to_json(self) -> dict:
+        return {"name": self.name}
 
 
 @dataclasses.dataclass
@@ -217,6 +269,9 @@ class TypeProfileEntry:
     @classmethod
     def from_json(cls, json: dict) -> TypeProfileEntry:
         return cls(json["offset"], [TypeObject.from_json(x) for x in json["types"]])
+
+    def to_json(self) -> dict:
+        return {"offset": self.offset, "types": [t.to_json() for t in self.types]}
 
 
 @dataclasses.dataclass
@@ -245,6 +300,13 @@ class ScriptTypeProfile:
             [TypeProfileEntry.from_json(x) for x in json["entries"]],
         )
 
+    def to_json(self) -> dict:
+        return {
+            "scriptId": str(self.scriptId),
+            "url": self.url,
+            "entries": [e.to_json() for e in self.entries],
+        }
+
 
 @dataclasses.dataclass
 class CounterInfo:
@@ -264,6 +326,9 @@ class CounterInfo:
     @classmethod
     def from_json(cls, json: dict) -> CounterInfo:
         return cls(json["name"], json["value"])
+
+    def to_json(self) -> dict:
+        return {"name": self.name, "value": self.value}
 
 
 @dataclasses.dataclass
@@ -287,6 +352,9 @@ class RuntimeCallCounterInfo:
     @classmethod
     def from_json(cls, json: dict) -> RuntimeCallCounterInfo:
         return cls(json["name"], json["value"], json["time"])
+
+    def to_json(self) -> dict:
+        return {"name": self.name, "value": self.value, "time": self.time}
 
 
 def disable():

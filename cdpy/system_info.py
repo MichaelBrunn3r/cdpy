@@ -4,6 +4,8 @@ import dataclasses
 import enum
 from typing import Optional
 
+from .common import filter_none
+
 
 @dataclasses.dataclass
 class GPUDevice:
@@ -51,6 +53,20 @@ class GPUDevice:
             json.get("revision"),
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "vendorId": self.vendorId,
+                "deviceId": self.deviceId,
+                "vendorString": self.vendorString,
+                "deviceString": self.deviceString,
+                "driverVendor": self.driverVendor,
+                "driverVersion": self.driverVersion,
+                "subSysId": self.subSysId,
+                "revision": self.revision,
+            }
+        )
+
 
 @dataclasses.dataclass
 class Size:
@@ -70,6 +86,9 @@ class Size:
     @classmethod
     def from_json(cls, json: dict) -> Size:
         return cls(json["width"], json["height"])
+
+    def to_json(self) -> dict:
+        return {"width": self.width, "height": self.height}
 
 
 @dataclasses.dataclass
@@ -98,6 +117,13 @@ class VideoDecodeAcceleratorCapability:
             Size.from_json(json["maxResolution"]),
             Size.from_json(json["minResolution"]),
         )
+
+    def to_json(self) -> dict:
+        return {
+            "profile": self.profile,
+            "maxResolution": self.maxResolution.to_json(),
+            "minResolution": self.minResolution.to_json(),
+        }
 
 
 @dataclasses.dataclass
@@ -131,6 +157,14 @@ class VideoEncodeAcceleratorCapability:
             json["maxFramerateNumerator"],
             json["maxFramerateDenominator"],
         )
+
+    def to_json(self) -> dict:
+        return {
+            "profile": self.profile,
+            "maxResolution": self.maxResolution.to_json(),
+            "maxFramerateNumerator": self.maxFramerateNumerator,
+            "maxFramerateDenominator": self.maxFramerateDenominator,
+        }
 
 
 class SubsamplingFormat(enum.Enum):
@@ -179,6 +213,14 @@ class ImageDecodeAcceleratorCapability:
             Size.from_json(json["minDimensions"]),
             [SubsamplingFormat(x) for x in json["subsamplings"]],
         )
+
+    def to_json(self) -> dict:
+        return {
+            "imageType": str(self.imageType),
+            "maxDimensions": self.maxDimensions.to_json(),
+            "minDimensions": self.minDimensions.to_json(),
+            "subsamplings": [str(s) for s in self.subsamplings],
+        }
 
 
 @dataclasses.dataclass
@@ -232,6 +274,19 @@ class GPUInfo:
             json.get("featureStatus"),
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "devices": [d.to_json() for d in self.devices],
+                "driverBugWorkarounds": self.driverBugWorkarounds,
+                "videoDecoding": [v.to_json() for v in self.videoDecoding],
+                "videoEncoding": [v.to_json() for v in self.videoEncoding],
+                "imageDecoding": [i.to_json() for i in self.imageDecoding],
+                "auxAttributes": self.auxAttributes,
+                "featureStatus": self.featureStatus,
+            }
+        )
+
 
 @dataclasses.dataclass
 class ProcessInfo:
@@ -255,6 +310,9 @@ class ProcessInfo:
     @classmethod
     def from_json(cls, json: dict) -> ProcessInfo:
         return cls(json["type"], json["id"], json["cpuTime"])
+
+    def to_json(self) -> dict:
+        return {"type": self.type, "id": self.id, "cpuTime": self.cpuTime}
 
 
 def get_info():

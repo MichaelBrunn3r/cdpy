@@ -4,6 +4,7 @@ import dataclasses
 from typing import Optional
 
 from . import dom, runtime
+from .common import filter_none
 
 
 @dataclasses.dataclass
@@ -59,6 +60,22 @@ class Animation:
             json["type"],
             AnimationEffect.from_json(json["source"]) if "source" in json else None,
             json.get("cssId"),
+        )
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "id": self.id,
+                "name": self.name,
+                "pausedState": self.pausedState,
+                "playState": self.playState,
+                "playbackRate": self.playbackRate,
+                "startTime": self.startTime,
+                "currentTime": self.currentTime,
+                "type": self.type,
+                "source": self.source.to_json() if self.source else None,
+                "cssId": self.cssId,
+            }
         )
 
 
@@ -120,6 +137,26 @@ class AnimationEffect:
             else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "delay": self.delay,
+                "endDelay": self.endDelay,
+                "iterationStart": self.iterationStart,
+                "iterations": self.iterations,
+                "duration": self.duration,
+                "direction": self.direction,
+                "fill": self.fill,
+                "easing": self.easing,
+                "backendNodeId": int(self.backendNodeId)
+                if self.backendNodeId
+                else None,
+                "keyframesRule": self.keyframesRule.to_json()
+                if self.keyframesRule
+                else None,
+            }
+        )
+
 
 @dataclasses.dataclass
 class KeyframesRule:
@@ -142,6 +179,11 @@ class KeyframesRule:
             [KeyframeStyle.from_json(x) for x in json["keyframes"]], json.get("name")
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {"keyframes": [k.to_json() for k in self.keyframes], "name": self.name}
+        )
+
 
 @dataclasses.dataclass
 class KeyframeStyle:
@@ -161,6 +203,9 @@ class KeyframeStyle:
     @classmethod
     def from_json(cls, json: dict) -> KeyframeStyle:
         return cls(json["offset"], json["easing"])
+
+    def to_json(self) -> dict:
+        return {"offset": self.offset, "easing": self.easing}
 
 
 def disable():

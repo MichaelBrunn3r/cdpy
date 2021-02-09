@@ -5,6 +5,7 @@ import enum
 from typing import Optional
 
 from . import target
+from .common import filter_none
 
 
 class RegistrationID(str):
@@ -34,6 +35,13 @@ class ServiceWorkerRegistration:
         return cls(
             RegistrationID(json["registrationId"]), json["scopeURL"], json["isDeleted"]
         )
+
+    def to_json(self) -> dict:
+        return {
+            "registrationId": str(self.registrationId),
+            "scopeURL": self.scopeURL,
+            "isDeleted": self.isDeleted,
+        }
 
 
 class ServiceWorkerVersionRunningStatus(enum.Enum):
@@ -102,6 +110,23 @@ class ServiceWorkerVersion:
             target.TargetID(json["targetId"]) if "targetId" in json else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "versionId": self.versionId,
+                "registrationId": str(self.registrationId),
+                "scriptURL": self.scriptURL,
+                "runningStatus": str(self.runningStatus),
+                "status": str(self.status),
+                "scriptLastModified": self.scriptLastModified,
+                "scriptResponseTime": self.scriptResponseTime,
+                "controlledClients": [str(c) for c in self.controlledClients]
+                if self.controlledClients
+                else None,
+                "targetId": str(self.targetId) if self.targetId else None,
+            }
+        )
+
 
 @dataclasses.dataclass
 class ServiceWorkerErrorMessage:
@@ -134,6 +159,16 @@ class ServiceWorkerErrorMessage:
             json["lineNumber"],
             json["columnNumber"],
         )
+
+    def to_json(self) -> dict:
+        return {
+            "errorMessage": self.errorMessage,
+            "registrationId": str(self.registrationId),
+            "versionId": self.versionId,
+            "sourceURL": self.sourceURL,
+            "lineNumber": self.lineNumber,
+            "columnNumber": self.columnNumber,
+        }
 
 
 def deliver_push_message(origin: str, registrationId: RegistrationID, data: str):

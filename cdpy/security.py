@@ -5,6 +5,7 @@ import enum
 from typing import Optional
 
 from . import network
+from .common import filter_none
 
 
 class CertificateId(int):
@@ -121,6 +122,30 @@ class CertificateSecurityState:
             json.get("certificateNetworkError"),
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "protocol": self.protocol,
+                "keyExchange": self.keyExchange,
+                "cipher": self.cipher,
+                "certificate": self.certificate,
+                "subjectName": self.subjectName,
+                "issuer": self.issuer,
+                "validFrom": float(self.validFrom),
+                "validTo": float(self.validTo),
+                "certificateHasWeakSignature": self.certificateHasWeakSignature,
+                "certificateHasSha1Signature": self.certificateHasSha1Signature,
+                "modernSSL": self.modernSSL,
+                "obsoleteSslProtocol": self.obsoleteSslProtocol,
+                "obsoleteSslKeyExchange": self.obsoleteSslKeyExchange,
+                "obsoleteSslCipher": self.obsoleteSslCipher,
+                "obsoleteSslSignature": self.obsoleteSslSignature,
+                "keyExchangeGroup": self.keyExchangeGroup,
+                "mac": self.mac,
+                "certificateNetworkError": self.certificateNetworkError,
+            }
+        )
+
 
 class SafetyTipStatus(enum.Enum):
     """"""
@@ -146,6 +171,11 @@ class SafetyTipInfo:
     @classmethod
     def from_json(cls, json: dict) -> SafetyTipInfo:
         return cls(SafetyTipStatus(json["safetyTipStatus"]), json.get("safeUrl"))
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {"safetyTipStatus": str(self.safetyTipStatus), "safeUrl": self.safeUrl}
+        )
 
 
 @dataclasses.dataclass
@@ -180,6 +210,20 @@ class VisibleSecurityState:
             SafetyTipInfo.from_json(json["safetyTipInfo"])
             if "safetyTipInfo" in json
             else None,
+        )
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "securityState": str(self.securityState),
+                "securityStateIssueIds": self.securityStateIssueIds,
+                "certificateSecurityState": self.certificateSecurityState.to_json()
+                if self.certificateSecurityState
+                else None,
+                "safetyTipInfo": self.safetyTipInfo.to_json()
+                if self.safetyTipInfo
+                else None,
+            }
         )
 
 
@@ -225,6 +269,19 @@ class SecurityStateExplanation:
             json.get("recommendations"),
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "securityState": str(self.securityState),
+                "title": self.title,
+                "summary": self.summary,
+                "description": self.description,
+                "mixedContentType": str(self.mixedContentType),
+                "certificate": self.certificate,
+                "recommendations": self.recommendations,
+            }
+        )
+
 
 @dataclasses.dataclass
 class InsecureContentStatus:
@@ -267,6 +324,17 @@ class InsecureContentStatus:
             SecurityState(json["ranInsecureContentStyle"]),
             SecurityState(json["displayedInsecureContentStyle"]),
         )
+
+    def to_json(self) -> dict:
+        return {
+            "ranMixedContent": self.ranMixedContent,
+            "displayedMixedContent": self.displayedMixedContent,
+            "containedMixedForm": self.containedMixedForm,
+            "ranContentWithCertErrors": self.ranContentWithCertErrors,
+            "displayedContentWithCertErrors": self.displayedContentWithCertErrors,
+            "ranInsecureContentStyle": str(self.ranInsecureContentStyle),
+            "displayedInsecureContentStyle": str(self.displayedInsecureContentStyle),
+        }
 
 
 class CertificateErrorAction(enum.Enum):

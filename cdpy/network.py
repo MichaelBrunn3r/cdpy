@@ -5,7 +5,7 @@ import enum
 from typing import Optional
 
 from . import debugger, emulation, io, page, runtime, security
-from .common import filter_unset_parameters
+from .common import filter_none, filter_unset_parameters
 
 
 class ResourceType(enum.Enum):
@@ -212,6 +212,28 @@ class ResourceTiming:
             json["receiveHeadersEnd"],
         )
 
+    def to_json(self) -> dict:
+        return {
+            "requestTime": self.requestTime,
+            "proxyStart": self.proxyStart,
+            "proxyEnd": self.proxyEnd,
+            "dnsStart": self.dnsStart,
+            "dnsEnd": self.dnsEnd,
+            "connectStart": self.connectStart,
+            "connectEnd": self.connectEnd,
+            "sslStart": self.sslStart,
+            "sslEnd": self.sslEnd,
+            "workerStart": self.workerStart,
+            "workerReady": self.workerReady,
+            "workerFetchStart": self.workerFetchStart,
+            "workerRespondWithSettled": self.workerRespondWithSettled,
+            "sendStart": self.sendStart,
+            "sendEnd": self.sendEnd,
+            "pushStart": self.pushStart,
+            "pushEnd": self.pushEnd,
+            "receiveHeadersEnd": self.receiveHeadersEnd,
+        }
+
 
 class ResourcePriority(enum.Enum):
     """Loading priority of a resource request."""
@@ -237,6 +259,9 @@ class PostDataEntry:
     @classmethod
     def from_json(cls, json: dict) -> PostDataEntry:
         return cls(json.get("bytes"))
+
+    def to_json(self) -> dict:
+        return filter_none({"bytes": self.bytes})
 
 
 @dataclasses.dataclass
@@ -308,6 +333,30 @@ class Request:
             else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "url": self.url,
+                "method": self.method,
+                "headers": dict(self.headers),
+                "initialPriority": str(self.initialPriority),
+                "referrerPolicy": self.referrerPolicy,
+                "urlFragment": self.urlFragment,
+                "postData": self.postData,
+                "hasPostData": self.hasPostData,
+                "postDataEntries": [p.to_json() for p in self.postDataEntries]
+                if self.postDataEntries
+                else None,
+                "mixedContentType": str(self.mixedContentType)
+                if self.mixedContentType
+                else None,
+                "isLinkPreload": self.isLinkPreload,
+                "trustTokenParams": self.trustTokenParams.to_json()
+                if self.trustTokenParams
+                else None,
+            }
+        )
+
 
 @dataclasses.dataclass
 class SignedCertificateTimestamp:
@@ -354,6 +403,18 @@ class SignedCertificateTimestamp:
             json["signatureAlgorithm"],
             json["signatureData"],
         )
+
+    def to_json(self) -> dict:
+        return {
+            "status": self.status,
+            "origin": self.origin,
+            "logDescription": self.logDescription,
+            "logId": self.logId,
+            "timestamp": float(self.timestamp),
+            "hashAlgorithm": self.hashAlgorithm,
+            "signatureAlgorithm": self.signatureAlgorithm,
+            "signatureData": self.signatureData,
+        }
 
 
 @dataclasses.dataclass
@@ -425,6 +486,29 @@ class SecurityDetails:
             ),
             json.get("keyExchangeGroup"),
             json.get("mac"),
+        )
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "protocol": self.protocol,
+                "keyExchange": self.keyExchange,
+                "cipher": self.cipher,
+                "certificateId": int(self.certificateId),
+                "subjectName": self.subjectName,
+                "sanList": self.sanList,
+                "issuer": self.issuer,
+                "validFrom": float(self.validFrom),
+                "validTo": float(self.validTo),
+                "signedCertificateTimestampList": [
+                    s.to_json() for s in self.signedCertificateTimestampList
+                ],
+                "certificateTransparencyCompliance": str(
+                    self.certificateTransparencyCompliance
+                ),
+                "keyExchangeGroup": self.keyExchangeGroup,
+                "mac": self.mac,
+            }
         )
 
 
@@ -504,6 +588,12 @@ class CorsErrorStatus:
     def from_json(cls, json: dict) -> CorsErrorStatus:
         return cls(CorsError(json["corsError"]), json["failedParameter"])
 
+    def to_json(self) -> dict:
+        return {
+            "corsError": str(self.corsError),
+            "failedParameter": self.failedParameter,
+        }
+
 
 class ServiceWorkerResponseSource(enum.Enum):
     """Source of serviceworker response."""
@@ -541,6 +631,15 @@ class TrustTokenParams:
             TrustTokenOperationType(json["type"]),
             json["refreshPolicy"],
             json.get("issuers"),
+        )
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "type": str(self.type),
+                "refreshPolicy": self.refreshPolicy,
+                "issuers": self.issuers,
+            }
         )
 
 
@@ -662,6 +761,41 @@ class Response:
             else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "url": self.url,
+                "status": self.status,
+                "statusText": self.statusText,
+                "headers": dict(self.headers),
+                "mimeType": self.mimeType,
+                "connectionReused": self.connectionReused,
+                "connectionId": self.connectionId,
+                "encodedDataLength": self.encodedDataLength,
+                "securityState": str(self.securityState),
+                "headersText": self.headersText,
+                "requestHeaders": dict(self.requestHeaders)
+                if self.requestHeaders
+                else None,
+                "requestHeadersText": self.requestHeadersText,
+                "remoteIPAddress": self.remoteIPAddress,
+                "remotePort": self.remotePort,
+                "fromDiskCache": self.fromDiskCache,
+                "fromServiceWorker": self.fromServiceWorker,
+                "fromPrefetchCache": self.fromPrefetchCache,
+                "timing": self.timing.to_json() if self.timing else None,
+                "serviceWorkerResponseSource": str(self.serviceWorkerResponseSource)
+                if self.serviceWorkerResponseSource
+                else None,
+                "responseTime": float(self.responseTime) if self.responseTime else None,
+                "cacheStorageCacheName": self.cacheStorageCacheName,
+                "protocol": self.protocol,
+                "securityDetails": self.securityDetails.to_json()
+                if self.securityDetails
+                else None,
+            }
+        )
+
 
 @dataclasses.dataclass
 class WebSocketRequest:
@@ -678,6 +812,9 @@ class WebSocketRequest:
     @classmethod
     def from_json(cls, json: dict) -> WebSocketRequest:
         return cls(Headers(json["headers"]))
+
+    def to_json(self) -> dict:
+        return {"headers": dict(self.headers)}
 
 
 @dataclasses.dataclass
@@ -718,6 +855,20 @@ class WebSocketResponse:
             json.get("requestHeadersText"),
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "status": self.status,
+                "statusText": self.statusText,
+                "headers": dict(self.headers),
+                "headersText": self.headersText,
+                "requestHeaders": dict(self.requestHeaders)
+                if self.requestHeaders
+                else None,
+                "requestHeadersText": self.requestHeadersText,
+            }
+        )
+
 
 @dataclasses.dataclass
 class WebSocketFrame:
@@ -742,6 +893,13 @@ class WebSocketFrame:
     @classmethod
     def from_json(cls, json: dict) -> WebSocketFrame:
         return cls(json["opcode"], json["mask"], json["payloadData"])
+
+    def to_json(self) -> dict:
+        return {
+            "opcode": self.opcode,
+            "mask": self.mask,
+            "payloadData": self.payloadData,
+        }
 
 
 @dataclasses.dataclass
@@ -772,6 +930,16 @@ class CachedResource:
             ResourceType(json["type"]),
             json["bodySize"],
             Response.from_json(json["response"]) if "response" in json else None,
+        )
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "url": self.url,
+                "type": str(self.type),
+                "bodySize": self.bodySize,
+                "response": self.response.to_json() if self.response else None,
+            }
         )
 
 
@@ -813,6 +981,18 @@ class Initiator:
             json.get("lineNumber"),
             json.get("columnNumber"),
             RequestId(json["requestId"]) if "requestId" in json else None,
+        )
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "type": self.type,
+                "stack": self.stack.to_json() if self.stack else None,
+                "url": self.url,
+                "lineNumber": self.lineNumber,
+                "columnNumber": self.columnNumber,
+                "requestId": str(self.requestId) if self.requestId else None,
+            }
         )
 
 
@@ -876,6 +1056,24 @@ class Cookie:
             CookiePriority(json["priority"]),
             json["sameParty"],
             CookieSameSite(json["sameSite"]) if "sameSite" in json else None,
+        )
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "name": self.name,
+                "value": self.value,
+                "domain": self.domain,
+                "path": self.path,
+                "expires": self.expires,
+                "size": self.size,
+                "httpOnly": self.httpOnly,
+                "secure": self.secure,
+                "session": self.session,
+                "priority": str(self.priority),
+                "sameParty": self.sameParty,
+                "sameSite": str(self.sameSite) if self.sameSite else None,
+            }
         )
 
 
@@ -952,6 +1150,15 @@ class BlockedSetCookieWithReason:
             Cookie.from_json(json["cookie"]) if "cookie" in json else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "blockedReasons": [str(b) for b in self.blockedReasons],
+                "cookieLine": self.cookieLine,
+                "cookie": self.cookie.to_json() if self.cookie else None,
+            }
+        )
+
 
 @dataclasses.dataclass
 class BlockedCookieWithReason:
@@ -974,6 +1181,12 @@ class BlockedCookieWithReason:
             [CookieBlockedReason(x) for x in json["blockedReasons"]],
             Cookie.from_json(json["cookie"]),
         )
+
+    def to_json(self) -> dict:
+        return {
+            "blockedReasons": [str(b) for b in self.blockedReasons],
+            "cookie": self.cookie.to_json(),
+        }
 
 
 @dataclasses.dataclass
@@ -1031,6 +1244,22 @@ class CookieParam:
             CookiePriority(json["priority"]) if "priority" in json else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "name": self.name,
+                "value": self.value,
+                "url": self.url,
+                "domain": self.domain,
+                "path": self.path,
+                "secure": self.secure,
+                "httpOnly": self.httpOnly,
+                "sameSite": str(self.sameSite) if self.sameSite else None,
+                "expires": float(self.expires) if self.expires else None,
+                "priority": str(self.priority) if self.priority else None,
+            }
+        )
+
 
 @dataclasses.dataclass
 class AuthChallenge:
@@ -1056,6 +1285,16 @@ class AuthChallenge:
     @classmethod
     def from_json(cls, json: dict) -> AuthChallenge:
         return cls(json["origin"], json["scheme"], json["realm"], json.get("source"))
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "origin": self.origin,
+                "scheme": self.scheme,
+                "realm": self.realm,
+                "source": self.source,
+            }
+        )
 
 
 @dataclasses.dataclass
@@ -1083,6 +1322,15 @@ class AuthChallengeResponse:
     @classmethod
     def from_json(cls, json: dict) -> AuthChallengeResponse:
         return cls(json["response"], json.get("username"), json.get("password"))
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "response": self.response,
+                "username": self.username,
+                "password": self.password,
+            }
+        )
 
 
 class InterceptionStage(enum.Enum):
@@ -1121,6 +1369,17 @@ class RequestPattern:
             InterceptionStage(json["interceptionStage"])
             if "interceptionStage" in json
             else None,
+        )
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "urlPattern": self.urlPattern,
+                "resourceType": str(self.resourceType) if self.resourceType else None,
+                "interceptionStage": str(self.interceptionStage)
+                if self.interceptionStage
+                else None,
+            }
         )
 
 
@@ -1175,6 +1434,21 @@ class SignedExchangeSignature:
             json.get("certificates"),
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "label": self.label,
+                "signature": self.signature,
+                "integrity": self.integrity,
+                "validityUrl": self.validityUrl,
+                "date": self.date,
+                "expires": self.expires,
+                "certUrl": self.certUrl,
+                "certSha256": self.certSha256,
+                "certificates": self.certificates,
+            }
+        )
+
 
 @dataclasses.dataclass
 class SignedExchangeHeader:
@@ -1210,6 +1484,15 @@ class SignedExchangeHeader:
             [SignedExchangeSignature.from_json(x) for x in json["signatures"]],
             json["headerIntegrity"],
         )
+
+    def to_json(self) -> dict:
+        return {
+            "requestUrl": self.requestUrl,
+            "responseCode": self.responseCode,
+            "responseHeaders": dict(self.responseHeaders),
+            "signatures": [s.to_json() for s in self.signatures],
+            "headerIntegrity": self.headerIntegrity,
+        }
 
 
 class SignedExchangeErrorField(enum.Enum):
@@ -1251,6 +1534,15 @@ class SignedExchangeError:
             else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "message": self.message,
+                "signatureIndex": self.signatureIndex,
+                "errorField": str(self.errorField) if self.errorField else None,
+            }
+        )
+
 
 @dataclasses.dataclass
 class SignedExchangeInfo:
@@ -1286,6 +1578,18 @@ class SignedExchangeInfo:
             [SignedExchangeError.from_json(x) for x in json["errors"]]
             if "errors" in json
             else None,
+        )
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "outerResponse": self.outerResponse.to_json(),
+                "header": self.header.to_json() if self.header else None,
+                "securityDetails": self.securityDetails.to_json()
+                if self.securityDetails
+                else None,
+                "errors": [e.to_json() for e in self.errors] if self.errors else None,
+            }
         )
 
 
@@ -1327,6 +1631,13 @@ class ClientSecurityState:
             PrivateNetworkRequestPolicy(json["privateNetworkRequestPolicy"]),
         )
 
+    def to_json(self) -> dict:
+        return {
+            "initiatorIsSecureContext": self.initiatorIsSecureContext,
+            "initiatorIPAddressSpace": str(self.initiatorIPAddressSpace),
+            "privateNetworkRequestPolicy": str(self.privateNetworkRequestPolicy),
+        }
+
 
 class CrossOriginOpenerPolicyValue(enum.Enum):
     """"""
@@ -1362,6 +1673,16 @@ class CrossOriginOpenerPolicyStatus:
             json.get("reportOnlyReportingEndpoint"),
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "value": str(self.value),
+                "reportOnlyValue": str(self.reportOnlyValue),
+                "reportingEndpoint": self.reportingEndpoint,
+                "reportOnlyReportingEndpoint": self.reportOnlyReportingEndpoint,
+            }
+        )
+
 
 class CrossOriginEmbedderPolicyValue(enum.Enum):
     """"""
@@ -1395,6 +1716,16 @@ class CrossOriginEmbedderPolicyStatus:
             json.get("reportOnlyReportingEndpoint"),
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "value": str(self.value),
+                "reportOnlyValue": str(self.reportOnlyValue),
+                "reportingEndpoint": self.reportingEndpoint,
+                "reportOnlyReportingEndpoint": self.reportOnlyReportingEndpoint,
+            }
+        )
+
 
 @dataclasses.dataclass
 class SecurityIsolationStatus:
@@ -1417,6 +1748,14 @@ class SecurityIsolationStatus:
             CrossOriginEmbedderPolicyStatus.from_json(json["coep"])
             if "coep" in json
             else None,
+        )
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "coop": self.coop.to_json() if self.coop else None,
+                "coep": self.coep.to_json() if self.coep else None,
+            }
         )
 
 
@@ -1455,6 +1794,18 @@ class LoadNetworkResourcePageResult:
             Headers(json["headers"]) if "headers" in json else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "success": self.success,
+                "netError": self.netError,
+                "netErrorName": self.netErrorName,
+                "httpStatusCode": self.httpStatusCode,
+                "stream": str(self.stream) if self.stream else None,
+                "headers": dict(self.headers) if self.headers else None,
+            }
+        )
+
 
 @dataclasses.dataclass
 class LoadNetworkResourceOptions:
@@ -1473,6 +1824,12 @@ class LoadNetworkResourceOptions:
     @classmethod
     def from_json(cls, json: dict) -> LoadNetworkResourceOptions:
         return cls(json["disableCache"], json["includeCredentials"])
+
+    def to_json(self) -> dict:
+        return {
+            "disableCache": self.disableCache,
+            "includeCredentials": self.includeCredentials,
+        }
 
 
 def can_clear_browser_cache():

@@ -5,7 +5,7 @@ import enum
 from typing import Optional
 
 from . import runtime
-from .common import filter_unset_parameters
+from .common import filter_none, filter_unset_parameters
 
 
 class BreakpointId(str):
@@ -48,6 +48,15 @@ class Location:
             json.get("columnNumber"),
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "scriptId": str(self.scriptId),
+                "lineNumber": self.lineNumber,
+                "columnNumber": self.columnNumber,
+            }
+        )
+
 
 @dataclasses.dataclass
 class ScriptPosition:
@@ -65,6 +74,9 @@ class ScriptPosition:
     @classmethod
     def from_json(cls, json: dict) -> ScriptPosition:
         return cls(json["lineNumber"], json["columnNumber"])
+
+    def to_json(self) -> dict:
+        return {"lineNumber": self.lineNumber, "columnNumber": self.columnNumber}
 
 
 @dataclasses.dataclass
@@ -89,6 +101,13 @@ class LocationRange:
             ScriptPosition.from_json(json["start"]),
             ScriptPosition.from_json(json["end"]),
         )
+
+    def to_json(self) -> dict:
+        return {
+            "scriptId": str(self.scriptId),
+            "start": self.start.to_json(),
+            "end": self.end.to_json(),
+        }
 
 
 @dataclasses.dataclass
@@ -141,6 +160,22 @@ class CallFrame:
             else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "callFrameId": str(self.callFrameId),
+                "functionName": self.functionName,
+                "location": self.location.to_json(),
+                "url": self.url,
+                "scopeChain": [s.to_json() for s in self.scopeChain],
+                "this": self.this.to_json(),
+                "functionLocation": self.functionLocation.to_json()
+                if self.functionLocation
+                else None,
+                "returnValue": self.returnValue.to_json() if self.returnValue else None,
+            }
+        )
+
 
 @dataclasses.dataclass
 class Scope:
@@ -179,6 +214,19 @@ class Scope:
             Location.from_json(json["endLocation"]) if "endLocation" in json else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "type": self.type,
+                "object": self.object.to_json(),
+                "name": self.name,
+                "startLocation": self.startLocation.to_json()
+                if self.startLocation
+                else None,
+                "endLocation": self.endLocation.to_json() if self.endLocation else None,
+            }
+        )
+
 
 @dataclasses.dataclass
 class SearchMatch:
@@ -198,6 +246,9 @@ class SearchMatch:
     @classmethod
     def from_json(cls, json: dict) -> SearchMatch:
         return cls(json["lineNumber"], json["lineContent"])
+
+    def to_json(self) -> dict:
+        return {"lineNumber": self.lineNumber, "lineContent": self.lineContent}
 
 
 @dataclasses.dataclass
@@ -228,6 +279,16 @@ class BreakLocation:
             json.get("type"),
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "scriptId": str(self.scriptId),
+                "lineNumber": self.lineNumber,
+                "columnNumber": self.columnNumber,
+                "type": self.type,
+            }
+        )
+
 
 class ScriptLanguage(enum.Enum):
     """Enum of possible script languages."""
@@ -254,6 +315,9 @@ class DebugSymbols:
     @classmethod
     def from_json(cls, json: dict) -> DebugSymbols:
         return cls(json["type"], json.get("externalURL"))
+
+    def to_json(self) -> dict:
+        return filter_none({"type": self.type, "externalURL": self.externalURL})
 
 
 def continue_to_location(location: Location, targetCallFrames: Optional[str] = None):

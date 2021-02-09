@@ -5,7 +5,7 @@ import enum
 from typing import Optional
 
 from . import dom, network, page, runtime
-from .common import filter_unset_parameters
+from .common import filter_none, filter_unset_parameters
 
 
 @dataclasses.dataclass
@@ -28,6 +28,9 @@ class AffectedCookie:
     def from_json(cls, json: dict) -> AffectedCookie:
         return cls(json["name"], json["path"], json["domain"])
 
+    def to_json(self) -> dict:
+        return {"name": self.name, "path": self.path, "domain": self.domain}
+
 
 @dataclasses.dataclass
 class AffectedRequest:
@@ -47,6 +50,9 @@ class AffectedRequest:
     def from_json(cls, json: dict) -> AffectedRequest:
         return cls(network.RequestId(json["requestId"]), json.get("url"))
 
+    def to_json(self) -> dict:
+        return filter_none({"requestId": str(self.requestId), "url": self.url})
+
 
 @dataclasses.dataclass
 class AffectedFrame:
@@ -62,6 +68,9 @@ class AffectedFrame:
     @classmethod
     def from_json(cls, json: dict) -> AffectedFrame:
         return cls(page.FrameId(json["frameId"]))
+
+    def to_json(self) -> dict:
+        return {"frameId": str(self.frameId)}
 
 
 class SameSiteCookieExclusionReason(enum.Enum):
@@ -138,6 +147,19 @@ class SameSiteCookieIssueDetails:
             json.get("siteForCookies"),
             json.get("cookieUrl"),
             AffectedRequest.from_json(json["request"]) if "request" in json else None,
+        )
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "cookie": self.cookie.to_json(),
+                "cookieWarningReasons": [str(c) for c in self.cookieWarningReasons],
+                "cookieExclusionReasons": [str(c) for c in self.cookieExclusionReasons],
+                "operation": str(self.operation),
+                "siteForCookies": self.siteForCookies,
+                "cookieUrl": self.cookieUrl,
+                "request": self.request.to_json() if self.request else None,
+            }
         )
 
 
@@ -223,6 +245,18 @@ class MixedContentIssueDetails:
             AffectedFrame.from_json(json["frame"]) if "frame" in json else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "resolutionStatus": str(self.resolutionStatus),
+                "insecureURL": self.insecureURL,
+                "mainResourceURL": self.mainResourceURL,
+                "resourceType": str(self.resourceType) if self.resourceType else None,
+                "request": self.request.to_json() if self.request else None,
+                "frame": self.frame.to_json() if self.frame else None,
+            }
+        )
+
 
 class BlockedByResponseReason(enum.Enum):
     """Enum indicating the reason a response has been blocked. These reasons are
@@ -272,6 +306,18 @@ class BlockedByResponseIssueDetails:
             else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "request": self.request.to_json(),
+                "reason": str(self.reason),
+                "parentFrame": self.parentFrame.to_json() if self.parentFrame else None,
+                "blockedFrame": self.blockedFrame.to_json()
+                if self.blockedFrame
+                else None,
+            }
+        )
+
 
 class HeavyAdResolutionStatus(enum.Enum):
     """"""
@@ -313,6 +359,13 @@ class HeavyAdIssueDetails:
             AffectedFrame.from_json(json["frame"]),
         )
 
+    def to_json(self) -> dict:
+        return {
+            "resolution": str(self.resolution),
+            "reason": str(self.reason),
+            "frame": self.frame.to_json(),
+        }
+
 
 class ContentSecurityPolicyViolationType(enum.Enum):
     """"""
@@ -347,6 +400,16 @@ class SourceCodeLocation:
             json["lineNumber"],
             json["columnNumber"],
             runtime.ScriptId(json["scriptId"]) if "scriptId" in json else None,
+        )
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "url": self.url,
+                "lineNumber": self.lineNumber,
+                "columnNumber": self.columnNumber,
+                "scriptId": str(self.scriptId) if self.scriptId else None,
+            }
         )
 
 
@@ -394,6 +457,27 @@ class ContentSecurityPolicyIssueDetails:
             else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "violatedDirective": self.violatedDirective,
+                "isReportOnly": self.isReportOnly,
+                "contentSecurityPolicyViolationType": str(
+                    self.contentSecurityPolicyViolationType
+                ),
+                "blockedURL": self.blockedURL,
+                "frameAncestor": self.frameAncestor.to_json()
+                if self.frameAncestor
+                else None,
+                "sourceCodeLocation": self.sourceCodeLocation.to_json()
+                if self.sourceCodeLocation
+                else None,
+                "violatingNodeId": int(self.violatingNodeId)
+                if self.violatingNodeId
+                else None,
+            }
+        )
+
 
 class SharedArrayBufferIssueType(enum.Enum):
     """"""
@@ -426,6 +510,13 @@ class SharedArrayBufferIssueDetails:
             json["isWarning"],
             SharedArrayBufferIssueType(json["type"]),
         )
+
+    def to_json(self) -> dict:
+        return {
+            "sourceCodeLocation": self.sourceCodeLocation.to_json(),
+            "isWarning": self.isWarning,
+            "type": str(self.type),
+        }
 
 
 class TwaQualityEnforcementViolationType(enum.Enum):
@@ -469,6 +560,17 @@ class TrustedWebActivityIssueDetails:
             json.get("signature"),
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "url": self.url,
+                "violationType": str(self.violationType),
+                "httpStatusCode": self.httpStatusCode,
+                "packageName": self.packageName,
+                "signature": self.signature,
+            }
+        )
+
 
 @dataclasses.dataclass
 class LowTextContrastIssueDetails:
@@ -503,6 +605,17 @@ class LowTextContrastIssueDetails:
             json["fontSize"],
             json["fontWeight"],
         )
+
+    def to_json(self) -> dict:
+        return {
+            "violatingNodeId": int(self.violatingNodeId),
+            "violatingNodeSelector": self.violatingNodeSelector,
+            "contrastRatio": self.contrastRatio,
+            "thresholdAA": self.thresholdAA,
+            "thresholdAAA": self.thresholdAAA,
+            "fontSize": self.fontSize,
+            "fontWeight": self.fontWeight,
+        }
 
 
 class InspectorIssueCode(enum.Enum):
@@ -587,6 +700,36 @@ class InspectorIssueDetails:
             else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "sameSiteCookieIssueDetails": self.sameSiteCookieIssueDetails.to_json()
+                if self.sameSiteCookieIssueDetails
+                else None,
+                "mixedContentIssueDetails": self.mixedContentIssueDetails.to_json()
+                if self.mixedContentIssueDetails
+                else None,
+                "blockedByResponseIssueDetails": self.blockedByResponseIssueDetails.to_json()
+                if self.blockedByResponseIssueDetails
+                else None,
+                "heavyAdIssueDetails": self.heavyAdIssueDetails.to_json()
+                if self.heavyAdIssueDetails
+                else None,
+                "contentSecurityPolicyIssueDetails": self.contentSecurityPolicyIssueDetails.to_json()
+                if self.contentSecurityPolicyIssueDetails
+                else None,
+                "sharedArrayBufferIssueDetails": self.sharedArrayBufferIssueDetails.to_json()
+                if self.sharedArrayBufferIssueDetails
+                else None,
+                "twaQualityEnforcementDetails": self.twaQualityEnforcementDetails.to_json()
+                if self.twaQualityEnforcementDetails
+                else None,
+                "lowTextContrastIssueDetails": self.lowTextContrastIssueDetails.to_json()
+                if self.lowTextContrastIssueDetails
+                else None,
+            }
+        )
+
 
 @dataclasses.dataclass
 class InspectorIssue:
@@ -607,6 +750,9 @@ class InspectorIssue:
             InspectorIssueCode(json["code"]),
             InspectorIssueDetails.from_json(json["details"]),
         )
+
+    def to_json(self) -> dict:
+        return {"code": str(self.code), "details": self.details.to_json()}
 
 
 def get_encoded_response(

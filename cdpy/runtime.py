@@ -3,7 +3,7 @@ from __future__ import annotations
 import dataclasses
 from typing import Optional
 
-from .common import filter_unset_parameters
+from .common import filter_none, filter_unset_parameters
 
 
 class ScriptId(str):
@@ -83,6 +83,25 @@ class RemoteObject:
             else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "type": self.type,
+                "subtype": self.subtype,
+                "className": self.className,
+                "value": self.value,
+                "unserializableValue": str(self.unserializableValue)
+                if self.unserializableValue
+                else None,
+                "description": self.description,
+                "objectId": str(self.objectId) if self.objectId else None,
+                "preview": self.preview.to_json() if self.preview else None,
+                "customPreview": self.customPreview.to_json()
+                if self.customPreview
+                else None,
+            }
+        )
+
 
 @dataclasses.dataclass
 class CustomPreview:
@@ -106,6 +125,14 @@ class CustomPreview:
         return cls(
             json["header"],
             RemoteObjectId(json["bodyGetterId"]) if "bodyGetterId" in json else None,
+        )
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "header": self.header,
+                "bodyGetterId": str(self.bodyGetterId) if self.bodyGetterId else None,
+            }
         )
 
 
@@ -149,6 +176,20 @@ class ObjectPreview:
             else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "type": self.type,
+                "overflow": self.overflow,
+                "properties": [p.to_json() for p in self.properties],
+                "subtype": self.subtype,
+                "description": self.description,
+                "entries": [e.to_json() for e in self.entries]
+                if self.entries
+                else None,
+            }
+        )
+
 
 @dataclasses.dataclass
 class PropertyPreview:
@@ -185,6 +226,19 @@ class PropertyPreview:
             json.get("subtype"),
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "name": self.name,
+                "type": self.type,
+                "value": self.value,
+                "valuePreview": self.valuePreview.to_json()
+                if self.valuePreview
+                else None,
+                "subtype": self.subtype,
+            }
+        )
+
 
 @dataclasses.dataclass
 class EntryPreview:
@@ -205,6 +259,14 @@ class EntryPreview:
         return cls(
             ObjectPreview.from_json(json["value"]),
             ObjectPreview.from_json(json["key"]) if "key" in json else None,
+        )
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "value": self.value.to_json(),
+                "key": self.key.to_json() if self.key else None,
+            }
         )
 
 
@@ -266,6 +328,22 @@ class PropertyDescriptor:
             RemoteObject.from_json(json["symbol"]) if "symbol" in json else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "name": self.name,
+                "configurable": self.configurable,
+                "enumerable": self.enumerable,
+                "value": self.value.to_json() if self.value else None,
+                "writable": self.writable,
+                "get": self.get.to_json() if self.get else None,
+                "set": self.set.to_json() if self.set else None,
+                "wasThrown": self.wasThrown,
+                "isOwn": self.isOwn,
+                "symbol": self.symbol.to_json() if self.symbol else None,
+            }
+        )
+
 
 @dataclasses.dataclass
 class InternalPropertyDescriptor:
@@ -287,6 +365,11 @@ class InternalPropertyDescriptor:
         return cls(
             json["name"],
             RemoteObject.from_json(json["value"]) if "value" in json else None,
+        )
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {"name": self.name, "value": self.value.to_json() if self.value else None}
         )
 
 
@@ -322,6 +405,16 @@ class PrivatePropertyDescriptor:
             RemoteObject.from_json(json["set"]) if "set" in json else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "name": self.name,
+                "value": self.value.to_json() if self.value else None,
+                "get": self.get.to_json() if self.get else None,
+                "set": self.set.to_json() if self.set else None,
+            }
+        )
+
 
 @dataclasses.dataclass
 class CallArgument:
@@ -350,6 +443,17 @@ class CallArgument:
             if "unserializableValue" in json
             else None,
             RemoteObjectId(json["objectId"]) if "objectId" in json else None,
+        )
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "value": self.value,
+                "unserializableValue": str(self.unserializableValue)
+                if self.unserializableValue
+                else None,
+                "objectId": str(self.objectId) if self.objectId else None,
+            }
         )
 
 
@@ -389,6 +493,16 @@ class ExecutionContextDescription:
             json["origin"],
             json["name"],
             json.get("auxData"),
+        )
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "id": int(self.id),
+                "origin": self.origin,
+                "name": self.name,
+                "auxData": self.auxData,
+            }
         )
 
 
@@ -445,6 +559,23 @@ class ExceptionDetails:
             else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "exceptionId": self.exceptionId,
+                "text": self.text,
+                "lineNumber": self.lineNumber,
+                "columnNumber": self.columnNumber,
+                "scriptId": str(self.scriptId) if self.scriptId else None,
+                "url": self.url,
+                "stackTrace": self.stackTrace.to_json() if self.stackTrace else None,
+                "exception": self.exception.to_json() if self.exception else None,
+                "executionContextId": int(self.executionContextId)
+                if self.executionContextId
+                else None,
+            }
+        )
+
 
 class Timestamp(float):
     """Number of milliseconds since epoch."""
@@ -494,6 +625,15 @@ class CallFrame:
             json["columnNumber"],
         )
 
+    def to_json(self) -> dict:
+        return {
+            "functionName": self.functionName,
+            "scriptId": str(self.scriptId),
+            "url": self.url,
+            "lineNumber": self.lineNumber,
+            "columnNumber": self.columnNumber,
+        }
+
 
 @dataclasses.dataclass
 class StackTrace:
@@ -526,6 +666,16 @@ class StackTrace:
             StackTraceId.from_json(json["parentId"]) if "parentId" in json else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "callFrames": [c.to_json() for c in self.callFrames],
+                "description": self.description,
+                "parent": self.parent.to_json() if self.parent else None,
+                "parentId": self.parentId.to_json() if self.parentId else None,
+            }
+        )
+
 
 class UniqueDebuggerId(str):
     """Unique identifier of current debugger."""
@@ -553,6 +703,14 @@ class StackTraceId:
         return cls(
             json["id"],
             UniqueDebuggerId(json["debuggerId"]) if "debuggerId" in json else None,
+        )
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "id": self.id,
+                "debuggerId": str(self.debuggerId) if self.debuggerId else None,
+            }
         )
 
 

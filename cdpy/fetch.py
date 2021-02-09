@@ -5,7 +5,7 @@ import enum
 from typing import Optional
 
 from . import io, network
-from .common import filter_unset_parameters
+from .common import filter_none, filter_unset_parameters
 
 
 class RequestId(str):
@@ -53,6 +53,15 @@ class RequestPattern:
             RequestStage(json["requestStage"]) if "requestStage" in json else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "urlPattern": self.urlPattern,
+                "resourceType": str(self.resourceType) if self.resourceType else None,
+                "requestStage": str(self.requestStage) if self.requestStage else None,
+            }
+        )
+
 
 @dataclasses.dataclass
 class HeaderEntry:
@@ -70,6 +79,9 @@ class HeaderEntry:
     @classmethod
     def from_json(cls, json: dict) -> HeaderEntry:
         return cls(json["name"], json["value"])
+
+    def to_json(self) -> dict:
+        return {"name": self.name, "value": self.value}
 
 
 @dataclasses.dataclass
@@ -97,6 +109,16 @@ class AuthChallenge:
     def from_json(cls, json: dict) -> AuthChallenge:
         return cls(json["origin"], json["scheme"], json["realm"], json.get("source"))
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "origin": self.origin,
+                "scheme": self.scheme,
+                "realm": self.realm,
+                "source": self.source,
+            }
+        )
+
 
 @dataclasses.dataclass
 class AuthChallengeResponse:
@@ -123,6 +145,15 @@ class AuthChallengeResponse:
     @classmethod
     def from_json(cls, json: dict) -> AuthChallengeResponse:
         return cls(json["response"], json.get("username"), json.get("password"))
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "response": self.response,
+                "username": self.username,
+                "password": self.password,
+            }
+        )
 
 
 def disable():

@@ -4,7 +4,7 @@ import dataclasses
 from typing import Optional
 
 from . import browser, page
-from .common import filter_unset_parameters
+from .common import filter_none, filter_unset_parameters
 
 
 class TargetID(str):
@@ -67,6 +67,25 @@ class TargetInfo:
             else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "targetId": str(self.targetId),
+                "type": self.type,
+                "title": self.title,
+                "url": self.url,
+                "attached": self.attached,
+                "canAccessOpener": self.canAccessOpener,
+                "openerId": str(self.openerId) if self.openerId else None,
+                "openerFrameId": str(self.openerFrameId)
+                if self.openerFrameId
+                else None,
+                "browserContextId": str(self.browserContextId)
+                if self.browserContextId
+                else None,
+            }
+        )
+
 
 @dataclasses.dataclass
 class RemoteLocation:
@@ -83,6 +102,9 @@ class RemoteLocation:
     @classmethod
     def from_json(cls, json: dict) -> RemoteLocation:
         return cls(json["host"], json["port"])
+
+    def to_json(self) -> dict:
+        return {"host": self.host, "port": self.port}
 
 
 def activate_target(targetId: TargetID):

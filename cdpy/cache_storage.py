@@ -71,6 +71,18 @@ class DataEntry:
             [Header.from_json(x) for x in json["responseHeaders"]],
         )
 
+    def to_json(self) -> dict:
+        return {
+            "requestURL": self.requestURL,
+            "requestMethod": self.requestMethod,
+            "requestHeaders": [r.to_json() for r in self.requestHeaders],
+            "responseTime": self.responseTime,
+            "responseStatus": self.responseStatus,
+            "responseStatusText": self.responseStatusText,
+            "responseType": str(self.responseType),
+            "responseHeaders": [r.to_json() for r in self.responseHeaders],
+        }
+
 
 @dataclasses.dataclass
 class Cache:
@@ -94,6 +106,13 @@ class Cache:
     def from_json(cls, json: dict) -> Cache:
         return cls(CacheId(json["cacheId"]), json["securityOrigin"], json["cacheName"])
 
+    def to_json(self) -> dict:
+        return {
+            "cacheId": str(self.cacheId),
+            "securityOrigin": self.securityOrigin,
+            "cacheName": self.cacheName,
+        }
+
 
 @dataclasses.dataclass
 class Header:
@@ -111,6 +130,9 @@ class Header:
     def from_json(cls, json: dict) -> Header:
         return cls(json["name"], json["value"])
 
+    def to_json(self) -> dict:
+        return {"name": self.name, "value": self.value}
+
 
 @dataclasses.dataclass
 class CachedResponse:
@@ -127,6 +149,9 @@ class CachedResponse:
     @classmethod
     def from_json(cls, json: dict) -> CachedResponse:
         return cls(json["body"])
+
+    def to_json(self) -> dict:
+        return {"body": self.body}
 
 
 def delete_cache(cacheId: CacheId):

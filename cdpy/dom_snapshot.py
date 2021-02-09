@@ -4,7 +4,7 @@ import dataclasses
 from typing import Optional
 
 from . import dom, dom_debugger, page
-from .common import filter_unset_parameters
+from .common import filter_none, filter_unset_parameters
 
 
 @dataclasses.dataclass
@@ -144,6 +144,46 @@ class DOMNode:
             json.get("scrollOffsetY"),
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "nodeType": self.nodeType,
+                "nodeName": self.nodeName,
+                "nodeValue": self.nodeValue,
+                "backendNodeId": int(self.backendNodeId),
+                "textValue": self.textValue,
+                "inputValue": self.inputValue,
+                "inputChecked": self.inputChecked,
+                "optionSelected": self.optionSelected,
+                "childNodeIndexes": self.childNodeIndexes,
+                "attributes": [a.to_json() for a in self.attributes]
+                if self.attributes
+                else None,
+                "pseudoElementIndexes": self.pseudoElementIndexes,
+                "layoutNodeIndex": self.layoutNodeIndex,
+                "documentURL": self.documentURL,
+                "baseURL": self.baseURL,
+                "contentLanguage": self.contentLanguage,
+                "documentEncoding": self.documentEncoding,
+                "publicId": self.publicId,
+                "systemId": self.systemId,
+                "frameId": str(self.frameId) if self.frameId else None,
+                "contentDocumentIndex": self.contentDocumentIndex,
+                "pseudoType": str(self.pseudoType) if self.pseudoType else None,
+                "shadowRootType": str(self.shadowRootType)
+                if self.shadowRootType
+                else None,
+                "isClickable": self.isClickable,
+                "eventListeners": [e.to_json() for e in self.eventListeners]
+                if self.eventListeners
+                else None,
+                "currentSourceURL": self.currentSourceURL,
+                "originURL": self.originURL,
+                "scrollOffsetX": self.scrollOffsetX,
+                "scrollOffsetY": self.scrollOffsetY,
+            }
+        )
+
 
 @dataclasses.dataclass
 class InlineTextBox:
@@ -173,6 +213,13 @@ class InlineTextBox:
             json["startCharacterIndex"],
             json["numCharacters"],
         )
+
+    def to_json(self) -> dict:
+        return {
+            "boundingBox": self.boundingBox.to_json(),
+            "startCharacterIndex": self.startCharacterIndex,
+            "numCharacters": self.numCharacters,
+        }
 
 
 @dataclasses.dataclass
@@ -221,6 +268,21 @@ class LayoutTreeNode:
             json.get("isStackingContext"),
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "domNodeIndex": self.domNodeIndex,
+                "boundingBox": self.boundingBox.to_json(),
+                "layoutText": self.layoutText,
+                "inlineTextNodes": [i.to_json() for i in self.inlineTextNodes]
+                if self.inlineTextNodes
+                else None,
+                "styleIndex": self.styleIndex,
+                "paintOrder": self.paintOrder,
+                "isStackingContext": self.isStackingContext,
+            }
+        )
+
 
 @dataclasses.dataclass
 class ComputedStyle:
@@ -237,6 +299,9 @@ class ComputedStyle:
     @classmethod
     def from_json(cls, json: dict) -> ComputedStyle:
         return cls([NameValue.from_json(x) for x in json["properties"]])
+
+    def to_json(self) -> dict:
+        return {"properties": [p.to_json() for p in self.properties]}
 
 
 @dataclasses.dataclass
@@ -257,6 +322,9 @@ class NameValue:
     @classmethod
     def from_json(cls, json: dict) -> NameValue:
         return cls(json["name"], json["value"])
+
+    def to_json(self) -> dict:
+        return {"name": self.name, "value": self.value}
 
 
 class StringIndex(int):
@@ -291,6 +359,9 @@ class RareStringData:
     def from_json(cls, json: dict) -> RareStringData:
         return cls(json["index"], [StringIndex(x) for x in json["value"]])
 
+    def to_json(self) -> dict:
+        return {"index": self.index, "value": [int(v) for v in self.value]}
+
 
 @dataclasses.dataclass
 class RareBooleanData:
@@ -305,6 +376,9 @@ class RareBooleanData:
     @classmethod
     def from_json(cls, json: dict) -> RareBooleanData:
         return cls(json["index"])
+
+    def to_json(self) -> dict:
+        return {"index": self.index}
 
 
 @dataclasses.dataclass
@@ -322,6 +396,9 @@ class RareIntegerData:
     @classmethod
     def from_json(cls, json: dict) -> RareIntegerData:
         return cls(json["index"], json["value"])
+
+    def to_json(self) -> dict:
+        return {"index": self.index, "value": self.value}
 
 
 class Rectangle(list[float]):
@@ -403,6 +480,27 @@ class DocumentSnapshot:
             json.get("scrollOffsetY"),
             json.get("contentWidth"),
             json.get("contentHeight"),
+        )
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "documentURL": int(self.documentURL),
+                "title": int(self.title),
+                "baseURL": int(self.baseURL),
+                "contentLanguage": int(self.contentLanguage),
+                "encodingName": int(self.encodingName),
+                "publicId": int(self.publicId),
+                "systemId": int(self.systemId),
+                "frameId": int(self.frameId),
+                "nodes": self.nodes.to_json(),
+                "layout": self.layout.to_json(),
+                "textBoxes": self.textBoxes.to_json(),
+                "scrollOffsetX": self.scrollOffsetX,
+                "scrollOffsetY": self.scrollOffsetY,
+                "contentWidth": self.contentWidth,
+                "contentHeight": self.contentHeight,
+            }
         )
 
 
@@ -506,6 +604,41 @@ class NodeTreeSnapshot:
             else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "parentIndex": self.parentIndex,
+                "nodeType": self.nodeType,
+                "nodeName": [int(n) for n in self.nodeName] if self.nodeName else None,
+                "nodeValue": [int(n) for n in self.nodeValue]
+                if self.nodeValue
+                else None,
+                "backendNodeId": [int(b) for b in self.backendNodeId]
+                if self.backendNodeId
+                else None,
+                "attributes": [a.to_json() for a in self.attributes]
+                if self.attributes
+                else None,
+                "textValue": self.textValue.to_json() if self.textValue else None,
+                "inputValue": self.inputValue.to_json() if self.inputValue else None,
+                "inputChecked": self.inputChecked.to_json()
+                if self.inputChecked
+                else None,
+                "optionSelected": self.optionSelected.to_json()
+                if self.optionSelected
+                else None,
+                "contentDocumentIndex": self.contentDocumentIndex.to_json()
+                if self.contentDocumentIndex
+                else None,
+                "pseudoType": self.pseudoType.to_json() if self.pseudoType else None,
+                "isClickable": self.isClickable.to_json() if self.isClickable else None,
+                "currentSourceURL": self.currentSourceURL.to_json()
+                if self.currentSourceURL
+                else None,
+                "originURL": self.originURL.to_json() if self.originURL else None,
+            }
+        )
+
 
 @dataclasses.dataclass
 class LayoutTreeSnapshot:
@@ -565,6 +698,27 @@ class LayoutTreeSnapshot:
             else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "nodeIndex": self.nodeIndex,
+                "styles": [s.to_json() for s in self.styles],
+                "bounds": [list(b) for b in self.bounds],
+                "text": [int(t) for t in self.text],
+                "stackingContexts": self.stackingContexts.to_json(),
+                "paintOrders": self.paintOrders,
+                "offsetRects": [list(o) for o in self.offsetRects]
+                if self.offsetRects
+                else None,
+                "scrollRects": [list(s) for s in self.scrollRects]
+                if self.scrollRects
+                else None,
+                "clientRects": [list(c) for c in self.clientRects]
+                if self.clientRects
+                else None,
+            }
+        )
+
 
 @dataclasses.dataclass
 class TextBoxSnapshot:
@@ -598,6 +752,14 @@ class TextBoxSnapshot:
             json["start"],
             json["length"],
         )
+
+    def to_json(self) -> dict:
+        return {
+            "layoutIndex": self.layoutIndex,
+            "bounds": [list(b) for b in self.bounds],
+            "start": self.start,
+            "length": self.length,
+        }
 
 
 def disable():

@@ -5,7 +5,7 @@ import enum
 from typing import Optional
 
 from . import dom, runtime
-from .common import filter_unset_parameters
+from .common import filter_none, filter_unset_parameters
 
 
 class DOMBreakpointType(enum.Enum):
@@ -81,6 +81,26 @@ class EventListener:
             dom.BackendNodeId(json["backendNodeId"])
             if "backendNodeId" in json
             else None,
+        )
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "type": self.type,
+                "useCapture": self.useCapture,
+                "passive": self.passive,
+                "once": self.once,
+                "scriptId": str(self.scriptId),
+                "lineNumber": self.lineNumber,
+                "columnNumber": self.columnNumber,
+                "handler": self.handler.to_json() if self.handler else None,
+                "originalHandler": self.originalHandler.to_json()
+                if self.originalHandler
+                else None,
+                "backendNodeId": int(self.backendNodeId)
+                if self.backendNodeId
+                else None,
+            }
         )
 
 

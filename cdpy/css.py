@@ -5,6 +5,7 @@ import enum
 from typing import Optional
 
 from . import dom, page
+from .common import filter_none
 
 
 class StyleSheetId(str):
@@ -48,6 +49,12 @@ class PseudoElementMatches:
             [RuleMatch.from_json(x) for x in json["matches"]],
         )
 
+    def to_json(self) -> dict:
+        return {
+            "pseudoType": str(self.pseudoType),
+            "matches": [m.to_json() for m in self.matches],
+        }
+
 
 @dataclasses.dataclass
 class InheritedStyleEntry:
@@ -71,6 +78,14 @@ class InheritedStyleEntry:
             CSSStyle.from_json(json["inlineStyle"]) if "inlineStyle" in json else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "matchedCSSRules": [m.to_json() for m in self.matchedCSSRules],
+                "inlineStyle": self.inlineStyle.to_json() if self.inlineStyle else None,
+            }
+        )
+
 
 @dataclasses.dataclass
 class RuleMatch:
@@ -90,6 +105,12 @@ class RuleMatch:
     @classmethod
     def from_json(cls, json: dict) -> RuleMatch:
         return cls(CSSRule.from_json(json["rule"]), json["matchingSelectors"])
+
+    def to_json(self) -> dict:
+        return {
+            "rule": self.rule.to_json(),
+            "matchingSelectors": self.matchingSelectors,
+        }
 
 
 @dataclasses.dataclass
@@ -114,6 +135,11 @@ class Value:
             SourceRange.from_json(json["range"]) if "range" in json else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {"text": self.text, "range": self.range.to_json() if self.range else None}
+        )
+
 
 @dataclasses.dataclass
 class SelectorList:
@@ -133,6 +159,9 @@ class SelectorList:
     @classmethod
     def from_json(cls, json: dict) -> SelectorList:
         return cls([Value.from_json(x) for x in json["selectors"]], json["text"])
+
+    def to_json(self) -> dict:
+        return {"selectors": [s.to_json() for s in self.selectors], "text": self.text}
 
 
 @dataclasses.dataclass
@@ -221,6 +250,29 @@ class CSSStyleSheetHeader:
             json.get("hasSourceURL"),
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "styleSheetId": str(self.styleSheetId),
+                "frameId": str(self.frameId),
+                "sourceURL": self.sourceURL,
+                "origin": str(self.origin),
+                "title": self.title,
+                "disabled": self.disabled,
+                "isInline": self.isInline,
+                "isMutable": self.isMutable,
+                "isConstructed": self.isConstructed,
+                "startLine": self.startLine,
+                "startColumn": self.startColumn,
+                "length": self.length,
+                "endLine": self.endLine,
+                "endColumn": self.endColumn,
+                "sourceMapURL": self.sourceMapURL,
+                "ownerNode": int(self.ownerNode) if self.ownerNode else None,
+                "hasSourceURL": self.hasSourceURL,
+            }
+        )
+
 
 @dataclasses.dataclass
 class CSSRule:
@@ -258,6 +310,17 @@ class CSSRule:
             [CSSMedia.from_json(x) for x in json["media"]] if "media" in json else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "selectorList": self.selectorList.to_json(),
+                "origin": str(self.origin),
+                "style": self.style.to_json(),
+                "styleSheetId": str(self.styleSheetId) if self.styleSheetId else None,
+                "media": [m.to_json() for m in self.media] if self.media else None,
+            }
+        )
+
 
 @dataclasses.dataclass
 class RuleUsage:
@@ -290,6 +353,14 @@ class RuleUsage:
             json["used"],
         )
 
+    def to_json(self) -> dict:
+        return {
+            "styleSheetId": str(self.styleSheetId),
+            "startOffset": self.startOffset,
+            "endOffset": self.endOffset,
+            "used": self.used,
+        }
+
 
 @dataclasses.dataclass
 class SourceRange:
@@ -318,6 +389,14 @@ class SourceRange:
             json["startLine"], json["startColumn"], json["endLine"], json["endColumn"]
         )
 
+    def to_json(self) -> dict:
+        return {
+            "startLine": self.startLine,
+            "startColumn": self.startColumn,
+            "endLine": self.endLine,
+            "endColumn": self.endColumn,
+        }
+
 
 @dataclasses.dataclass
 class ShorthandEntry:
@@ -340,6 +419,11 @@ class ShorthandEntry:
     def from_json(cls, json: dict) -> ShorthandEntry:
         return cls(json["name"], json["value"], json.get("important"))
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {"name": self.name, "value": self.value, "important": self.important}
+        )
+
 
 @dataclasses.dataclass
 class CSSComputedStyleProperty:
@@ -358,6 +442,9 @@ class CSSComputedStyleProperty:
     @classmethod
     def from_json(cls, json: dict) -> CSSComputedStyleProperty:
         return cls(json["name"], json["value"])
+
+    def to_json(self) -> dict:
+        return {"name": self.name, "value": self.value}
 
 
 @dataclasses.dataclass
@@ -393,6 +480,17 @@ class CSSStyle:
             StyleSheetId(json["styleSheetId"]) if "styleSheetId" in json else None,
             json.get("cssText"),
             SourceRange.from_json(json["range"]) if "range" in json else None,
+        )
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "cssProperties": [c.to_json() for c in self.cssProperties],
+                "shorthandEntries": [s.to_json() for s in self.shorthandEntries],
+                "styleSheetId": str(self.styleSheetId) if self.styleSheetId else None,
+                "cssText": self.cssText,
+                "range": self.range.to_json() if self.range else None,
+            }
         )
 
 
@@ -442,6 +540,20 @@ class CSSProperty:
             SourceRange.from_json(json["range"]) if "range" in json else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "name": self.name,
+                "value": self.value,
+                "important": self.important,
+                "implicit": self.implicit,
+                "text": self.text,
+                "parsedOk": self.parsedOk,
+                "disabled": self.disabled,
+                "range": self.range.to_json() if self.range else None,
+            }
+        )
+
 
 @dataclasses.dataclass
 class CSSMedia:
@@ -487,6 +599,20 @@ class CSSMedia:
             else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "text": self.text,
+                "source": self.source,
+                "sourceURL": self.sourceURL,
+                "range": self.range.to_json() if self.range else None,
+                "styleSheetId": str(self.styleSheetId) if self.styleSheetId else None,
+                "mediaList": [m.to_json() for m in self.mediaList]
+                if self.mediaList
+                else None,
+            }
+        )
+
 
 @dataclasses.dataclass
 class MediaQuery:
@@ -509,6 +635,12 @@ class MediaQuery:
             [MediaQueryExpression.from_json(x) for x in json["expressions"]],
             json["active"],
         )
+
+    def to_json(self) -> dict:
+        return {
+            "expressions": [e.to_json() for e in self.expressions],
+            "active": self.active,
+        }
 
 
 @dataclasses.dataclass
@@ -545,6 +677,17 @@ class MediaQueryExpression:
             json.get("computedLength"),
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "value": self.value,
+                "unit": self.unit,
+                "feature": self.feature,
+                "valueRange": self.valueRange.to_json() if self.valueRange else None,
+                "computedLength": self.computedLength,
+            }
+        )
+
 
 @dataclasses.dataclass
 class PlatformFontUsage:
@@ -567,6 +710,13 @@ class PlatformFontUsage:
     @classmethod
     def from_json(cls, json: dict) -> PlatformFontUsage:
         return cls(json["familyName"], json["isCustomFont"], json["glyphCount"])
+
+    def to_json(self) -> dict:
+        return {
+            "familyName": self.familyName,
+            "isCustomFont": self.isCustomFont,
+            "glyphCount": self.glyphCount,
+        }
 
 
 @dataclasses.dataclass
@@ -602,6 +752,15 @@ class FontVariationAxis:
             json["maxValue"],
             json["defaultValue"],
         )
+
+    def to_json(self) -> dict:
+        return {
+            "tag": self.tag,
+            "name": self.name,
+            "minValue": self.minValue,
+            "maxValue": self.maxValue,
+            "defaultValue": self.defaultValue,
+        }
 
 
 @dataclasses.dataclass
@@ -657,6 +816,23 @@ class FontFace:
             else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "fontFamily": self.fontFamily,
+                "fontStyle": self.fontStyle,
+                "fontVariant": self.fontVariant,
+                "fontWeight": self.fontWeight,
+                "fontStretch": self.fontStretch,
+                "unicodeRange": self.unicodeRange,
+                "src": self.src,
+                "platformFontFamily": self.platformFontFamily,
+                "fontVariationAxes": [f.to_json() for f in self.fontVariationAxes]
+                if self.fontVariationAxes
+                else None,
+            }
+        )
+
 
 @dataclasses.dataclass
 class CSSKeyframesRule:
@@ -679,6 +855,12 @@ class CSSKeyframesRule:
             Value.from_json(json["animationName"]),
             [CSSKeyframeRule.from_json(x) for x in json["keyframes"]],
         )
+
+    def to_json(self) -> dict:
+        return {
+            "animationName": self.animationName.to_json(),
+            "keyframes": [k.to_json() for k in self.keyframes],
+        }
 
 
 @dataclasses.dataclass
@@ -712,6 +894,16 @@ class CSSKeyframeRule:
             StyleSheetId(json["styleSheetId"]) if "styleSheetId" in json else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "origin": str(self.origin),
+                "keyText": self.keyText.to_json(),
+                "style": self.style.to_json(),
+                "styleSheetId": str(self.styleSheetId) if self.styleSheetId else None,
+            }
+        )
+
 
 @dataclasses.dataclass
 class StyleDeclarationEdit:
@@ -738,6 +930,13 @@ class StyleDeclarationEdit:
             SourceRange.from_json(json["range"]),
             json["text"],
         )
+
+    def to_json(self) -> dict:
+        return {
+            "styleSheetId": str(self.styleSheetId),
+            "range": self.range.to_json(),
+            "text": self.text,
+        }
 
 
 def add_rule(styleSheetId: StyleSheetId, ruleText: str, location: SourceRange):

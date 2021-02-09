@@ -3,7 +3,7 @@ from __future__ import annotations
 import dataclasses
 from typing import Optional
 
-from .common import filter_unset_parameters
+from .common import filter_none, filter_unset_parameters
 
 
 @dataclasses.dataclass
@@ -25,6 +25,9 @@ class Sink:
     @classmethod
     def from_json(cls, json: dict) -> Sink:
         return cls(json["name"], json["id"], json.get("session"))
+
+    def to_json(self) -> dict:
+        return filter_none({"name": self.name, "id": self.id, "session": self.session})
 
 
 def enable(presentationUrl: Optional[str] = None):

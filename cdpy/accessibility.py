@@ -5,7 +5,7 @@ import enum
 from typing import Optional
 
 from . import dom, runtime
-from .common import filter_unset_parameters
+from .common import filter_none, filter_unset_parameters
 
 
 class AXNodeId(str):
@@ -118,6 +118,25 @@ class AXValueSource:
             json.get("invalidReason"),
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "type": str(self.type),
+                "value": self.value.to_json() if self.value else None,
+                "attribute": self.attribute,
+                "attributeValue": self.attributeValue.to_json()
+                if self.attributeValue
+                else None,
+                "superseded": self.superseded,
+                "nativeSource": str(self.nativeSource) if self.nativeSource else None,
+                "nativeSourceValue": self.nativeSourceValue.to_json()
+                if self.nativeSourceValue
+                else None,
+                "invalid": self.invalid,
+                "invalidReason": self.invalidReason,
+            }
+        )
+
 
 @dataclasses.dataclass
 class AXRelatedNode:
@@ -144,6 +163,15 @@ class AXRelatedNode:
             json.get("text"),
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "backendDOMNodeId": int(self.backendDOMNodeId),
+                "idref": self.idref,
+                "text": self.text,
+            }
+        )
+
 
 @dataclasses.dataclass
 class AXProperty:
@@ -162,6 +190,9 @@ class AXProperty:
     @classmethod
     def from_json(cls, json: dict) -> AXProperty:
         return cls(AXPropertyName(json["name"]), AXValue.from_json(json["value"]))
+
+    def to_json(self) -> dict:
+        return {"name": str(self.name), "value": self.value.to_json()}
 
 
 @dataclasses.dataclass
@@ -196,6 +227,20 @@ class AXValue:
             [AXValueSource.from_json(x) for x in json["sources"]]
             if "sources" in json
             else None,
+        )
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "type": str(self.type),
+                "value": self.value,
+                "relatedNodes": [r.to_json() for r in self.relatedNodes]
+                if self.relatedNodes
+                else None,
+                "sources": [s.to_json() for s in self.sources]
+                if self.sources
+                else None,
+            }
         )
 
 
@@ -307,6 +352,28 @@ class AXNode:
             dom.BackendNodeId(json["backendDOMNodeId"])
             if "backendDOMNodeId" in json
             else None,
+        )
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "nodeId": str(self.nodeId),
+                "ignored": self.ignored,
+                "ignoredReasons": [i.to_json() for i in self.ignoredReasons]
+                if self.ignoredReasons
+                else None,
+                "role": self.role.to_json() if self.role else None,
+                "name": self.name.to_json() if self.name else None,
+                "description": self.description.to_json() if self.description else None,
+                "value": self.value.to_json() if self.value else None,
+                "properties": [p.to_json() for p in self.properties]
+                if self.properties
+                else None,
+                "childIds": [str(c) for c in self.childIds] if self.childIds else None,
+                "backendDOMNodeId": int(self.backendDOMNodeId)
+                if self.backendDOMNodeId
+                else None,
+            }
         )
 
 

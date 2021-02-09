@@ -4,6 +4,8 @@ import dataclasses
 import enum
 from typing import Optional
 
+from .common import filter_none
+
 
 class AuthenticatorId(str):
     """"""
@@ -83,6 +85,20 @@ class VirtualAuthenticatorOptions:
             json.get("isUserVerified"),
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "protocol": str(self.protocol),
+                "transport": str(self.transport),
+                "ctap2Version": str(self.ctap2Version) if self.ctap2Version else None,
+                "hasResidentKey": self.hasResidentKey,
+                "hasUserVerification": self.hasUserVerification,
+                "hasLargeBlob": self.hasLargeBlob,
+                "automaticPresenceSimulation": self.automaticPresenceSimulation,
+                "isUserVerified": self.isUserVerified,
+            }
+        )
+
 
 @dataclasses.dataclass
 class Credential:
@@ -126,6 +142,19 @@ class Credential:
             json.get("rpId"),
             json.get("userHandle"),
             json.get("largeBlob"),
+        )
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "credentialId": self.credentialId,
+                "isResidentCredential": self.isResidentCredential,
+                "privateKey": self.privateKey,
+                "signCount": self.signCount,
+                "rpId": self.rpId,
+                "userHandle": self.userHandle,
+                "largeBlob": self.largeBlob,
+            }
         )
 
 

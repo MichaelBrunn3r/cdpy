@@ -5,7 +5,7 @@ import enum
 from typing import Optional
 
 from . import target
-from .common import filter_unset_parameters
+from .common import filter_none, filter_unset_parameters
 
 
 class BrowserContextID(str):
@@ -63,6 +63,17 @@ class Bounds:
             json.get("width"),
             json.get("height"),
             WindowState(json["windowState"]) if "windowState" in json else None,
+        )
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "left": self.left,
+                "top": self.top,
+                "width": self.width,
+                "height": self.height,
+                "windowState": str(self.windowState) if self.windowState else None,
+            }
         )
 
 
@@ -139,6 +150,17 @@ class PermissionDescriptor:
             json.get("panTiltZoom"),
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "name": self.name,
+                "sysex": self.sysex,
+                "userVisibleOnly": self.userVisibleOnly,
+                "allowWithoutSanitization": self.allowWithoutSanitization,
+                "panTiltZoom": self.panTiltZoom,
+            }
+        )
+
 
 class BrowserCommandId(enum.Enum):
     """Browser command ids used by executeBrowserCommand."""
@@ -168,6 +190,9 @@ class Bucket:
     @classmethod
     def from_json(cls, json: dict) -> Bucket:
         return cls(json["low"], json["high"], json["count"])
+
+    def to_json(self) -> dict:
+        return {"low": self.low, "high": self.high, "count": self.count}
 
 
 @dataclasses.dataclass
@@ -199,6 +224,14 @@ class Histogram:
             json["count"],
             [Bucket.from_json(x) for x in json["buckets"]],
         )
+
+    def to_json(self) -> dict:
+        return {
+            "name": self.name,
+            "sum": self.sum,
+            "count": self.count,
+            "buckets": [b.to_json() for b in self.buckets],
+        }
 
 
 def set_permission(

@@ -5,7 +5,7 @@ import enum
 from typing import Optional
 
 from . import page, runtime
-from .common import filter_unset_parameters
+from .common import filter_none, filter_unset_parameters
 
 
 class NodeId(int):
@@ -46,6 +46,13 @@ class BackendNode:
         return cls(
             json["nodeType"], json["nodeName"], BackendNodeId(json["backendNodeId"])
         )
+
+    def to_json(self) -> dict:
+        return {
+            "nodeType": self.nodeType,
+            "nodeName": self.nodeName,
+            "backendNodeId": int(self.backendNodeId),
+        }
 
 
 class PseudoType(enum.Enum):
@@ -225,6 +232,56 @@ class Node:
             json.get("isSVG"),
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "nodeId": int(self.nodeId),
+                "backendNodeId": int(self.backendNodeId),
+                "nodeType": self.nodeType,
+                "nodeName": self.nodeName,
+                "localName": self.localName,
+                "nodeValue": self.nodeValue,
+                "parentId": int(self.parentId) if self.parentId else None,
+                "childNodeCount": self.childNodeCount,
+                "children": [c.to_json() for c in self.children]
+                if self.children
+                else None,
+                "attributes": self.attributes,
+                "documentURL": self.documentURL,
+                "baseURL": self.baseURL,
+                "publicId": self.publicId,
+                "systemId": self.systemId,
+                "internalSubset": self.internalSubset,
+                "xmlVersion": self.xmlVersion,
+                "name": self.name,
+                "value": self.value,
+                "pseudoType": str(self.pseudoType) if self.pseudoType else None,
+                "shadowRootType": str(self.shadowRootType)
+                if self.shadowRootType
+                else None,
+                "frameId": str(self.frameId) if self.frameId else None,
+                "contentDocument": self.contentDocument.to_json()
+                if self.contentDocument
+                else None,
+                "shadowRoots": [s.to_json() for s in self.shadowRoots]
+                if self.shadowRoots
+                else None,
+                "templateContent": self.templateContent.to_json()
+                if self.templateContent
+                else None,
+                "pseudoElements": [p.to_json() for p in self.pseudoElements]
+                if self.pseudoElements
+                else None,
+                "importedDocument": self.importedDocument.to_json()
+                if self.importedDocument
+                else None,
+                "distributedNodes": [d.to_json() for d in self.distributedNodes]
+                if self.distributedNodes
+                else None,
+                "isSVG": self.isSVG,
+            }
+        )
+
 
 @dataclasses.dataclass
 class RGBA:
@@ -250,6 +307,9 @@ class RGBA:
     @classmethod
     def from_json(cls, json: dict) -> RGBA:
         return cls(json["r"], json["g"], json["b"], json.get("a"))
+
+    def to_json(self) -> dict:
+        return filter_none({"r": self.r, "g": self.g, "b": self.b, "a": self.a})
 
 
 class Quad(list[float]):
@@ -303,6 +363,21 @@ class BoxModel:
             else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "content": list(self.content),
+                "padding": list(self.padding),
+                "border": list(self.border),
+                "margin": list(self.margin),
+                "width": self.width,
+                "height": self.height,
+                "shapeOutside": self.shapeOutside.to_json()
+                if self.shapeOutside
+                else None,
+            }
+        )
+
 
 @dataclasses.dataclass
 class ShapeOutsideInfo:
@@ -325,6 +400,13 @@ class ShapeOutsideInfo:
     @classmethod
     def from_json(cls, json: dict) -> ShapeOutsideInfo:
         return cls(Quad(json["bounds"]), json["shape"], json["marginShape"])
+
+    def to_json(self) -> dict:
+        return {
+            "bounds": list(self.bounds),
+            "shape": self.shape,
+            "marginShape": self.marginShape,
+        }
 
 
 @dataclasses.dataclass
@@ -352,6 +434,9 @@ class Rect:
     def from_json(cls, json: dict) -> Rect:
         return cls(json["x"], json["y"], json["width"], json["height"])
 
+    def to_json(self) -> dict:
+        return {"x": self.x, "y": self.y, "width": self.width, "height": self.height}
+
 
 @dataclasses.dataclass
 class CSSComputedStyleProperty:
@@ -370,6 +455,9 @@ class CSSComputedStyleProperty:
     @classmethod
     def from_json(cls, json: dict) -> CSSComputedStyleProperty:
         return cls(json["name"], json["value"])
+
+    def to_json(self) -> dict:
+        return {"name": self.name, "value": self.value}
 
 
 def collect_class_names_from_subtree(nodeId: NodeId):

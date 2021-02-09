@@ -44,6 +44,14 @@ class SamplingHeapProfileNode:
             [SamplingHeapProfileNode.from_json(x) for x in json["children"]],
         )
 
+    def to_json(self) -> dict:
+        return {
+            "callFrame": self.callFrame.to_json(),
+            "selfSize": self.selfSize,
+            "id": self.id,
+            "children": [c.to_json() for c in self.children],
+        }
+
 
 @dataclasses.dataclass
 class SamplingHeapProfileSample:
@@ -68,6 +76,9 @@ class SamplingHeapProfileSample:
     def from_json(cls, json: dict) -> SamplingHeapProfileSample:
         return cls(json["size"], json["nodeId"], json["ordinal"])
 
+    def to_json(self) -> dict:
+        return {"size": self.size, "nodeId": self.nodeId, "ordinal": self.ordinal}
+
 
 @dataclasses.dataclass
 class SamplingHeapProfile:
@@ -88,6 +99,12 @@ class SamplingHeapProfile:
             SamplingHeapProfileNode.from_json(json["head"]),
             [SamplingHeapProfileSample.from_json(x) for x in json["samples"]],
         )
+
+    def to_json(self) -> dict:
+        return {
+            "head": self.head.to_json(),
+            "samples": [s.to_json() for s in self.samples],
+        }
 
 
 def add_inspected_heap_object(heapObjectId: HeapSnapshotObjectId):

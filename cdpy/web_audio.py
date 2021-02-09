@@ -4,6 +4,8 @@ import dataclasses
 import enum
 from typing import Optional
 
+from .common import filter_none
+
 
 class GraphObjectId(str):
     """An unique ID for a graph object (AudioContext, AudioNode, AudioParam) in Web Audio API"""
@@ -95,6 +97,14 @@ class ContextRealtimeData:
             json["callbackIntervalVariance"],
         )
 
+    def to_json(self) -> dict:
+        return {
+            "currentTime": self.currentTime,
+            "renderCapacity": self.renderCapacity,
+            "callbackIntervalMean": self.callbackIntervalMean,
+            "callbackIntervalVariance": self.callbackIntervalVariance,
+        }
+
 
 @dataclasses.dataclass
 class BaseAudioContext:
@@ -136,6 +146,21 @@ class BaseAudioContext:
             else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "contextId": str(self.contextId),
+                "contextType": str(self.contextType),
+                "contextState": str(self.contextState),
+                "callbackBufferSize": self.callbackBufferSize,
+                "maxOutputChannelCount": self.maxOutputChannelCount,
+                "sampleRate": self.sampleRate,
+                "realtimeData": self.realtimeData.to_json()
+                if self.realtimeData
+                else None,
+            }
+        )
+
 
 @dataclasses.dataclass
 class AudioListener:
@@ -153,6 +178,9 @@ class AudioListener:
     @classmethod
     def from_json(cls, json: dict) -> AudioListener:
         return cls(GraphObjectId(json["listenerId"]), GraphObjectId(json["contextId"]))
+
+    def to_json(self) -> dict:
+        return {"listenerId": str(self.listenerId), "contextId": str(self.contextId)}
 
 
 @dataclasses.dataclass
@@ -193,6 +221,18 @@ class AudioNode:
             ChannelInterpretation(json["channelInterpretation"]),
         )
 
+    def to_json(self) -> dict:
+        return {
+            "nodeId": str(self.nodeId),
+            "contextId": str(self.contextId),
+            "nodeType": str(self.nodeType),
+            "numberOfInputs": self.numberOfInputs,
+            "numberOfOutputs": self.numberOfOutputs,
+            "channelCount": self.channelCount,
+            "channelCountMode": str(self.channelCountMode),
+            "channelInterpretation": str(self.channelInterpretation),
+        }
+
 
 @dataclasses.dataclass
 class AudioParam:
@@ -231,6 +271,18 @@ class AudioParam:
             json["minValue"],
             json["maxValue"],
         )
+
+    def to_json(self) -> dict:
+        return {
+            "paramId": str(self.paramId),
+            "nodeId": str(self.nodeId),
+            "contextId": str(self.contextId),
+            "paramType": str(self.paramType),
+            "rate": str(self.rate),
+            "defaultValue": self.defaultValue,
+            "minValue": self.minValue,
+            "maxValue": self.maxValue,
+        }
 
 
 def enable():

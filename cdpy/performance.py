@@ -25,6 +25,9 @@ class Metric:
     def from_json(cls, json: dict) -> Metric:
         return cls(json["name"], json["value"])
 
+    def to_json(self) -> dict:
+        return {"name": self.name, "value": self.value}
+
 
 def disable():
     """Disable collecting and reporting metrics."""

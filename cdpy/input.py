@@ -4,7 +4,7 @@ import dataclasses
 import enum
 from typing import Optional
 
-from .common import filter_unset_parameters
+from .common import filter_none, filter_unset_parameters
 
 
 @dataclasses.dataclass
@@ -63,6 +63,23 @@ class TouchPoint:
             json.get("tiltY"),
             json.get("twist"),
             json.get("id"),
+        )
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "x": self.x,
+                "y": self.y,
+                "radiusX": self.radiusX,
+                "radiusY": self.radiusY,
+                "rotationAngle": self.rotationAngle,
+                "force": self.force,
+                "tangentialPressure": self.tangentialPressure,
+                "tiltX": self.tiltX,
+                "tiltY": self.tiltY,
+                "twist": self.twist,
+                "id": self.id,
+            }
         )
 
 

@@ -4,7 +4,7 @@ import dataclasses
 import enum
 from typing import Optional
 
-from .common import filter_unset_parameters
+from .common import filter_none, filter_unset_parameters
 
 
 class MemoryDumpConfig(dict):
@@ -59,6 +59,22 @@ class TraceConfig:
             MemoryDumpConfig(json["memoryDumpConfig"])
             if "memoryDumpConfig" in json
             else None,
+        )
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "recordMode": self.recordMode,
+                "enableSampling": self.enableSampling,
+                "enableSystrace": self.enableSystrace,
+                "enableArgumentFilter": self.enableArgumentFilter,
+                "includedCategories": self.includedCategories,
+                "excludedCategories": self.excludedCategories,
+                "syntheticDelays": self.syntheticDelays,
+                "memoryDumpConfig": dict(self.memoryDumpConfig)
+                if self.memoryDumpConfig
+                else None,
+            }
         )
 
 

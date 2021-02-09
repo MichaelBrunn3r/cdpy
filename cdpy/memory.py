@@ -36,6 +36,9 @@ class SamplingProfileNode:
     def from_json(cls, json: dict) -> SamplingProfileNode:
         return cls(json["size"], json["total"], json["stack"])
 
+    def to_json(self) -> dict:
+        return {"size": self.size, "total": self.total, "stack": self.stack}
+
 
 @dataclasses.dataclass
 class SamplingProfile:
@@ -56,6 +59,12 @@ class SamplingProfile:
             [SamplingProfileNode.from_json(x) for x in json["samples"]],
             [Module.from_json(x) for x in json["modules"]],
         )
+
+    def to_json(self) -> dict:
+        return {
+            "samples": [s.to_json() for s in self.samples],
+            "modules": [m.to_json() for m in self.modules],
+        }
 
 
 @dataclasses.dataclass
@@ -83,6 +92,14 @@ class Module:
     @classmethod
     def from_json(cls, json: dict) -> Module:
         return cls(json["name"], json["uuid"], json["baseAddress"], json["size"])
+
+    def to_json(self) -> dict:
+        return {
+            "name": self.name,
+            "uuid": self.uuid,
+            "baseAddress": self.baseAddress,
+            "size": self.size,
+        }
 
 
 def get_dom_counters():

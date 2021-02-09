@@ -22,6 +22,12 @@ class StorageId:
     def from_json(cls, json: dict) -> StorageId:
         return cls(json["securityOrigin"], json["isLocalStorage"])
 
+    def to_json(self) -> dict:
+        return {
+            "securityOrigin": self.securityOrigin,
+            "isLocalStorage": self.isLocalStorage,
+        }
+
 
 class Item(list[str]):
     """DOM Storage item."""

@@ -3,7 +3,7 @@ from __future__ import annotations
 import dataclasses
 from typing import Optional
 
-from .common import filter_unset_parameters
+from .common import filter_none, filter_unset_parameters
 
 
 @dataclasses.dataclass
@@ -24,6 +24,9 @@ class ScreenshotParams:
     @classmethod
     def from_json(cls, json: dict) -> ScreenshotParams:
         return cls(json.get("format"), json.get("quality"))
+
+    def to_json(self) -> dict:
+        return filter_none({"format": self.format, "quality": self.quality})
 
 
 def begin_frame(

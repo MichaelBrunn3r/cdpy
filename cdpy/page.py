@@ -5,7 +5,7 @@ import enum
 from typing import Optional
 
 from . import debugger, dom, emulation, io, network, runtime
-from .common import filter_unset_parameters
+from .common import filter_none, filter_unset_parameters
 
 
 class FrameId(str):
@@ -122,6 +122,28 @@ class Frame:
             AdFrameType(json["adFrameType"]) if "adFrameType" in json else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "id": str(self.id),
+                "loaderId": str(self.loaderId),
+                "url": self.url,
+                "domainAndRegistry": self.domainAndRegistry,
+                "securityOrigin": self.securityOrigin,
+                "mimeType": self.mimeType,
+                "secureContextType": str(self.secureContextType),
+                "crossOriginIsolatedContextType": str(
+                    self.crossOriginIsolatedContextType
+                ),
+                "gatedAPIFeatures": [str(g) for g in self.gatedAPIFeatures],
+                "parentId": self.parentId,
+                "name": self.name,
+                "urlFragment": self.urlFragment,
+                "unreachableUrl": self.unreachableUrl,
+                "adFrameType": str(self.adFrameType) if self.adFrameType else None,
+            }
+        )
+
 
 @dataclasses.dataclass
 class FrameResource:
@@ -167,6 +189,19 @@ class FrameResource:
             json.get("canceled"),
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "url": self.url,
+                "type": str(self.type),
+                "mimeType": self.mimeType,
+                "lastModified": float(self.lastModified) if self.lastModified else None,
+                "contentSize": self.contentSize,
+                "failed": self.failed,
+                "canceled": self.canceled,
+            }
+        )
+
 
 @dataclasses.dataclass
 class FrameResourceTree:
@@ -196,6 +231,17 @@ class FrameResourceTree:
             else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "frame": self.frame.to_json(),
+                "resources": [r.to_json() for r in self.resources],
+                "childFrames": [c.to_json() for c in self.childFrames]
+                if self.childFrames
+                else None,
+            }
+        )
+
 
 @dataclasses.dataclass
 class FrameTree:
@@ -219,6 +265,16 @@ class FrameTree:
             [FrameTree.from_json(x) for x in json["childFrames"]]
             if "childFrames" in json
             else None,
+        )
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "frame": self.frame.to_json(),
+                "childFrames": [c.to_json() for c in self.childFrames]
+                if self.childFrames
+                else None,
+            }
         )
 
 
@@ -281,6 +337,15 @@ class NavigationEntry:
             TransitionType(json["transitionType"]),
         )
 
+    def to_json(self) -> dict:
+        return {
+            "id": self.id,
+            "url": self.url,
+            "userTypedURL": self.userTypedURL,
+            "title": self.title,
+            "transitionType": str(self.transitionType),
+        }
+
 
 @dataclasses.dataclass
 class ScreencastFrameMetadata:
@@ -324,6 +389,19 @@ class ScreencastFrameMetadata:
             network.TimeSinceEpoch(json["timestamp"]) if "timestamp" in json else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "offsetTop": self.offsetTop,
+                "pageScaleFactor": self.pageScaleFactor,
+                "deviceWidth": self.deviceWidth,
+                "deviceHeight": self.deviceHeight,
+                "scrollOffsetX": self.scrollOffsetX,
+                "scrollOffsetY": self.scrollOffsetY,
+                "timestamp": float(self.timestamp) if self.timestamp else None,
+            }
+        )
+
 
 class DialogType(enum.Enum):
     """Javascript dialog type."""
@@ -359,6 +437,14 @@ class AppManifestError:
     def from_json(cls, json: dict) -> AppManifestError:
         return cls(json["message"], json["critical"], json["line"], json["column"])
 
+    def to_json(self) -> dict:
+        return {
+            "message": self.message,
+            "critical": self.critical,
+            "line": self.line,
+            "column": self.column,
+        }
+
 
 @dataclasses.dataclass
 class AppManifestParsedProperties:
@@ -375,6 +461,9 @@ class AppManifestParsedProperties:
     @classmethod
     def from_json(cls, json: dict) -> AppManifestParsedProperties:
         return cls(json["scope"])
+
+    def to_json(self) -> dict:
+        return {"scope": self.scope}
 
 
 @dataclasses.dataclass
@@ -403,6 +492,14 @@ class LayoutViewport:
         return cls(
             json["pageX"], json["pageY"], json["clientWidth"], json["clientHeight"]
         )
+
+    def to_json(self) -> dict:
+        return {
+            "pageX": self.pageX,
+            "pageY": self.pageY,
+            "clientWidth": self.clientWidth,
+            "clientHeight": self.clientHeight,
+        }
 
 
 @dataclasses.dataclass
@@ -451,6 +548,20 @@ class VisualViewport:
             json.get("zoom"),
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "offsetX": self.offsetX,
+                "offsetY": self.offsetY,
+                "pageX": self.pageX,
+                "pageY": self.pageY,
+                "clientWidth": self.clientWidth,
+                "clientHeight": self.clientHeight,
+                "scale": self.scale,
+                "zoom": self.zoom,
+            }
+        )
+
 
 @dataclasses.dataclass
 class Viewport:
@@ -479,6 +590,15 @@ class Viewport:
     @classmethod
     def from_json(cls, json: dict) -> Viewport:
         return cls(json["x"], json["y"], json["width"], json["height"], json["scale"])
+
+    def to_json(self) -> dict:
+        return {
+            "x": self.x,
+            "y": self.y,
+            "width": self.width,
+            "height": self.height,
+            "scale": self.scale,
+        }
 
 
 @dataclasses.dataclass
@@ -523,6 +643,19 @@ class FontFamilies:
             json.get("pictograph"),
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "standard": self.standard,
+                "fixed": self.fixed,
+                "serif": self.serif,
+                "sansSerif": self.sansSerif,
+                "cursive": self.cursive,
+                "fantasy": self.fantasy,
+                "pictograph": self.pictograph,
+            }
+        )
+
 
 @dataclasses.dataclass
 class FontSizes:
@@ -542,6 +675,9 @@ class FontSizes:
     @classmethod
     def from_json(cls, json: dict) -> FontSizes:
         return cls(json.get("standard"), json.get("fixed"))
+
+    def to_json(self) -> dict:
+        return filter_none({"standard": self.standard, "fixed": self.fixed})
 
 
 class ClientNavigationReason(enum.Enum):
@@ -584,6 +720,9 @@ class InstallabilityErrorArgument:
     def from_json(cls, json: dict) -> InstallabilityErrorArgument:
         return cls(json["name"], json["value"])
 
+    def to_json(self) -> dict:
+        return {"name": self.name, "value": self.value}
+
 
 @dataclasses.dataclass
 class InstallabilityError:
@@ -606,6 +745,12 @@ class InstallabilityError:
             json["errorId"],
             [InstallabilityErrorArgument.from_json(x) for x in json["errorArguments"]],
         )
+
+    def to_json(self) -> dict:
+        return {
+            "errorId": self.errorId,
+            "errorArguments": [e.to_json() for e in self.errorArguments],
+        }
 
 
 class ReferrerPolicy(enum.Enum):

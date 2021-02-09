@@ -142,9 +142,17 @@ class CDPPropertyCategory(enum.Enum):
         return self in (self.BUILTIN, self.BUILTIN_LIST, self.TYPELESS_ENUM)
 
     @property
+    def does_not_require_unparsing(self):
+        return self.does_not_require_parsing
+
+    @property
     def parse_with_from_json(self):
         """Wether the types of this category should be parsed with a from_json call (e.g. SomeType.from_json(json))"""
         return self in (self.OBJECT, self.OBJECT_LIST)
+
+    @property
+    def unparse_with_to_json(self):
+        return self.parse_with_from_json
 
     @property
     def parse_with_constructor(self):
@@ -155,6 +163,10 @@ class CDPPropertyCategory(enum.Enum):
             self.SIMPLE_LIST,
             self.ENUM_LIST,
         )
+
+    @property
+    def unparse_with_base_type(self):
+        return self.parse_with_constructor
 
     def from_cdp_type(type: CDPType, is_list: bool):
         """Returns a category according to a properties type"""
@@ -299,6 +311,7 @@ class CDPType:
     enum_values: Optional[list[str]]
     attributes: Optional[list[CDPAttribute]]
     context: ModuleContext
+    has_optional_attributes: bool
 
     @property
     def category(self) -> CDPTypeCategory:
@@ -326,10 +339,18 @@ class CDPType:
 
     @classmethod
     def from_json(cls, json: dict, context: ModuleContext):
+        has_optional_attributes = False
         items = json.get("items")
+
         attributes = json.get("properties")
         if attributes:
-            attributes = [CDPAttribute.from_json(p, context) for p in attributes]
+            for i, attr_json in enumerate(attributes):
+                attr = CDPAttribute.from_json(attr_json, context)
+                attributes[i] = attr
+
+                if attr.optional:
+                    has_optional_attributes = True
+
             attributes.sort(
                 key=lambda p: p.optional
             )  # Default value attributes after non-default attributes
@@ -342,6 +363,7 @@ class CDPType:
             json.get("enum"),
             attributes,
             context,
+            has_optional_attributes,
         )
 
     def to_ast(self):
@@ -394,7 +416,9 @@ class CDPType:
 
         for attr in self.attributes:
             body.append(attr.to_ast())
+
         body.append(self.create_object_from_json_function())
+        body.append(self.create_object_to_json_function())
 
         return ast_classdef(self.id, body, decorators=["dataclasses.dataclass"])
 
@@ -426,6 +450,10 @@ class CDPType:
                         ast.Attribute(ast.Name(items_type_name), "from_json"), ["x"]
                     )
                     arg = ast_list_comp(from_json_call, "x", attr_json_value)
+                else:
+                    raise Exception(
+                        f"Can't parse argument: {self.context.domain_name}.{self.id}.{attr.name}"
+                    )
             else:
                 referenced_type_name = self.context.get_type_by_ref(
                     attr.ref
@@ -437,6 +465,10 @@ class CDPType:
                     arg = ast_call(
                         ast.Attribute(ast.Name(referenced_type_name), "from_json"),
                         [attr_json_value],
+                    )
+                else:
+                    raise Exception(
+                        f"Can't parse argument: {self.context.domain_name}.{self.id}.{attr.name}"
                     )
 
             # Wrap argument in 'if ... else None' if the attribute is optional.
@@ -455,6 +487,67 @@ class CDPType:
             [ast.Return(ast_call("cls", cls_args))],
             returns=ast.Name(self.id),
             decorators=["classmethod"],
+        )
+
+    def create_object_to_json_function(self):
+        json_values = []
+        for attr in self.attributes:
+            category = attr.category
+            attr_value = ast.Attribute(ast.Name("self"), attr.name)
+
+            if category.does_not_require_unparsing:
+                json_val = attr_value
+            elif attr.is_list_of_references:
+                var_name = attr.name[0]
+
+                if category.unparse_with_base_type:
+                    items_base_type = JS_TYPE_TO_BUILTIN_MAP.get(
+                        self.context.get_type_by_ref(attr.items.ref).type
+                    )
+                    json_val = ast_list_comp(
+                        ast_call(items_base_type, var_name), var_name, attr_value
+                    )
+                elif category.unparse_with_to_json:
+                    to_json_call = ast_call(
+                        ast.Attribute(ast.Name(var_name), "to_json"), []
+                    )
+                    json_val = ast_list_comp(to_json_call, var_name, attr_value)
+                else:
+                    raise Exception(
+                        f"Can't convert attribute to json: {self.context.domain_name}.{self.id}.{attr.name}"
+                    )
+            else:
+                if category.unparse_with_base_type:
+                    base_type = JS_TYPE_TO_BUILTIN_MAP.get(
+                        self.context.get_type_by_ref(attr.ref).type
+                    )
+                    json_val = ast_call(ast.Name(base_type), [attr_value])
+                elif category.unparse_with_to_json:
+                    json_val = ast_call(ast.Attribute(attr_value, "to_json"), [])
+                else:
+                    raise Exception(
+                        f"Can't convert attribute to json: {self.context.domain_name}.{self.id}.{attr.name}"
+                    )
+
+            if attr.optional and not category.does_not_require_unparsing:
+                json_val = ast.IfExp(attr_value, json_val, ast.Constant(None))
+
+            json_values.append(json_val)
+
+        json = ast.Dict(
+            [ast.Constant(a.name) for a in self.attributes],
+            json_values,
+        )
+
+        if self.has_optional_attributes:
+            self.context.require(".common", "filter_none")
+            json = ast_call("filter_none", [json])
+
+        return ast_function(
+            "to_json",
+            ast_args([ast.arg("self", None)]),
+            [ast.Return(json)],
+            returns=ast.Name("dict"),
         )
 
     def create_object_list_ast(self):

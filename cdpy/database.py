@@ -38,6 +38,14 @@ class Database:
             DatabaseId(json["id"]), json["domain"], json["name"], json["version"]
         )
 
+    def to_json(self) -> dict:
+        return {
+            "id": str(self.id),
+            "domain": self.domain,
+            "name": self.name,
+            "version": self.version,
+        }
+
 
 @dataclasses.dataclass
 class Error:
@@ -57,6 +65,9 @@ class Error:
     @classmethod
     def from_json(cls, json: dict) -> Error:
         return cls(json["message"], json["code"])
+
+    def to_json(self) -> dict:
+        return {"message": self.message, "code": self.code}
 
 
 def disable():

@@ -4,7 +4,7 @@ import dataclasses
 from typing import Optional
 
 from . import runtime
-from .common import filter_unset_parameters
+from .common import filter_none, filter_unset_parameters
 
 
 @dataclasses.dataclass
@@ -33,6 +33,13 @@ class DatabaseWithObjectStores:
             json["version"],
             [ObjectStore.from_json(x) for x in json["objectStores"]],
         )
+
+    def to_json(self) -> dict:
+        return {
+            "name": self.name,
+            "version": self.version,
+            "objectStores": [o.to_json() for o in self.objectStores],
+        }
 
 
 @dataclasses.dataclass
@@ -65,6 +72,14 @@ class ObjectStore:
             [ObjectStoreIndex.from_json(x) for x in json["indexes"]],
         )
 
+    def to_json(self) -> dict:
+        return {
+            "name": self.name,
+            "keyPath": self.keyPath.to_json(),
+            "autoIncrement": self.autoIncrement,
+            "indexes": [i.to_json() for i in self.indexes],
+        }
+
 
 @dataclasses.dataclass
 class ObjectStoreIndex:
@@ -95,6 +110,14 @@ class ObjectStoreIndex:
             json["unique"],
             json["multiEntry"],
         )
+
+    def to_json(self) -> dict:
+        return {
+            "name": self.name,
+            "keyPath": self.keyPath.to_json(),
+            "unique": self.unique,
+            "multiEntry": self.multiEntry,
+        }
 
 
 @dataclasses.dataclass
@@ -131,6 +154,17 @@ class Key:
             [Key.from_json(x) for x in json["array"]] if "array" in json else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "type": self.type,
+                "number": self.number,
+                "string": self.string,
+                "date": self.date,
+                "array": [a.to_json() for a in self.array] if self.array else None,
+            }
+        )
+
 
 @dataclasses.dataclass
 class KeyRange:
@@ -162,6 +196,16 @@ class KeyRange:
             Key.from_json(json["upper"]) if "upper" in json else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "lowerOpen": self.lowerOpen,
+                "upperOpen": self.upperOpen,
+                "lower": self.lower.to_json() if self.lower else None,
+                "upper": self.upper.to_json() if self.upper else None,
+            }
+        )
+
 
 @dataclasses.dataclass
 class DataEntry:
@@ -189,6 +233,13 @@ class DataEntry:
             runtime.RemoteObject.from_json(json["value"]),
         )
 
+    def to_json(self) -> dict:
+        return {
+            "key": self.key.to_json(),
+            "primaryKey": self.primaryKey.to_json(),
+            "value": self.value.to_json(),
+        }
+
 
 @dataclasses.dataclass
 class KeyPath:
@@ -211,6 +262,11 @@ class KeyPath:
     @classmethod
     def from_json(cls, json: dict) -> KeyPath:
         return cls(json["type"], json.get("string"), json.get("array"))
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {"type": self.type, "string": self.string, "array": self.array}
+        )
 
 
 def clear_object_store(securityOrigin: str, databaseName: str, objectStoreName: str):

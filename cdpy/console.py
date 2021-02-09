@@ -3,6 +3,8 @@ from __future__ import annotations
 import dataclasses
 from typing import Optional
 
+from .common import filter_none
+
 
 @dataclasses.dataclass
 class ConsoleMessage:
@@ -40,6 +42,18 @@ class ConsoleMessage:
             json.get("url"),
             json.get("line"),
             json.get("column"),
+        )
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "source": self.source,
+                "level": self.level,
+                "text": self.text,
+                "url": self.url,
+                "line": self.line,
+                "column": self.column,
+            }
         )
 
 

@@ -43,6 +43,9 @@ class UsageForType:
     def from_json(cls, json: dict) -> UsageForType:
         return cls(StorageType(json["storageType"]), json["usage"])
 
+    def to_json(self) -> dict:
+        return {"storageType": str(self.storageType), "usage": self.usage}
+
 
 @dataclasses.dataclass
 class TrustTokens:
@@ -61,6 +64,9 @@ class TrustTokens:
     @classmethod
     def from_json(cls, json: dict) -> TrustTokens:
         return cls(json["issuerOrigin"], json["count"])
+
+    def to_json(self) -> dict:
+        return {"issuerOrigin": self.issuerOrigin, "count": self.count}
 
 
 def clear_data_for_origin(origin: str, storageTypes: str):

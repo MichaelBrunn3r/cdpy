@@ -8,6 +8,10 @@ def filter_unset_parameters(method: dict):
     return method
 
 
+def filter_none(json: dict):
+    return {k: v for k, v in json.items() if v != None}
+
+
 class Type:
     @classmethod
     def from_json(cls, json: dict):

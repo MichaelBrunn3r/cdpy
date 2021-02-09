@@ -37,6 +37,9 @@ class EventMetadata:
     def from_json(cls, json: dict) -> EventMetadata:
         return cls(json["key"], json["value"])
 
+    def to_json(self) -> dict:
+        return {"key": self.key, "value": self.value}
+
 
 @dataclasses.dataclass
 class BackgroundServiceEvent:
@@ -78,6 +81,17 @@ class BackgroundServiceEvent:
             json["instanceId"],
             [EventMetadata.from_json(x) for x in json["eventMetadata"]],
         )
+
+    def to_json(self) -> dict:
+        return {
+            "timestamp": float(self.timestamp),
+            "origin": self.origin,
+            "serviceWorkerRegistrationId": str(self.serviceWorkerRegistrationId),
+            "service": str(self.service),
+            "eventName": self.eventName,
+            "instanceId": self.instanceId,
+            "eventMetadata": [e.to_json() for e in self.eventMetadata],
+        }
 
 
 def start_observing(service: ServiceName):

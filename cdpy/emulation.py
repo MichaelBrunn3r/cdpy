@@ -5,7 +5,7 @@ import enum
 from typing import Optional
 
 from . import dom, network, page
-from .common import filter_unset_parameters
+from .common import filter_none, filter_unset_parameters
 
 
 @dataclasses.dataclass
@@ -26,6 +26,9 @@ class ScreenOrientation:
     @classmethod
     def from_json(cls, json: dict) -> ScreenOrientation:
         return cls(json["type"], json["angle"])
+
+    def to_json(self) -> dict:
+        return {"type": self.type, "angle": self.angle}
 
 
 @dataclasses.dataclass
@@ -52,6 +55,13 @@ class DisplayFeature:
     def from_json(cls, json: dict) -> DisplayFeature:
         return cls(json["orientation"], json["offset"], json["maskLength"])
 
+    def to_json(self) -> dict:
+        return {
+            "orientation": self.orientation,
+            "offset": self.offset,
+            "maskLength": self.maskLength,
+        }
+
 
 @dataclasses.dataclass
 class MediaFeature:
@@ -68,6 +78,9 @@ class MediaFeature:
     @classmethod
     def from_json(cls, json: dict) -> MediaFeature:
         return cls(json["name"], json["value"])
+
+    def to_json(self) -> dict:
+        return {"name": self.name, "value": self.value}
 
 
 class VirtualTimePolicy(enum.Enum):
@@ -98,6 +111,9 @@ class UserAgentBrandVersion:
     @classmethod
     def from_json(cls, json: dict) -> UserAgentBrandVersion:
         return cls(json["brand"], json["version"])
+
+    def to_json(self) -> dict:
+        return {"brand": self.brand, "version": self.version}
 
 
 @dataclasses.dataclass
@@ -136,6 +152,19 @@ class UserAgentMetadata:
             if "brands" in json
             else None,
             json.get("fullVersion"),
+        )
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "platform": self.platform,
+                "platformVersion": self.platformVersion,
+                "architecture": self.architecture,
+                "model": self.model,
+                "mobile": self.mobile,
+                "brands": [b.to_json() for b in self.brands] if self.brands else None,
+                "fullVersion": self.fullVersion,
+            }
         )
 
 

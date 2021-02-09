@@ -4,6 +4,7 @@ import dataclasses
 from typing import Optional
 
 from . import network, runtime
+from .common import filter_none
 
 
 @dataclasses.dataclass
@@ -66,6 +67,24 @@ class LogEntry:
             else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "source": self.source,
+                "level": self.level,
+                "text": self.text,
+                "timestamp": float(self.timestamp),
+                "url": self.url,
+                "lineNumber": self.lineNumber,
+                "stackTrace": self.stackTrace.to_json() if self.stackTrace else None,
+                "networkRequestId": str(self.networkRequestId)
+                if self.networkRequestId
+                else None,
+                "workerId": self.workerId,
+                "args": [a.to_json() for a in self.args] if self.args else None,
+            }
+        )
+
 
 @dataclasses.dataclass
 class ViolationSetting:
@@ -85,6 +104,9 @@ class ViolationSetting:
     @classmethod
     def from_json(cls, json: dict) -> ViolationSetting:
         return cls(json["name"], json["threshold"])
+
+    def to_json(self) -> dict:
+        return {"name": self.name, "threshold": self.threshold}
 
 
 def clear():

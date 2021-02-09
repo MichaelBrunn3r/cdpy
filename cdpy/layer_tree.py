@@ -4,7 +4,7 @@ import dataclasses
 from typing import Optional
 
 from . import dom
-from .common import filter_unset_parameters
+from .common import filter_none, filter_unset_parameters
 
 
 class LayerId(str):
@@ -39,6 +39,9 @@ class ScrollRect:
     @classmethod
     def from_json(cls, json: dict) -> ScrollRect:
         return cls(dom.Rect.from_json(json["rect"]), json["type"])
+
+    def to_json(self) -> dict:
+        return {"rect": self.rect.to_json(), "type": self.type}
 
 
 @dataclasses.dataclass
@@ -75,6 +78,22 @@ class StickyPositionConstraint:
             else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "stickyBoxRect": self.stickyBoxRect.to_json(),
+                "containingBlockRect": self.containingBlockRect.to_json(),
+                "nearestLayerShiftingStickyBox": str(self.nearestLayerShiftingStickyBox)
+                if self.nearestLayerShiftingStickyBox
+                else None,
+                "nearestLayerShiftingContainingBlock": str(
+                    self.nearestLayerShiftingContainingBlock
+                )
+                if self.nearestLayerShiftingContainingBlock
+                else None,
+            }
+        )
+
 
 @dataclasses.dataclass
 class PictureTile:
@@ -97,6 +116,9 @@ class PictureTile:
     @classmethod
     def from_json(cls, json: dict) -> PictureTile:
         return cls(json["x"], json["y"], json["picture"])
+
+    def to_json(self) -> dict:
+        return {"x": self.x, "y": self.y, "picture": self.picture}
 
 
 @dataclasses.dataclass
@@ -182,6 +204,36 @@ class Layer:
             StickyPositionConstraint.from_json(json["stickyPositionConstraint"])
             if "stickyPositionConstraint" in json
             else None,
+        )
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "layerId": str(self.layerId),
+                "offsetX": self.offsetX,
+                "offsetY": self.offsetY,
+                "width": self.width,
+                "height": self.height,
+                "paintCount": self.paintCount,
+                "drawsContent": self.drawsContent,
+                "parentLayerId": str(self.parentLayerId)
+                if self.parentLayerId
+                else None,
+                "backendNodeId": int(self.backendNodeId)
+                if self.backendNodeId
+                else None,
+                "transform": self.transform,
+                "anchorX": self.anchorX,
+                "anchorY": self.anchorY,
+                "anchorZ": self.anchorZ,
+                "invisible": self.invisible,
+                "scrollRects": [s.to_json() for s in self.scrollRects]
+                if self.scrollRects
+                else None,
+                "stickyPositionConstraint": self.stickyPositionConstraint.to_json()
+                if self.stickyPositionConstraint
+                else None,
+            }
         )
 
 

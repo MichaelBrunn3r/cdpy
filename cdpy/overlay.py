@@ -5,7 +5,7 @@ import enum
 from typing import Optional
 
 from . import dom, page, runtime
-from .common import filter_unset_parameters
+from .common import filter_none, filter_unset_parameters
 
 
 @dataclasses.dataclass
@@ -29,6 +29,12 @@ class SourceOrderConfig:
             dom.RGBA.from_json(json["parentOutlineColor"]),
             dom.RGBA.from_json(json["childOutlineColor"]),
         )
+
+    def to_json(self) -> dict:
+        return {
+            "parentOutlineColor": self.parentOutlineColor.to_json(),
+            "childOutlineColor": self.childOutlineColor.to_json(),
+        }
 
 
 @dataclasses.dataclass
@@ -143,6 +149,50 @@ class GridHighlightConfig:
             else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "showGridExtensionLines": self.showGridExtensionLines,
+                "showPositiveLineNumbers": self.showPositiveLineNumbers,
+                "showNegativeLineNumbers": self.showNegativeLineNumbers,
+                "showAreaNames": self.showAreaNames,
+                "showLineNames": self.showLineNames,
+                "showTrackSizes": self.showTrackSizes,
+                "gridBorderColor": self.gridBorderColor.to_json()
+                if self.gridBorderColor
+                else None,
+                "cellBorderColor": self.cellBorderColor.to_json()
+                if self.cellBorderColor
+                else None,
+                "rowLineColor": self.rowLineColor.to_json()
+                if self.rowLineColor
+                else None,
+                "columnLineColor": self.columnLineColor.to_json()
+                if self.columnLineColor
+                else None,
+                "gridBorderDash": self.gridBorderDash,
+                "cellBorderDash": self.cellBorderDash,
+                "rowLineDash": self.rowLineDash,
+                "columnLineDash": self.columnLineDash,
+                "rowGapColor": self.rowGapColor.to_json() if self.rowGapColor else None,
+                "rowHatchColor": self.rowHatchColor.to_json()
+                if self.rowHatchColor
+                else None,
+                "columnGapColor": self.columnGapColor.to_json()
+                if self.columnGapColor
+                else None,
+                "columnHatchColor": self.columnHatchColor.to_json()
+                if self.columnHatchColor
+                else None,
+                "areaBorderColor": self.areaBorderColor.to_json()
+                if self.areaBorderColor
+                else None,
+                "gridBackgroundColor": self.gridBackgroundColor.to_json()
+                if self.gridBackgroundColor
+                else None,
+            }
+        )
+
 
 @dataclasses.dataclass
 class FlexContainerHighlightConfig:
@@ -204,6 +254,34 @@ class FlexContainerHighlightConfig:
             else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "containerBorder": self.containerBorder.to_json()
+                if self.containerBorder
+                else None,
+                "lineSeparator": self.lineSeparator.to_json()
+                if self.lineSeparator
+                else None,
+                "itemSeparator": self.itemSeparator.to_json()
+                if self.itemSeparator
+                else None,
+                "mainDistributedSpace": self.mainDistributedSpace.to_json()
+                if self.mainDistributedSpace
+                else None,
+                "crossDistributedSpace": self.crossDistributedSpace.to_json()
+                if self.crossDistributedSpace
+                else None,
+                "rowGapSpace": self.rowGapSpace.to_json() if self.rowGapSpace else None,
+                "columnGapSpace": self.columnGapSpace.to_json()
+                if self.columnGapSpace
+                else None,
+                "crossAlignment": self.crossAlignment.to_json()
+                if self.crossAlignment
+                else None,
+            }
+        )
+
 
 @dataclasses.dataclass
 class FlexItemHighlightConfig:
@@ -235,6 +313,19 @@ class FlexItemHighlightConfig:
             else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "baseSizeBox": self.baseSizeBox.to_json() if self.baseSizeBox else None,
+                "baseSizeBorder": self.baseSizeBorder.to_json()
+                if self.baseSizeBorder
+                else None,
+                "flexibilityArrow": self.flexibilityArrow.to_json()
+                if self.flexibilityArrow
+                else None,
+            }
+        )
+
 
 @dataclasses.dataclass
 class LineStyle:
@@ -258,6 +349,14 @@ class LineStyle:
             json.get("pattern"),
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "color": self.color.to_json() if self.color else None,
+                "pattern": self.pattern,
+            }
+        )
+
 
 @dataclasses.dataclass
 class BoxStyle:
@@ -279,6 +378,14 @@ class BoxStyle:
         return cls(
             dom.RGBA.from_json(json["fillColor"]) if "fillColor" in json else None,
             dom.RGBA.from_json(json["hatchColor"]) if "hatchColor" in json else None,
+        )
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "fillColor": self.fillColor.to_json() if self.fillColor else None,
+                "hatchColor": self.hatchColor.to_json() if self.hatchColor else None,
+            }
         )
 
 
@@ -394,6 +501,48 @@ class HighlightConfig:
             else None,
         )
 
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "showInfo": self.showInfo,
+                "showStyles": self.showStyles,
+                "showRulers": self.showRulers,
+                "showAccessibilityInfo": self.showAccessibilityInfo,
+                "showExtensionLines": self.showExtensionLines,
+                "contentColor": self.contentColor.to_json()
+                if self.contentColor
+                else None,
+                "paddingColor": self.paddingColor.to_json()
+                if self.paddingColor
+                else None,
+                "borderColor": self.borderColor.to_json() if self.borderColor else None,
+                "marginColor": self.marginColor.to_json() if self.marginColor else None,
+                "eventTargetColor": self.eventTargetColor.to_json()
+                if self.eventTargetColor
+                else None,
+                "shapeColor": self.shapeColor.to_json() if self.shapeColor else None,
+                "shapeMarginColor": self.shapeMarginColor.to_json()
+                if self.shapeMarginColor
+                else None,
+                "cssGridColor": self.cssGridColor.to_json()
+                if self.cssGridColor
+                else None,
+                "colorFormat": str(self.colorFormat) if self.colorFormat else None,
+                "gridHighlightConfig": self.gridHighlightConfig.to_json()
+                if self.gridHighlightConfig
+                else None,
+                "flexContainerHighlightConfig": self.flexContainerHighlightConfig.to_json()
+                if self.flexContainerHighlightConfig
+                else None,
+                "flexItemHighlightConfig": self.flexItemHighlightConfig.to_json()
+                if self.flexItemHighlightConfig
+                else None,
+                "contrastAlgorithm": str(self.contrastAlgorithm)
+                if self.contrastAlgorithm
+                else None,
+            }
+        )
+
 
 class ColorFormat(enum.Enum):
     """"""
@@ -425,6 +574,12 @@ class GridNodeHighlightConfig:
             dom.NodeId(json["nodeId"]),
         )
 
+    def to_json(self) -> dict:
+        return {
+            "gridHighlightConfig": self.gridHighlightConfig.to_json(),
+            "nodeId": int(self.nodeId),
+        }
+
 
 @dataclasses.dataclass
 class FlexNodeHighlightConfig:
@@ -448,6 +603,12 @@ class FlexNodeHighlightConfig:
             ),
             dom.NodeId(json["nodeId"]),
         )
+
+    def to_json(self) -> dict:
+        return {
+            "flexContainerHighlightConfig": self.flexContainerHighlightConfig.to_json(),
+            "nodeId": int(self.nodeId),
+        }
 
 
 @dataclasses.dataclass
@@ -478,6 +639,19 @@ class HingeConfig:
             dom.RGBA.from_json(json["outlineColor"])
             if "outlineColor" in json
             else None,
+        )
+
+    def to_json(self) -> dict:
+        return filter_none(
+            {
+                "rect": self.rect.to_json(),
+                "contentColor": self.contentColor.to_json()
+                if self.contentColor
+                else None,
+                "outlineColor": self.outlineColor.to_json()
+                if self.outlineColor
+                else None,
+            }
         )
 
 
