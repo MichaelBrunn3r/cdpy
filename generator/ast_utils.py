@@ -2,7 +2,7 @@ import ast
 from typing import Union
 
 
-def ast_from_str(expr: str):
+def ast_expr_from_str(expr: str):
     return ast.parse(expr).body[0]
 
 

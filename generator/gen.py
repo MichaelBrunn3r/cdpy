@@ -400,7 +400,7 @@ class CDPType:
         return ast_function(
             "__repr__",
             ast_args([ast.arg("self", None)]),
-            [ast_from_str(f"return f'{self.id}({{super().__repr__()}})'")],
+            [ast_expr_from_str(f"return f'{self.id}({{super().__repr__()}})'")],
         )
 
     def create_enum_ast(self):
@@ -564,7 +564,11 @@ class CDPType:
         )
 
     def create_object_list_ast(self):
-        body = [self.create_docstring(), self.create_object_list_from_json_function()]
+        body = [
+            self.create_docstring(),
+            self.create_object_list_from_json_function(),
+            self.create_object_list_to_json_function(),
+        ]
         base = ast.Name(
             create_type_annotation(self.type, None, self.items, False, self.context)
         )
@@ -572,10 +576,17 @@ class CDPType:
         return ast_classdef(self.id, body, [base])
 
     def create_object_list_from_json_function(self):
-        items_type_name = self.context.get_type_by_ref(self.items.ref).create_reference(
-            self.context
-        )
-        items = ast_list_comp(ast_call(items_type_name, [ast.Name("x")]), "x", "json")
+        items_type = self.context.get_type_by_ref(self.items.ref)
+        items_type_name = items_type.create_reference(self.context)
+
+        if items_type.category == CDPTypeCategory.BUILTIN:
+            items = ast_list_comp(
+                ast_call(items_type_name, [ast.Name("x")]), "x", "json"
+            )
+        else:
+            raise Exception(
+                f"Can't create from_json function for {self.context.module_name}.{self.id}. Not implemented yet"
+            )
 
         return ast_function(
             "from_json",
@@ -583,6 +594,26 @@ class CDPType:
             [ast.Return(ast_call("cls", [items]))],
             ast.Name(self.id),
             ["classmethod"],
+        )
+
+    def create_object_list_to_json_function(self):
+        items_type = self.context.get_type_by_ref(self.items.ref)
+
+        if items_type.category == CDPTypeCategory.BUILTIN:
+            items_base = create_type_annotation(
+                items_type.type, None, None, False, self.context
+            )
+            items = ast_expr_from_str(f"[{items_base}(e) for e in self]").value
+        else:
+            raise Exception(
+                f"Can't create to_json function for {self.context.module_name}.{self.id}. Not implemented yet"
+            )
+
+        return ast_function(
+            "to_json",
+            ast_args([ast.arg("self", None)]),
+            [ast.Return(items)],
+            returns=ast.Name("dict"),
         )
 
     def create_docstring(self):

@@ -341,6 +341,9 @@ class ArrayOfStrings(list[StringIndex]):
     def from_json(cls, json: dict) -> ArrayOfStrings:
         return cls([StringIndex(x) for x in json])
 
+    def to_json(self) -> dict:
+        return [int(e) for e in self]
+
 
 @dataclasses.dataclass
 class RareStringData:

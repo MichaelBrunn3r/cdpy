@@ -47,7 +47,7 @@ def node(required_node_args):
     return cdpy.dom.Node(**required_node_args)
 
 
-class TestFromJson:
+class TestObjectFromJson:
     def test_builtin_arg(self, required_node_args):
         node = cdpy.dom.Node.from_json(required_node_args)
 
@@ -193,7 +193,7 @@ class TestFromJson:
         assert type(node.frameId) == cdpy.page.FrameId
 
 
-class TestToJson:
+class TestObjectToJson:
     def test_builtin_attr(self, node):
         json = node.to_json()
 
@@ -297,4 +297,23 @@ class TestToJson:
         assert "frameId" in json
         assert type(json["frameId"]) == str
         assert json["frameId"] == "deadbeef"
+        assert json == args
+
+
+class TestObjectListFromJson:
+    def test_builtin(self):
+        args = [1, 2, 3, 4, 5]
+        aos = cdpy.dom_snapshot.ArrayOfStrings.from_json(args)
+
+        assert issubclass(type(aos), list)
+        assert aos == args
+
+
+class TestObjectListToJson:
+    def test_builtin(self):
+        args = [1, 2, 3, 4, 5]
+        json = cdpy.dom_snapshot.ArrayOfStrings.from_json(args).to_json()
+
+        assert type(json) == list
+        assert type(json[0]) == int
         assert json == args
