@@ -2,8 +2,13 @@ import ast
 from typing import Union
 
 
-def ast_expr_from_str(expr: str):
-    return ast.parse(expr).body[0]
+def ast_from_str(expr: str):
+    r = ast.parse(expr).body[0]
+
+    if type(r) == ast.Expr:
+        return r.value
+    else:
+        return r
 
 
 def ast_import_from(module: str, *names):

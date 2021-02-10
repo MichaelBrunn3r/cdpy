@@ -400,7 +400,7 @@ class CDPType:
         return ast_function(
             "__repr__",
             ast_args([ast.arg("self", None)]),
-            [ast_expr_from_str(f"return f'{self.id}({{super().__repr__()}})'")],
+            [ast_from_str(f"return f'{self.id}({{super().__repr__()}})'")],
         )
 
     def create_enum_ast(self):
@@ -430,50 +430,36 @@ class CDPType:
         cls_args = []
         for attr in self.attributes:
             category = attr.category
-            attr_json_value = ast.Subscript(ast.Name("json"), ast.Constant(attr.name))
+            value = f'json["{attr.name}"]'  # The arguments json value
 
             if category.does_not_require_parsing:
                 if attr.optional:
-                    arg = ast_call(
-                        ast.Attribute(ast.Name("json"), "get"),
-                        [ast.Constant(attr.name)],
-                    )
+                    code = f"json.get('{attr.name}')"
                 else:
-                    arg = attr_json_value
+                    code = value
             elif attr.is_list_of_references:
-                var_name = attr.name[0]
-                items_type_name = self.context.get_type_by_ref(
+                type_name = self.context.get_type_by_ref(
                     attr.items.ref
                 ).create_reference(self.context)
+                e = attr.name[0]  # reference used for each element
 
                 if category.parse_with_constructor:
-                    arg = ast_list_comp(
-                        ast_call(items_type_name, [ast.Name(var_name)]),
-                        var_name,
-                        attr_json_value,
-                    )
+                    code = f"[{type_name}({e}) for {e} in {value}]"
                 elif category.parse_with_from_json:
-                    from_json_call = ast_call(
-                        ast.Attribute(ast.Name(items_type_name), "from_json"),
-                        [var_name],
-                    )
-                    arg = ast_list_comp(from_json_call, var_name, attr_json_value)
+                    code = f"[{type_name}.from_json({e}) for {e} in {value}]"
                 else:
                     raise Exception(
                         f"Can't parse argument: {self.context.domain_name}.{self.id}.{attr.name}"
                     )
             else:
-                referenced_type_name = self.context.get_type_by_ref(
-                    attr.ref
-                ).create_reference(self.context)
+                type_name = self.context.get_type_by_ref(attr.ref).create_reference(
+                    self.context
+                )
 
                 if category.parse_with_constructor:
-                    arg = ast_call(referenced_type_name, [attr_json_value])
+                    code = f"{type_name}({value})"
                 elif category.parse_with_from_json:
-                    arg = ast_call(
-                        ast.Attribute(ast.Name(referenced_type_name), "from_json"),
-                        [attr_json_value],
-                    )
+                    code = f"{type_name}.from_json({value})"
                 else:
                     raise Exception(
                         f"Can't parse argument: {self.context.domain_name}.{self.id}.{attr.name}"
@@ -482,12 +468,9 @@ class CDPType:
             # Wrap argument in 'if ... else None' if the attribute is optional.
             # Primitives are calling 'dict.get()' instead.
             if attr.optional and not category.does_not_require_parsing:
-                is_in_json_condition = ast.Compare(
-                    ast.Constant(attr.name), [ast.In()], [ast.Name("json")]
-                )
-                arg = ast.IfExp(is_in_json_condition, arg, ast.Constant(None))
+                code = f"{code} if '{attr.name}' in json else None"
 
-            cls_args.append(arg)
+            cls_args.append(ast_from_str(code))
 
         return ast_function(
             "from_json",
@@ -603,7 +586,7 @@ class CDPType:
             items_base = create_type_annotation(
                 items_type.type, None, None, False, self.context
             )
-            items = ast_expr_from_str(f"[{items_base}(e) for e in self]").value
+            items = ast_from_str(f"[{items_base}(e) for e in self]")
         else:
             raise Exception(
                 f"Can't create to_json function for {self.context.module_name}.{self.id}. Not implemented yet"
