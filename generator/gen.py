@@ -157,6 +157,15 @@ class CDPPropertyCategory(enum.Enum):
             }.get(type.category)
 
     @property
+    def is_list_of_references(self):
+        """Wether the types in this category are lists and their items are references to a type"""
+        return self in [
+            self.SIMPLE_LIST,
+            self.ENUM_LIST,
+            self.OBJECT_LIST,
+        ]
+
+    @property
     def does_not_require_parsing(self):
         return self in (self.BUILTIN, self.BUILTIN_LIST, self.TYPELESS_ENUM)
 
@@ -249,15 +258,6 @@ class CDPProperty:
 
         return self._category
 
-    @property
-    def is_list_of_references(self):
-        """Checks if the property is a list and its items are references to an type"""
-        return self.category in [
-            CDPPropertyCategory.SIMPLE_LIST,
-            CDPPropertyCategory.ENUM_LIST,
-            CDPPropertyCategory.OBJECT_LIST,
-        ]
-
     def to_ast(self):
         annotation = create_type_annotation(
             self.type, self.ref, self.items, self.optional, self.context
@@ -270,7 +270,7 @@ class CDPProperty:
                 code = f"json.get('{self.name}')"
             else:
                 code = json_val
-        elif self.is_list_of_references:
+        elif self.category.is_list_of_references:
             type_name = self.context.get_type_by_ref(self.items.ref).create_reference(
                 self.context
             )
@@ -300,7 +300,7 @@ class CDPProperty:
     def create_unparse_ast(self, value: str):
         if self.category.does_not_require_unparsing:
             json_val = value
-        elif self.is_list_of_references:
+        elif self.category.is_list_of_references:
             e = self.name[0]  # reference used for each element
 
             if self.category.unparse_with_base_type:
