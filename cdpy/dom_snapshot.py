@@ -339,7 +339,7 @@ class ArrayOfStrings(list[StringIndex]):
 
     @classmethod
     def from_json(cls, json: dict) -> ArrayOfStrings:
-        return cls([StringIndex(x) for x in json])
+        return cls([StringIndex(e) for e in json])
 
     def to_json(self) -> dict:
         return [int(e) for e in self]
