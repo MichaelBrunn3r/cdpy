@@ -484,28 +484,22 @@ class CDPType:
         json_values = []
         for attr in self.attributes:
             category = attr.category
-            attr_value = ast.Attribute(ast.Name("self"), attr.name)
+            value = f"self.{attr.name}"  # The value of the attribute
 
             if category.does_not_require_unparsing:
-                json_val = attr_value
+                json_val = value
             elif attr.is_list_of_references:
-                var_name = attr.name[0]
+                e = attr.name[0]  # reference used for each element
 
                 if category.unparse_with_base_type:
-                    items_base_type = JS_TYPE_TO_BUILTIN_MAP.get(
+                    base_type = JS_TYPE_TO_BUILTIN_MAP.get(
                         self.context.get_type_by_ref(attr.items.ref).type
                     )
-                    json_val = ast_list_comp(
-                        ast_call(items_base_type, var_name), var_name, attr_value
-                    )
+                    json_val = f"[{base_type}({e}) for {e} in {value}]"
                 elif category.unparse_with_to_json:
-                    to_json_call = ast_call(
-                        ast.Attribute(ast.Name(var_name), "to_json"), []
-                    )
-                    json_val = ast_list_comp(to_json_call, var_name, attr_value)
+                    json_val = f"[{e}.to_json() for {e} in {value}]"
                 elif category.unparse_with_attribute_value:
-                    value_attr = ast.Attribute(ast.Name(var_name), "value")
-                    json_val = ast_list_comp(value_attr, var_name, attr_value)
+                    json_val = f"[{e}.value for {e} in {value}]"
                 else:
                     raise Exception(
                         f"Can't convert attribute to json: {self.context.domain_name}.{self.id}.{attr.name}"
@@ -515,20 +509,20 @@ class CDPType:
                     base_type = JS_TYPE_TO_BUILTIN_MAP.get(
                         self.context.get_type_by_ref(attr.ref).type
                     )
-                    json_val = ast_call(ast.Name(base_type), [attr_value])
+                    json_val = f"{base_type}({value})"
                 elif category.unparse_with_to_json:
-                    json_val = ast_call(ast.Attribute(attr_value, "to_json"), [])
+                    json_val = f"{value}.to_json()"
                 elif category.unparse_with_attribute_value:
-                    json_val = ast.Attribute(attr_value, "value")
+                    json_val = f"{value}.value"
                 else:
                     raise Exception(
                         f"Can't convert attribute to json: {self.context.domain_name}.{self.id}.{attr.name}"
                     )
 
             if attr.optional and not category.does_not_require_unparsing:
-                json_val = ast.IfExp(attr_value, json_val, ast.Constant(None))
+                json_val = f"{json_val} if {value} else None"
 
-            json_values.append(json_val)
+            json_values.append(ast_from_str(json_val))
 
         json = ast.Dict(
             [ast.Constant(a.name) for a in self.attributes],
