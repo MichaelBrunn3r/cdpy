@@ -137,42 +137,8 @@ class CDPPropertyCategory(enum.Enum):
     OBJECT = 7
     OBJECT_LIST = 8
 
-    @property
-    def does_not_require_parsing(self):
-        return self in (self.BUILTIN, self.BUILTIN_LIST, self.TYPELESS_ENUM)
-
-    @property
-    def does_not_require_unparsing(self):
-        return self.does_not_require_parsing
-
-    @property
-    def parse_with_from_json(self):
-        """Wether the types of this category should be parsed with a from_json call (e.g. SomeType.from_json(json))"""
-        return self in (self.OBJECT, self.OBJECT_LIST)
-
-    @property
-    def unparse_with_to_json(self):
-        return self.parse_with_from_json
-
-    @property
-    def parse_with_constructor(self):
-        """Wether the types of this category should be parsed with a constructor (e.g. SomeType(json), [SomeType(j) for j in json])"""
-        return self in (
-            self.SIMPLE,
-            self.ENUM,
-            self.SIMPLE_LIST,
-            self.ENUM_LIST,
-        )
-
-    @property
-    def unparse_with_base_type(self):
-        return self in (self.SIMPLE, self.SIMPLE_LIST)
-
-    @property
-    def unparse_with_attribute_value(self):
-        return self in (self.ENUM, self.ENUM_LIST)
-
-    def from_cdp_type(type: CDPType, is_list: bool):
+    @classmethod
+    def from_cdp_type(cls, type: CDPType, is_list: bool):
         """Returns a category according to a properties type"""
         if is_list:
             return {
@@ -190,6 +156,41 @@ class CDPPropertyCategory(enum.Enum):
                 CDPTypeCategory.OBJECT: CDPPropertyCategory.OBJECT,
             }.get(type.category)
 
+    @property
+    def does_not_require_parsing(self):
+        return self in (self.BUILTIN, self.BUILTIN_LIST, self.TYPELESS_ENUM)
+
+    @property
+    def parse_with_from_json(self):
+        """Wether the types of this category should be parsed with a from_json call (e.g. SomeType.from_json(json))"""
+        return self in (self.OBJECT, self.OBJECT_LIST)
+
+    @property
+    def parse_with_constructor(self):
+        """Wether the types of this category should be parsed with a constructor (e.g. SomeType(json), [SomeType(j) for j in json])"""
+        return self in (
+            self.SIMPLE,
+            self.ENUM,
+            self.SIMPLE_LIST,
+            self.ENUM_LIST,
+        )
+
+    @property
+    def does_not_require_unparsing(self):
+        return self.does_not_require_parsing
+
+    @property
+    def unparse_with_to_json(self):
+        return self.parse_with_from_json
+
+    @property
+    def unparse_with_base_type(self):
+        return self in (self.SIMPLE, self.SIMPLE_LIST)
+
+    @property
+    def unparse_with_attribute_value(self):
+        return self in (self.ENUM, self.ENUM_LIST)
+
 
 @dataclass
 class CDPProperty:
@@ -203,6 +204,26 @@ class CDPProperty:
     experimental: bool
     deprecated: bool
     context: ModuleContext
+
+    @classmethod
+    def from_json(cls, property: dict, context: ModuleContext) -> CDPProperty:
+        items = property.get("items")
+        optional = property.get("optional", False)
+        if optional:
+            context.require("typing", "Optional")
+
+        return cls(
+            property["name"],
+            property.get("description"),
+            property.get("type"),
+            property.get("$ref"),
+            property.get("enum"),
+            CDPItems.from_json(items, context) if items else None,
+            optional,
+            property.get("experimental", False),
+            property.get("deprecated", False),
+            context,
+        )
 
     @property
     def category(self):
@@ -227,6 +248,21 @@ class CDPProperty:
                 raise Exception("Can't determin cdp property type")
 
         return self._category
+
+    @property
+    def is_list_of_references(self):
+        """Checks if the property is a list and its items are references to an type"""
+        return self.category in [
+            CDPPropertyCategory.SIMPLE_LIST,
+            CDPPropertyCategory.ENUM_LIST,
+            CDPPropertyCategory.OBJECT_LIST,
+        ]
+
+    def to_ast(self):
+        annotation = create_type_annotation(
+            self.type, self.ref, self.items, self.optional, self.context
+        )
+        return ast.arg(self.name, ast.Name(annotation))
 
     def create_parse_ast(self, json_val: str):
         if self.category.does_not_require_parsing:
@@ -292,41 +328,6 @@ class CDPProperty:
 
         return ast_from_str(json_val)
 
-    @property
-    def is_list_of_references(self):
-        """Checks if the property is a list and its items are references to an type"""
-        return self.category in [
-            CDPPropertyCategory.SIMPLE_LIST,
-            CDPPropertyCategory.ENUM_LIST,
-            CDPPropertyCategory.OBJECT_LIST,
-        ]
-
-    @classmethod
-    def from_json(cls, property: dict, context: ModuleContext) -> CDPProperty:
-        items = property.get("items")
-        optional = property.get("optional", False)
-        if optional:
-            context.require("typing", "Optional")
-
-        return cls(
-            property["name"],
-            property.get("description"),
-            property.get("type"),
-            property.get("$ref"),
-            property.get("enum"),
-            CDPItems.from_json(items, context) if items else None,
-            optional,
-            property.get("experimental", False),
-            property.get("deprecated", False),
-            context,
-        )
-
-    def to_ast(self):
-        annotation = create_type_annotation(
-            self.type, self.ref, self.items, self.optional, self.context
-        )
-        return ast.arg(self.name, ast.Name(annotation))
-
     def to_docstring(self):
         annotation = create_type_annotation(
             self.type, self.ref, self.items, self.optional, self.context
@@ -381,30 +382,6 @@ class CDPType:
     context: ModuleContext
     has_optional_attributes: bool
 
-    @property
-    def category(self) -> CDPTypeCategory:
-        if not hasattr(self, "_category"):
-            if self.items:
-                if self.items.type:
-                    self._category = CDPTypeCategory.BUILTIN_LIST
-                else:
-                    self._category = CDPTypeCategory.OBJECT_LIST
-            elif self.enum_values:
-                self._category = CDPTypeCategory.ENUM
-            elif self.attributes:
-                self._category = CDPTypeCategory.OBJECT
-            else:
-                self._category = CDPTypeCategory.BUILTIN
-
-        return self._category
-
-    def create_reference(self, from_context: ModuleContext):
-        """Create a reference to this type from a context"""
-        if self.context != from_context:
-            return f"{self.context.module_name}.{self.id}"
-        else:
-            return self.id
-
     @classmethod
     def from_json(cls, json: dict, context: ModuleContext):
         has_optional_attributes = False
@@ -433,6 +410,30 @@ class CDPType:
             context,
             has_optional_attributes,
         )
+
+    @property
+    def category(self) -> CDPTypeCategory:
+        if not hasattr(self, "_category"):
+            if self.items:
+                if self.items.type:
+                    self._category = CDPTypeCategory.BUILTIN_LIST
+                else:
+                    self._category = CDPTypeCategory.OBJECT_LIST
+            elif self.enum_values:
+                self._category = CDPTypeCategory.ENUM
+            elif self.attributes:
+                self._category = CDPTypeCategory.OBJECT
+            else:
+                self._category = CDPTypeCategory.BUILTIN
+
+        return self._category
+
+    def create_reference(self, from_context: ModuleContext):
+        """Create a reference to this type from a context"""
+        if self.context != from_context:
+            return f"{self.context.module_name}.{self.id}"
+        else:
+            return self.id
 
     def to_ast(self):
         if self.category in [CDPTypeCategory.BUILTIN, CDPTypeCategory.BUILTIN_LIST]:
