@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 import enum
-from typing import Optional
+from typing import Generator, Optional
 
 from . import dom, page
 from .common import filter_none
@@ -939,7 +939,9 @@ class StyleDeclarationEdit:
         }
 
 
-def add_rule(styleSheetId: StyleSheetId, ruleText: str, location: SourceRange):
+def add_rule(
+    styleSheetId: StyleSheetId, ruleText: str, location: SourceRange
+) -> Generator[dict, dict, CSSRule]:
     """Inserts a new rule with the given `ruleText` in a stylesheet with given `styleSheetId`, at the
     position specified by `location`.
 
@@ -957,7 +959,7 @@ def add_rule(styleSheetId: StyleSheetId, ruleText: str, location: SourceRange):
     rule: CSSRule
             The newly created rule.
     """
-    return {
+    response = yield {
         "method": "CSS.addRule",
         "params": {
             "styleSheetId": styleSheetId,
@@ -965,9 +967,10 @@ def add_rule(styleSheetId: StyleSheetId, ruleText: str, location: SourceRange):
             "location": location,
         },
     }
+    return CSSRule.from_json(response)
 
 
-def collect_class_names(styleSheetId: StyleSheetId):
+def collect_class_names(styleSheetId: StyleSheetId) -> Generator[dict, dict, list[str]]:
     """Returns all class names from specified stylesheet.
 
     Parameters
@@ -979,10 +982,14 @@ def collect_class_names(styleSheetId: StyleSheetId):
     classNames: list[str]
             Class name list.
     """
-    return {"method": "CSS.collectClassNames", "params": {"styleSheetId": styleSheetId}}
+    response = yield {
+        "method": "CSS.collectClassNames",
+        "params": {"styleSheetId": styleSheetId},
+    }
+    return response
 
 
-def create_style_sheet(frameId: page.FrameId):
+def create_style_sheet(frameId: page.FrameId) -> Generator[dict, dict, StyleSheetId]:
     """Creates a new special "via-inspector" stylesheet in the frame with given `frameId`.
 
     Parameters
@@ -995,22 +1002,23 @@ def create_style_sheet(frameId: page.FrameId):
     styleSheetId: StyleSheetId
             Identifier of the created "via-inspector" stylesheet.
     """
-    return {"method": "CSS.createStyleSheet", "params": {"frameId": frameId}}
+    response = yield {"method": "CSS.createStyleSheet", "params": {"frameId": frameId}}
+    return StyleSheetId(response)
 
 
-def disable():
+def disable() -> dict:
     """Disables the CSS agent for the given page."""
     return {"method": "CSS.disable", "params": {}}
 
 
-def enable():
+def enable() -> dict:
     """Enables the CSS agent for the given page. Clients should not assume that the CSS agent has been
     enabled until the result of this command is received.
     """
     return {"method": "CSS.enable", "params": {}}
 
 
-def force_pseudo_state(nodeId: dom.NodeId, forcedPseudoClasses: list[str]):
+def force_pseudo_state(nodeId: dom.NodeId, forcedPseudoClasses: list[str]) -> dict:
     """Ensures that the given node will have specified pseudo-classes whenever its style is computed by
     the browser.
 
@@ -1027,7 +1035,7 @@ def force_pseudo_state(nodeId: dom.NodeId, forcedPseudoClasses: list[str]):
     }
 
 
-def get_background_colors(nodeId: dom.NodeId):
+def get_background_colors(nodeId: dom.NodeId) -> Generator[dict, dict, dict]:
     """
     Parameters
     ----------
@@ -1048,10 +1056,17 @@ def get_background_colors(nodeId: dom.NodeId):
             The computed font weight for this node, as a CSS computed value string (e.g. 'normal' or
             '100').
     """
-    return {"method": "CSS.getBackgroundColors", "params": {"nodeId": nodeId}}
+    response = yield {"method": "CSS.getBackgroundColors", "params": {"nodeId": nodeId}}
+    return {
+        "backgroundColors": response.get("backgroundColors"),
+        "computedFontSize": response.get("computedFontSize"),
+        "computedFontWeight": response.get("computedFontWeight"),
+    }
 
 
-def get_computed_style_for_node(nodeId: dom.NodeId):
+def get_computed_style_for_node(
+    nodeId: dom.NodeId,
+) -> Generator[dict, dict, list[CSSComputedStyleProperty]]:
     """Returns the computed style for a DOM node identified by `nodeId`.
 
     Parameters
@@ -1063,10 +1078,14 @@ def get_computed_style_for_node(nodeId: dom.NodeId):
     computedStyle: list[CSSComputedStyleProperty]
             Computed style for the specified DOM node.
     """
-    return {"method": "CSS.getComputedStyleForNode", "params": {"nodeId": nodeId}}
+    response = yield {
+        "method": "CSS.getComputedStyleForNode",
+        "params": {"nodeId": nodeId},
+    }
+    return [CSSComputedStyleProperty.from_json(c) for c in response]
 
 
-def get_inline_styles_for_node(nodeId: dom.NodeId):
+def get_inline_styles_for_node(nodeId: dom.NodeId) -> Generator[dict, dict, dict]:
     """Returns the styles defined inline (explicitly in the "style" attribute and implicitly, using DOM
     attributes) for a DOM node identified by `nodeId`.
 
@@ -1081,10 +1100,21 @@ def get_inline_styles_for_node(nodeId: dom.NodeId):
     attributesStyle: Optional[CSSStyle]
             Attribute-defined element style (e.g. resulting from "width=20 height=100%").
     """
-    return {"method": "CSS.getInlineStylesForNode", "params": {"nodeId": nodeId}}
+    response = yield {
+        "method": "CSS.getInlineStylesForNode",
+        "params": {"nodeId": nodeId},
+    }
+    return {
+        "inlineStyle": CSSStyle.from_json(response["inlineStyle"])
+        if "inlineStyle" in response
+        else None,
+        "attributesStyle": CSSStyle.from_json(response["attributesStyle"])
+        if "attributesStyle" in response
+        else None,
+    }
 
 
-def get_matched_styles_for_node(nodeId: dom.NodeId):
+def get_matched_styles_for_node(nodeId: dom.NodeId) -> Generator[dict, dict, dict]:
     """Returns requested styles for a DOM node identified by `nodeId`.
 
     Parameters
@@ -1106,20 +1136,50 @@ def get_matched_styles_for_node(nodeId: dom.NodeId):
     cssKeyframesRules: Optional[list[CSSKeyframesRule]]
             A list of CSS keyframed animations matching this node.
     """
-    return {"method": "CSS.getMatchedStylesForNode", "params": {"nodeId": nodeId}}
+    response = yield {
+        "method": "CSS.getMatchedStylesForNode",
+        "params": {"nodeId": nodeId},
+    }
+    return {
+        "inlineStyle": CSSStyle.from_json(response["inlineStyle"])
+        if "inlineStyle" in response
+        else None,
+        "attributesStyle": CSSStyle.from_json(response["attributesStyle"])
+        if "attributesStyle" in response
+        else None,
+        "matchedCSSRules": [RuleMatch.from_json(m) for m in response["matchedCSSRules"]]
+        if "matchedCSSRules" in response
+        else None,
+        "pseudoElements": [
+            PseudoElementMatches.from_json(p) for p in response["pseudoElements"]
+        ]
+        if "pseudoElements" in response
+        else None,
+        "inherited": [InheritedStyleEntry.from_json(i) for i in response["inherited"]]
+        if "inherited" in response
+        else None,
+        "cssKeyframesRules": [
+            CSSKeyframesRule.from_json(c) for c in response["cssKeyframesRules"]
+        ]
+        if "cssKeyframesRules" in response
+        else None,
+    }
 
 
-def get_media_queries():
+def get_media_queries() -> Generator[dict, dict, list[CSSMedia]]:
     """Returns all media queries parsed by the rendering engine.
 
     Returns
     -------
     medias: list[CSSMedia]
     """
-    return {"method": "CSS.getMediaQueries", "params": {}}
+    response = yield {"method": "CSS.getMediaQueries", "params": {}}
+    return [CSSMedia.from_json(m) for m in response]
 
 
-def get_platform_fonts_for_node(nodeId: dom.NodeId):
+def get_platform_fonts_for_node(
+    nodeId: dom.NodeId,
+) -> Generator[dict, dict, list[PlatformFontUsage]]:
     """Requests information about platform fonts which we used to render child TextNodes in the given
     node.
 
@@ -1132,10 +1192,14 @@ def get_platform_fonts_for_node(nodeId: dom.NodeId):
     fonts: list[PlatformFontUsage]
             Usage statistics for every employed platform font.
     """
-    return {"method": "CSS.getPlatformFontsForNode", "params": {"nodeId": nodeId}}
+    response = yield {
+        "method": "CSS.getPlatformFontsForNode",
+        "params": {"nodeId": nodeId},
+    }
+    return [PlatformFontUsage.from_json(f) for f in response]
 
 
-def get_style_sheet_text(styleSheetId: StyleSheetId):
+def get_style_sheet_text(styleSheetId: StyleSheetId) -> Generator[dict, dict, str]:
     """Returns the current textual content for a stylesheet.
 
     Parameters
@@ -1147,10 +1211,16 @@ def get_style_sheet_text(styleSheetId: StyleSheetId):
     text: str
             The stylesheet text.
     """
-    return {"method": "CSS.getStyleSheetText", "params": {"styleSheetId": styleSheetId}}
+    response = yield {
+        "method": "CSS.getStyleSheetText",
+        "params": {"styleSheetId": styleSheetId},
+    }
+    return response
 
 
-def track_computed_style_updates(propertiesToTrack: list[CSSComputedStyleProperty]):
+def track_computed_style_updates(
+    propertiesToTrack: list[CSSComputedStyleProperty],
+) -> dict:
     """Starts tracking the given computed styles for updates. The specified array of properties
     replaces the one previously specified. Pass empty array to disable tracking.
     Use takeComputedStyleUpdates to retrieve the list of nodes that had properties modified.
@@ -1170,7 +1240,7 @@ def track_computed_style_updates(propertiesToTrack: list[CSSComputedStylePropert
     }
 
 
-def take_computed_style_updates():
+def take_computed_style_updates() -> Generator[dict, dict, list[dom.NodeId]]:
     """Polls the next batch of computed style updates.
 
     **Experimental**
@@ -1180,12 +1250,13 @@ def take_computed_style_updates():
     nodeIds: list[dom.NodeId]
             The list of node Ids that have their tracked computed styles updated
     """
-    return {"method": "CSS.takeComputedStyleUpdates", "params": {}}
+    response = yield {"method": "CSS.takeComputedStyleUpdates", "params": {}}
+    return [dom.NodeId(n) for n in response]
 
 
 def set_effective_property_value_for_node(
     nodeId: dom.NodeId, propertyName: str, value: str
-):
+) -> dict:
     """Find a rule with the given active property for the given node and set the new value for this
     property
 
@@ -1202,7 +1273,9 @@ def set_effective_property_value_for_node(
     }
 
 
-def set_keyframe_key(styleSheetId: StyleSheetId, range: SourceRange, keyText: str):
+def set_keyframe_key(
+    styleSheetId: StyleSheetId, range: SourceRange, keyText: str
+) -> Generator[dict, dict, Value]:
     """Modifies the keyframe rule key text.
 
     Parameters
@@ -1216,13 +1289,16 @@ def set_keyframe_key(styleSheetId: StyleSheetId, range: SourceRange, keyText: st
     keyText: Value
             The resulting key text after modification.
     """
-    return {
+    response = yield {
         "method": "CSS.setKeyframeKey",
         "params": {"styleSheetId": styleSheetId, "range": range, "keyText": keyText},
     }
+    return Value.from_json(response)
 
 
-def set_media_text(styleSheetId: StyleSheetId, range: SourceRange, text: str):
+def set_media_text(
+    styleSheetId: StyleSheetId, range: SourceRange, text: str
+) -> Generator[dict, dict, CSSMedia]:
     """Modifies the rule selector.
 
     Parameters
@@ -1236,13 +1312,16 @@ def set_media_text(styleSheetId: StyleSheetId, range: SourceRange, text: str):
     media: CSSMedia
             The resulting CSS media rule after modification.
     """
-    return {
+    response = yield {
         "method": "CSS.setMediaText",
         "params": {"styleSheetId": styleSheetId, "range": range, "text": text},
     }
+    return CSSMedia.from_json(response)
 
 
-def set_rule_selector(styleSheetId: StyleSheetId, range: SourceRange, selector: str):
+def set_rule_selector(
+    styleSheetId: StyleSheetId, range: SourceRange, selector: str
+) -> Generator[dict, dict, SelectorList]:
     """Modifies the rule selector.
 
     Parameters
@@ -1256,13 +1335,16 @@ def set_rule_selector(styleSheetId: StyleSheetId, range: SourceRange, selector: 
     selectorList: SelectorList
             The resulting selector list after modification.
     """
-    return {
+    response = yield {
         "method": "CSS.setRuleSelector",
         "params": {"styleSheetId": styleSheetId, "range": range, "selector": selector},
     }
+    return SelectorList.from_json(response)
 
 
-def set_style_sheet_text(styleSheetId: StyleSheetId, text: str):
+def set_style_sheet_text(
+    styleSheetId: StyleSheetId, text: str
+) -> Generator[dict, dict, Optional[str]]:
     """Sets the new stylesheet text.
 
     Parameters
@@ -1275,13 +1357,16 @@ def set_style_sheet_text(styleSheetId: StyleSheetId, text: str):
     sourceMapURL: Optional[str]
             URL of source map associated with script (if any).
     """
-    return {
+    response = yield {
         "method": "CSS.setStyleSheetText",
         "params": {"styleSheetId": styleSheetId, "text": text},
     }
+    return json.get("sourceMapURL")
 
 
-def set_style_texts(edits: list[StyleDeclarationEdit]):
+def set_style_texts(
+    edits: list[StyleDeclarationEdit],
+) -> Generator[dict, dict, list[CSSStyle]]:
     """Applies specified style edits one after another in the given order.
 
     Parameters
@@ -1293,15 +1378,16 @@ def set_style_texts(edits: list[StyleDeclarationEdit]):
     styles: list[CSSStyle]
             The resulting styles after modification.
     """
-    return {"method": "CSS.setStyleTexts", "params": {"edits": edits}}
+    response = yield {"method": "CSS.setStyleTexts", "params": {"edits": edits}}
+    return [CSSStyle.from_json(s) for s in response]
 
 
-def start_rule_usage_tracking():
+def start_rule_usage_tracking() -> dict:
     """Enables the selector recording."""
     return {"method": "CSS.startRuleUsageTracking", "params": {}}
 
 
-def stop_rule_usage_tracking():
+def stop_rule_usage_tracking() -> Generator[dict, dict, list[RuleUsage]]:
     """Stop tracking rule usage and return the list of rules that were used since last call to
     `takeCoverageDelta` (or since start of coverage instrumentation)
 
@@ -1309,10 +1395,11 @@ def stop_rule_usage_tracking():
     -------
     ruleUsage: list[RuleUsage]
     """
-    return {"method": "CSS.stopRuleUsageTracking", "params": {}}
+    response = yield {"method": "CSS.stopRuleUsageTracking", "params": {}}
+    return [RuleUsage.from_json(r) for r in response]
 
 
-def take_coverage_delta():
+def take_coverage_delta() -> Generator[dict, dict, dict]:
     """Obtain list of rules that became used since last call to this method (or since start of coverage
     instrumentation)
 
@@ -1322,10 +1409,14 @@ def take_coverage_delta():
     timestamp: float
             Monotonically increasing time, in seconds.
     """
-    return {"method": "CSS.takeCoverageDelta", "params": {}}
+    response = yield {"method": "CSS.takeCoverageDelta", "params": {}}
+    return {
+        "coverage": [RuleUsage.from_json(c) for c in response["coverage"]],
+        "timestamp": response["timestamp"],
+    }
 
 
-def set_local_fonts_enabled(enabled: bool):
+def set_local_fonts_enabled(enabled: bool) -> dict:
     """Enables/disables rendering of local CSS fonts (enabled by default).
 
     **Experimental**

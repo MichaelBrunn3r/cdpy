@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 import enum
-from typing import Optional
+from typing import Generator, Optional
 
 from . import dom, network, page, runtime
 from .common import filter_none, filter_unset_parameters
@@ -760,7 +760,7 @@ def get_encoded_response(
     encoding: str,
     quality: Optional[float] = None,
     sizeOnly: Optional[bool] = None,
-):
+) -> Generator[dict, dict, dict]:
     """Returns the response body and size if it were re-encoded with the specified settings. Only
     applies to images.
 
@@ -784,7 +784,7 @@ def get_encoded_response(
     encodedSize: int
             Size after re-encoding.
     """
-    return filter_unset_parameters(
+    response = yield filter_unset_parameters(
         {
             "method": "Audits.getEncodedResponse",
             "params": {
@@ -795,21 +795,26 @@ def get_encoded_response(
             },
         }
     )
+    return {
+        "body": response.get("body"),
+        "originalSize": response["originalSize"],
+        "encodedSize": response["encodedSize"],
+    }
 
 
-def disable():
+def disable() -> dict:
     """Disables issues domain, prevents further issues from being reported to the client."""
     return {"method": "Audits.disable", "params": {}}
 
 
-def enable():
+def enable() -> dict:
     """Enables issues domain, sends the issues collected so far to the client by means of the
     `issueAdded` event.
     """
     return {"method": "Audits.enable", "params": {}}
 
 
-def check_contrast():
+def check_contrast() -> dict:
     """Runs the contrast check for the target page. Found issues are reported
     using Audits.issueAdded event.
     """

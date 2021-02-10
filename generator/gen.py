@@ -264,10 +264,10 @@ class CDPProperty:
         )
         return ast.arg(self.name, ast.Name(annotation))
 
-    def create_parse_ast(self, json_val: str):
+    def create_parse_ast(self, json_val: str, json_dict: str = "json"):
         if self.category.does_not_require_parsing:
             if self.optional:
-                code = f"json.get('{self.name}')"
+                code = f"{json_dict}.get('{self.name}')"
             else:
                 code = json_val
         elif self.category.is_list_of_references:
@@ -293,7 +293,7 @@ class CDPProperty:
         # Wrap argument in 'if ... else None' if the attribute is optional.
         # Primitives are calling 'dict.get()' instead.
         if self.optional and not self.category.does_not_require_parsing:
-            code = f"{code} if '{self.name}' in json else None"
+            code = f"{code} if '{self.name}' in {json_dict} else None"
 
         return ast_from_str(code)
 
@@ -596,7 +596,7 @@ class CDPCommand:
     experimental: bool
     deprecated: bool
     parameters: list[CDPParameter]
-    returns: list[CDPReturn]
+    returns: Optional[list[CDPReturn]]
     context: ModuleContext
     has_optional_params: bool
 
@@ -618,7 +618,9 @@ class CDPCommand:
             command.get("experimental", False),
             command.get("deprecated", False),
             parameters,
-            [CDPReturn.from_json(r, context) for r in command.get("returns", [])],
+            [CDPReturn.from_json(r, context) for r in command["returns"]]
+            if "returns" in command
+            else None,
             context,
             has_optional_params,
         )
@@ -631,9 +633,34 @@ class CDPCommand:
 
         body = [self.create_docstring()]
 
-        body.append(ast_from_str(f"return {self.create_command_json()}"))
+        if self.returns:
+            body.append(ast_from_str(f"response = yield {self.create_command_json()}"))
 
-        return ast_function(snake_case(self.name), args, body)
+            self.context.require("typing", "Generator")
+            if len(self.returns) == 1:
+                ret = self.returns[0]
+                response = ret.create_parse_ast("response")
+                return_type = create_type_annotation(
+                    ret.type, ret.ref, ret.items, ret.optional, self.context
+                )
+                function_type = f"Generator[dict,dict,{return_type}]"
+            else:
+                response = ast.Dict(
+                    [ast.Constant(r.name) for r in self.returns],
+                    [
+                        r.create_parse_ast(f'response["{r.name}"]', "response")
+                        for r in self.returns
+                    ],
+                )
+                function_type = "Generator[dict,dict,dict]"
+            body.append(ast.Return(response))
+        else:
+            body.append(ast_from_str(f"return {self.create_command_json()}"))
+            function_type = "dict"
+
+        return ast_function(
+            snake_case(self.name), args, body, returns=ast.Name(function_type)
+        )
 
     def create_command_json(self):
         params = ",".join([f'"{p.name}": {p.name}' for p in self.parameters])
@@ -668,7 +695,7 @@ class CDPCommand:
             for param in self.parameters:
                 lines += param.to_docstring()
 
-        if len(self.returns) > 0:
+        if self.returns:
             lines.append("")
             lines.append("Returns")
             lines.append("-------")

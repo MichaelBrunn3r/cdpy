@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Optional
+from typing import Generator, Optional
 
 from . import runtime
 from .common import filter_unset_parameters
@@ -107,7 +107,7 @@ class SamplingHeapProfile:
         }
 
 
-def add_inspected_heap_object(heapObjectId: HeapSnapshotObjectId):
+def add_inspected_heap_object(heapObjectId: HeapSnapshotObjectId) -> dict:
     """Enables console to refer to the node with given id via $x (see Command Line API for more details
     $x functions).
 
@@ -122,22 +122,24 @@ def add_inspected_heap_object(heapObjectId: HeapSnapshotObjectId):
     }
 
 
-def collect_garbage():
+def collect_garbage() -> dict:
     """"""
     return {"method": "HeapProfiler.collectGarbage", "params": {}}
 
 
-def disable():
+def disable() -> dict:
     """"""
     return {"method": "HeapProfiler.disable", "params": {}}
 
 
-def enable():
+def enable() -> dict:
     """"""
     return {"method": "HeapProfiler.enable", "params": {}}
 
 
-def get_heap_object_id(objectId: runtime.RemoteObjectId):
+def get_heap_object_id(
+    objectId: runtime.RemoteObjectId,
+) -> Generator[dict, dict, HeapSnapshotObjectId]:
     """
     Parameters
     ----------
@@ -149,12 +151,16 @@ def get_heap_object_id(objectId: runtime.RemoteObjectId):
     heapSnapshotObjectId: HeapSnapshotObjectId
             Id of the heap snapshot object corresponding to the passed remote object id.
     """
-    return {"method": "HeapProfiler.getHeapObjectId", "params": {"objectId": objectId}}
+    response = yield {
+        "method": "HeapProfiler.getHeapObjectId",
+        "params": {"objectId": objectId},
+    }
+    return HeapSnapshotObjectId(response)
 
 
 def get_object_by_heap_object_id(
     objectId: HeapSnapshotObjectId, objectGroup: Optional[str] = None
-):
+) -> Generator[dict, dict, runtime.RemoteObject]:
     """
     Parameters
     ----------
@@ -167,25 +173,27 @@ def get_object_by_heap_object_id(
     result: runtime.RemoteObject
             Evaluation result.
     """
-    return filter_unset_parameters(
+    response = yield filter_unset_parameters(
         {
             "method": "HeapProfiler.getObjectByHeapObjectId",
             "params": {"objectId": objectId, "objectGroup": objectGroup},
         }
     )
+    return runtime.RemoteObject.from_json(response)
 
 
-def get_sampling_profile():
+def get_sampling_profile() -> Generator[dict, dict, SamplingHeapProfile]:
     """
     Returns
     -------
     profile: SamplingHeapProfile
             Return the sampling profile being collected.
     """
-    return {"method": "HeapProfiler.getSamplingProfile", "params": {}}
+    response = yield {"method": "HeapProfiler.getSamplingProfile", "params": {}}
+    return SamplingHeapProfile.from_json(response)
 
 
-def start_sampling(samplingInterval: Optional[float] = None):
+def start_sampling(samplingInterval: Optional[float] = None) -> dict:
     """
     Parameters
     ----------
@@ -201,7 +209,7 @@ def start_sampling(samplingInterval: Optional[float] = None):
     )
 
 
-def start_tracking_heap_objects(trackAllocations: Optional[bool] = None):
+def start_tracking_heap_objects(trackAllocations: Optional[bool] = None) -> dict:
     """
     Parameters
     ----------
@@ -215,20 +223,21 @@ def start_tracking_heap_objects(trackAllocations: Optional[bool] = None):
     )
 
 
-def stop_sampling():
+def stop_sampling() -> Generator[dict, dict, SamplingHeapProfile]:
     """
     Returns
     -------
     profile: SamplingHeapProfile
             Recorded sampling heap profile.
     """
-    return {"method": "HeapProfiler.stopSampling", "params": {}}
+    response = yield {"method": "HeapProfiler.stopSampling", "params": {}}
+    return SamplingHeapProfile.from_json(response)
 
 
 def stop_tracking_heap_objects(
     reportProgress: Optional[bool] = None,
     treatGlobalObjectsAsRoots: Optional[bool] = None,
-):
+) -> dict:
     """
     Parameters
     ----------
@@ -251,7 +260,7 @@ def stop_tracking_heap_objects(
 def take_heap_snapshot(
     reportProgress: Optional[bool] = None,
     treatGlobalObjectsAsRoots: Optional[bool] = None,
-):
+) -> dict:
     """
     Parameters
     ----------

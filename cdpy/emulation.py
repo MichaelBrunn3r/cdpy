@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 import enum
-from typing import Optional
+from typing import Generator, Optional
 
 from . import dom, network, page
 from .common import filter_none, filter_unset_parameters
@@ -175,7 +175,7 @@ class DisabledImageType(enum.Enum):
     WEBP = "webp"
 
 
-def can_emulate():
+def can_emulate() -> Generator[dict, dict, bool]:
     """Tells whether emulation is supported.
 
     Returns
@@ -183,20 +183,21 @@ def can_emulate():
     result: bool
             True if emulation is supported.
     """
-    return {"method": "Emulation.canEmulate", "params": {}}
+    response = yield {"method": "Emulation.canEmulate", "params": {}}
+    return response
 
 
-def clear_device_metrics_override():
+def clear_device_metrics_override() -> dict:
     """Clears the overriden device metrics."""
     return {"method": "Emulation.clearDeviceMetricsOverride", "params": {}}
 
 
-def clear_geolocation_override():
+def clear_geolocation_override() -> dict:
     """Clears the overriden Geolocation Position and Error."""
     return {"method": "Emulation.clearGeolocationOverride", "params": {}}
 
 
-def reset_page_scale_factor():
+def reset_page_scale_factor() -> dict:
     """Requests that page scale factor is reset to initial values.
 
     **Experimental**
@@ -204,7 +205,7 @@ def reset_page_scale_factor():
     return {"method": "Emulation.resetPageScaleFactor", "params": {}}
 
 
-def set_focus_emulation_enabled(enabled: bool):
+def set_focus_emulation_enabled(enabled: bool) -> dict:
     """Enables or disables simulating a focused and active page.
 
     **Experimental**
@@ -220,7 +221,7 @@ def set_focus_emulation_enabled(enabled: bool):
     }
 
 
-def set_cpu_throttling_rate(rate: float):
+def set_cpu_throttling_rate(rate: float) -> dict:
     """Enables CPU throttling to emulate slow CPUs.
 
     **Experimental**
@@ -233,7 +234,7 @@ def set_cpu_throttling_rate(rate: float):
     return {"method": "Emulation.setCPUThrottlingRate", "params": {"rate": rate}}
 
 
-def set_default_background_color_override(color: Optional[dom.RGBA] = None):
+def set_default_background_color_override(color: Optional[dom.RGBA] = None) -> dict:
     """Sets or clears an override of the default background color of the frame. This override is used
     if the content does not specify one.
 
@@ -265,7 +266,7 @@ def set_device_metrics_override(
     screenOrientation: Optional[ScreenOrientation] = None,
     viewport: Optional[page.Viewport] = None,
     displayFeature: Optional[DisplayFeature] = None,
-):
+) -> dict:
     """Overrides the values of device screen dimensions (window.screen.width, window.screen.height,
     window.innerWidth, window.innerHeight, and "device-width"/"device-height"-related CSS media
     query results).
@@ -324,7 +325,7 @@ def set_device_metrics_override(
     )
 
 
-def set_scrollbars_hidden(hidden: bool):
+def set_scrollbars_hidden(hidden: bool) -> dict:
     """
     **Experimental**
 
@@ -336,7 +337,7 @@ def set_scrollbars_hidden(hidden: bool):
     return {"method": "Emulation.setScrollbarsHidden", "params": {"hidden": hidden}}
 
 
-def set_document_cookie_disabled(disabled: bool):
+def set_document_cookie_disabled(disabled: bool) -> dict:
     """
     **Experimental**
 
@@ -351,7 +352,9 @@ def set_document_cookie_disabled(disabled: bool):
     }
 
 
-def set_emit_touch_events_for_mouse(enabled: bool, configuration: Optional[str] = None):
+def set_emit_touch_events_for_mouse(
+    enabled: bool, configuration: Optional[str] = None
+) -> dict:
     """
     **Experimental**
 
@@ -372,7 +375,7 @@ def set_emit_touch_events_for_mouse(enabled: bool, configuration: Optional[str] 
 
 def set_emulated_media(
     media: Optional[str] = None, features: Optional[list[MediaFeature]] = None
-):
+) -> dict:
     """Emulates the given media type or media feature for CSS media queries.
 
     Parameters
@@ -390,7 +393,7 @@ def set_emulated_media(
     )
 
 
-def set_emulated_vision_deficiency(type: str):
+def set_emulated_vision_deficiency(type: str) -> dict:
     """Emulates the given vision deficiency.
 
     **Experimental**
@@ -407,7 +410,7 @@ def set_geolocation_override(
     latitude: Optional[float] = None,
     longitude: Optional[float] = None,
     accuracy: Optional[float] = None,
-):
+) -> dict:
     """Overrides the Geolocation Position or Error. Omitting any of the parameters emulates position
     unavailable.
 
@@ -432,7 +435,7 @@ def set_geolocation_override(
     )
 
 
-def set_idle_override(isUserActive: bool, isScreenUnlocked: bool):
+def set_idle_override(isUserActive: bool, isScreenUnlocked: bool) -> dict:
     """Overrides the Idle state.
 
     **Experimental**
@@ -450,7 +453,7 @@ def set_idle_override(isUserActive: bool, isScreenUnlocked: bool):
     }
 
 
-def clear_idle_override():
+def clear_idle_override() -> dict:
     """Clears Idle state overrides.
 
     **Experimental**
@@ -458,7 +461,7 @@ def clear_idle_override():
     return {"method": "Emulation.clearIdleOverride", "params": {}}
 
 
-def set_navigator_overrides(platform: str):
+def set_navigator_overrides(platform: str) -> dict:
     """Overrides value returned by the javascript navigator object.
 
     **Experimental**
@@ -476,7 +479,7 @@ def set_navigator_overrides(platform: str):
     }
 
 
-def set_page_scale_factor(pageScaleFactor: float):
+def set_page_scale_factor(pageScaleFactor: float) -> dict:
     """Sets a specified page scale factor.
 
     **Experimental**
@@ -492,7 +495,7 @@ def set_page_scale_factor(pageScaleFactor: float):
     }
 
 
-def set_script_execution_disabled(value: bool):
+def set_script_execution_disabled(value: bool) -> dict:
     """Switches script execution in the page.
 
     Parameters
@@ -506,7 +509,9 @@ def set_script_execution_disabled(value: bool):
     }
 
 
-def set_touch_emulation_enabled(enabled: bool, maxTouchPoints: Optional[int] = None):
+def set_touch_emulation_enabled(
+    enabled: bool, maxTouchPoints: Optional[int] = None
+) -> dict:
     """Enables touch on platforms which do not support them.
 
     Parameters
@@ -530,7 +535,7 @@ def set_virtual_time_policy(
     maxVirtualTimeTaskStarvationCount: Optional[int] = None,
     waitForNavigation: Optional[bool] = None,
     initialVirtualTime: Optional[network.TimeSinceEpoch] = None,
-):
+) -> Generator[dict, dict, float]:
     """Turns on virtual time for all frames (replacing real-time with a synthetic time source) and sets
     the current virtual time policy.  Note this supersedes any previous time budget.
 
@@ -556,7 +561,7 @@ def set_virtual_time_policy(
     virtualTimeTicksBase: float
             Absolute timestamp at which virtual time was first enabled (up time in milliseconds).
     """
-    return filter_unset_parameters(
+    response = yield filter_unset_parameters(
         {
             "method": "Emulation.setVirtualTimePolicy",
             "params": {
@@ -568,9 +573,10 @@ def set_virtual_time_policy(
             },
         }
     )
+    return response
 
 
-def set_locale_override(locale: Optional[str] = None):
+def set_locale_override(locale: Optional[str] = None) -> dict:
     """Overrides default host system locale with the specified one.
 
     **Experimental**
@@ -586,7 +592,7 @@ def set_locale_override(locale: Optional[str] = None):
     )
 
 
-def set_timezone_override(timezoneId: str):
+def set_timezone_override(timezoneId: str) -> dict:
     """Overrides default host system timezone with the specified one.
 
     **Experimental**
@@ -603,7 +609,7 @@ def set_timezone_override(timezoneId: str):
     }
 
 
-def set_visible_size(width: int, height: int):
+def set_visible_size(width: int, height: int) -> dict:
     """Resizes the frame/viewport of the page. Note that this does not affect the frame's container
     (e.g. browser window). Can be used to produce screenshots of the specified size. Not supported
     on Android.
@@ -625,7 +631,7 @@ def set_visible_size(width: int, height: int):
     }
 
 
-def set_disabled_image_types(imageTypes: list[DisabledImageType]):
+def set_disabled_image_types(imageTypes: list[DisabledImageType]) -> dict:
     """
     **Experimental**
 
@@ -645,7 +651,7 @@ def set_user_agent_override(
     acceptLanguage: Optional[str] = None,
     platform: Optional[str] = None,
     userAgentMetadata: Optional[UserAgentMetadata] = None,
-):
+) -> dict:
     """Allows overriding user agent with the given string.
 
     Parameters

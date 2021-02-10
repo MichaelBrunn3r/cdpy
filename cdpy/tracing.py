@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 import enum
-from typing import Optional
+from typing import Generator, Optional
 
 from .common import filter_none, filter_unset_parameters
 
@@ -105,12 +105,12 @@ class MemoryDumpLevelOfDetail(enum.Enum):
     DETAILED = "detailed"
 
 
-def end():
+def end() -> dict:
     """Stop trace events collection."""
     return {"method": "Tracing.end", "params": {}}
 
 
-def get_categories():
+def get_categories() -> Generator[dict, dict, list[str]]:
     """Gets supported tracing categories.
 
     Returns
@@ -118,10 +118,11 @@ def get_categories():
     categories: list[str]
             A list of supported tracing categories.
     """
-    return {"method": "Tracing.getCategories", "params": {}}
+    response = yield {"method": "Tracing.getCategories", "params": {}}
+    return response
 
 
-def record_clock_sync_marker(syncId: str):
+def record_clock_sync_marker(syncId: str) -> dict:
     """Record a clock sync marker in the trace.
 
     Parameters
@@ -135,7 +136,7 @@ def record_clock_sync_marker(syncId: str):
 def request_memory_dump(
     deterministic: Optional[bool] = None,
     levelOfDetail: Optional[MemoryDumpLevelOfDetail] = None,
-):
+) -> Generator[dict, dict, dict]:
     """Request a global memory dump.
 
     Parameters
@@ -152,12 +153,13 @@ def request_memory_dump(
     success: bool
             True iff the global memory dump succeeded.
     """
-    return filter_unset_parameters(
+    response = yield filter_unset_parameters(
         {
             "method": "Tracing.requestMemoryDump",
             "params": {"deterministic": deterministic, "levelOfDetail": levelOfDetail},
         }
     )
+    return {"dumpGuid": response["dumpGuid"], "success": response["success"]}
 
 
 def start(
@@ -169,7 +171,7 @@ def start(
     streamCompression: Optional[StreamCompression] = None,
     traceConfig: Optional[TraceConfig] = None,
     perfettoConfig: Optional[str] = None,
-):
+) -> dict:
     """Start trace events collection.
 
     Parameters

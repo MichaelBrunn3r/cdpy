@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Optional
+from typing import Generator, Optional
 
 from . import runtime
 from .common import filter_unset_parameters
@@ -16,7 +16,7 @@ class StreamHandle(str):
         return f"StreamHandle({super().__repr__()})"
 
 
-def close(handle: StreamHandle):
+def close(handle: StreamHandle) -> dict:
     """Close the stream, discard any temporary backing storage.
 
     Parameters
@@ -29,7 +29,7 @@ def close(handle: StreamHandle):
 
 def read(
     handle: StreamHandle, offset: Optional[int] = None, size: Optional[int] = None
-):
+) -> Generator[dict, dict, dict]:
     """Read a chunk of the stream
 
     Parameters
@@ -51,15 +51,20 @@ def read(
     eof: bool
             Set if the end-of-file condition occured while reading.
     """
-    return filter_unset_parameters(
+    response = yield filter_unset_parameters(
         {
             "method": "IO.read",
             "params": {"handle": handle, "offset": offset, "size": size},
         }
     )
+    return {
+        "base64Encoded": response.get("base64Encoded"),
+        "data": response["data"],
+        "eof": response["eof"],
+    }
 
 
-def resolve_blob(objectId: runtime.RemoteObjectId):
+def resolve_blob(objectId: runtime.RemoteObjectId) -> Generator[dict, dict, str]:
     """Return UUID of Blob object specified by a remote object id.
 
     Parameters
@@ -72,4 +77,5 @@ def resolve_blob(objectId: runtime.RemoteObjectId):
     uuid: str
             UUID of the specified Blob.
     """
-    return {"method": "IO.resolveBlob", "params": {"objectId": objectId}}
+    response = yield {"method": "IO.resolveBlob", "params": {"objectId": objectId}}
+    return response

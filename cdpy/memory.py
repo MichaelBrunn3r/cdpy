@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 import enum
-from typing import Optional
+from typing import Generator, Optional
 
 from .common import filter_unset_parameters
 
@@ -102,7 +102,7 @@ class Module:
         }
 
 
-def get_dom_counters():
+def get_dom_counters() -> Generator[dict, dict, dict]:
     """
     Returns
     -------
@@ -110,20 +110,25 @@ def get_dom_counters():
     nodes: int
     jsEventListeners: int
     """
-    return {"method": "Memory.getDOMCounters", "params": {}}
+    response = yield {"method": "Memory.getDOMCounters", "params": {}}
+    return {
+        "documents": response["documents"],
+        "nodes": response["nodes"],
+        "jsEventListeners": response["jsEventListeners"],
+    }
 
 
-def prepare_for_leak_detection():
+def prepare_for_leak_detection() -> dict:
     """"""
     return {"method": "Memory.prepareForLeakDetection", "params": {}}
 
 
-def forcibly_purge_java_script_memory():
+def forcibly_purge_java_script_memory() -> dict:
     """Simulate OomIntervention by purging V8 memory."""
     return {"method": "Memory.forciblyPurgeJavaScriptMemory", "params": {}}
 
 
-def set_pressure_notifications_suppressed(suppressed: bool):
+def set_pressure_notifications_suppressed(suppressed: bool) -> dict:
     """Enable/disable suppressing memory pressure notifications in all processes.
 
     Parameters
@@ -137,7 +142,7 @@ def set_pressure_notifications_suppressed(suppressed: bool):
     }
 
 
-def simulate_pressure_notification(level: PressureLevel):
+def simulate_pressure_notification(level: PressureLevel) -> dict:
     """Simulate a memory pressure notification in all processes.
 
     Parameters
@@ -150,7 +155,7 @@ def simulate_pressure_notification(level: PressureLevel):
 
 def start_sampling(
     samplingInterval: Optional[int] = None, suppressRandomness: Optional[bool] = None
-):
+) -> dict:
     """Start collecting native memory profile.
 
     Parameters
@@ -171,12 +176,12 @@ def start_sampling(
     )
 
 
-def stop_sampling():
+def stop_sampling() -> dict:
     """Stop collecting native memory profile."""
     return {"method": "Memory.stopSampling", "params": {}}
 
 
-def get_all_time_sampling_profile():
+def get_all_time_sampling_profile() -> Generator[dict, dict, SamplingProfile]:
     """Retrieve native memory allocations profile
     collected since renderer process startup.
 
@@ -184,10 +189,11 @@ def get_all_time_sampling_profile():
     -------
     profile: SamplingProfile
     """
-    return {"method": "Memory.getAllTimeSamplingProfile", "params": {}}
+    response = yield {"method": "Memory.getAllTimeSamplingProfile", "params": {}}
+    return SamplingProfile.from_json(response)
 
 
-def get_browser_sampling_profile():
+def get_browser_sampling_profile() -> Generator[dict, dict, SamplingProfile]:
     """Retrieve native memory allocations profile
     collected since browser process startup.
 
@@ -195,10 +201,11 @@ def get_browser_sampling_profile():
     -------
     profile: SamplingProfile
     """
-    return {"method": "Memory.getBrowserSamplingProfile", "params": {}}
+    response = yield {"method": "Memory.getBrowserSamplingProfile", "params": {}}
+    return SamplingProfile.from_json(response)
 
 
-def get_sampling_profile():
+def get_sampling_profile() -> Generator[dict, dict, SamplingProfile]:
     """Retrieve native memory allocations profile collected since last
     `startSampling` call.
 
@@ -206,4 +213,5 @@ def get_sampling_profile():
     -------
     profile: SamplingProfile
     """
-    return {"method": "Memory.getSamplingProfile", "params": {}}
+    response = yield {"method": "Memory.getSamplingProfile", "params": {}}
+    return SamplingProfile.from_json(response)

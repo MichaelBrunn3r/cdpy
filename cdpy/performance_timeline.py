@@ -183,7 +183,7 @@ class TimelineEvent:
         )
 
 
-def enable(eventTypes: list[str]):
+def enable(eventTypes: list[str]) -> dict:
     """Previously buffered events would be reported before method returns.
     See also: timelineEventAdded
 

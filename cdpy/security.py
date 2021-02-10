@@ -346,17 +346,17 @@ class CertificateErrorAction(enum.Enum):
     CANCEL = "cancel"
 
 
-def disable():
+def disable() -> dict:
     """Disables tracking security state changes."""
     return {"method": "Security.disable", "params": {}}
 
 
-def enable():
+def enable() -> dict:
     """Enables tracking security state changes."""
     return {"method": "Security.enable", "params": {}}
 
 
-def set_ignore_certificate_errors(ignore: bool):
+def set_ignore_certificate_errors(ignore: bool) -> dict:
     """Enable/disable whether all certificate errors should be ignored.
 
     **Experimental**
@@ -372,7 +372,7 @@ def set_ignore_certificate_errors(ignore: bool):
     }
 
 
-def handle_certificate_error(eventId: int, action: CertificateErrorAction):
+def handle_certificate_error(eventId: int, action: CertificateErrorAction) -> dict:
     """Handles a certificate error that fired a certificateError event.
 
     **Deprectated**
@@ -390,7 +390,7 @@ def handle_certificate_error(eventId: int, action: CertificateErrorAction):
     }
 
 
-def set_override_certificate_errors(override: bool):
+def set_override_certificate_errors(override: bool) -> dict:
     """Enable/disable overriding certificate errors. If enabled, all certificate error events need to
     be handled by the DevTools client and should be answered with `handleCertificateError` commands.
 

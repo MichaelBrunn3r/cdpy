@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Optional
+from typing import Generator, Optional
 
 from .common import filter_unset_parameters
 
@@ -29,12 +29,12 @@ class Metric:
         return {"name": self.name, "value": self.value}
 
 
-def disable():
+def disable() -> dict:
     """Disable collecting and reporting metrics."""
     return {"method": "Performance.disable", "params": {}}
 
 
-def enable(timeDomain: Optional[str] = None):
+def enable(timeDomain: Optional[str] = None) -> dict:
     """Enable collecting and reporting metrics.
 
     Parameters
@@ -47,7 +47,7 @@ def enable(timeDomain: Optional[str] = None):
     )
 
 
-def set_time_domain(timeDomain: str):
+def set_time_domain(timeDomain: str) -> dict:
     """Sets time domain to use for collecting and reporting duration metrics.
     Note that this must be called before enabling metrics collection. Calling
     this method while metrics collection is enabled returns an error.
@@ -64,7 +64,7 @@ def set_time_domain(timeDomain: str):
     return {"method": "Performance.setTimeDomain", "params": {"timeDomain": timeDomain}}
 
 
-def get_metrics():
+def get_metrics() -> Generator[dict, dict, list[Metric]]:
     """Retrieve current values of run-time metrics.
 
     Returns
@@ -72,4 +72,5 @@ def get_metrics():
     metrics: list[Metric]
             Current values for run-time metrics.
     """
-    return {"method": "Performance.getMetrics", "params": {}}
+    response = yield {"method": "Performance.getMetrics", "params": {}}
+    return [Metric.from_json(m) for m in response]

@@ -109,24 +109,24 @@ class ViolationSetting:
         return {"name": self.name, "threshold": self.threshold}
 
 
-def clear():
+def clear() -> dict:
     """Clears the log."""
     return {"method": "Log.clear", "params": {}}
 
 
-def disable():
+def disable() -> dict:
     """Disables log domain, prevents further log entries from being reported to the client."""
     return {"method": "Log.disable", "params": {}}
 
 
-def enable():
+def enable() -> dict:
     """Enables log domain, sends the entries collected so far to the client by means of the
     `entryAdded` notification.
     """
     return {"method": "Log.enable", "params": {}}
 
 
-def start_violations_report(config: list[ViolationSetting]):
+def start_violations_report(config: list[ViolationSetting]) -> dict:
     """start violation reporting.
 
     Parameters
@@ -137,6 +137,6 @@ def start_violations_report(config: list[ViolationSetting]):
     return {"method": "Log.startViolationsReport", "params": {"config": config}}
 
 
-def stop_violations_report():
+def stop_violations_report() -> dict:
     """Stop violation reporting."""
     return {"method": "Log.stopViolationsReport", "params": {}}

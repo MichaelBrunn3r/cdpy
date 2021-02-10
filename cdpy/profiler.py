@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Optional
+from typing import Generator, Optional
 
 from . import runtime
 from .common import filter_none, filter_unset_parameters
@@ -357,17 +357,17 @@ class RuntimeCallCounterInfo:
         return {"name": self.name, "value": self.value, "time": self.time}
 
 
-def disable():
+def disable() -> dict:
     """"""
     return {"method": "Profiler.disable", "params": {}}
 
 
-def enable():
+def enable() -> dict:
     """"""
     return {"method": "Profiler.enable", "params": {}}
 
 
-def get_best_effort_coverage():
+def get_best_effort_coverage() -> Generator[dict, dict, list[ScriptCoverage]]:
     """Collect coverage data for the current isolate. The coverage data may be incomplete due to
     garbage collection.
 
@@ -376,10 +376,11 @@ def get_best_effort_coverage():
     result: list[ScriptCoverage]
             Coverage data for the current isolate.
     """
-    return {"method": "Profiler.getBestEffortCoverage", "params": {}}
+    response = yield {"method": "Profiler.getBestEffortCoverage", "params": {}}
+    return [ScriptCoverage.from_json(r) for r in response]
 
 
-def set_sampling_interval(interval: int):
+def set_sampling_interval(interval: int) -> dict:
     """Changes CPU profiler sampling interval. Must be called before CPU profiles recording started.
 
     Parameters
@@ -390,7 +391,7 @@ def set_sampling_interval(interval: int):
     return {"method": "Profiler.setSamplingInterval", "params": {"interval": interval}}
 
 
-def start():
+def start() -> dict:
     """"""
     return {"method": "Profiler.start", "params": {}}
 
@@ -399,7 +400,7 @@ def start_precise_coverage(
     callCount: Optional[bool] = None,
     detailed: Optional[bool] = None,
     allowTriggeredUpdates: Optional[bool] = None,
-):
+) -> Generator[dict, dict, float]:
     """Enable precise code coverage. Coverage data for JavaScript executed before enabling precise code
     coverage may be incomplete. Enabling prevents running optimized code and resets execution
     counters.
@@ -418,7 +419,7 @@ def start_precise_coverage(
     timestamp: float
             Monotonically increasing time (in seconds) when the coverage update was taken in the backend.
     """
-    return filter_unset_parameters(
+    response = yield filter_unset_parameters(
         {
             "method": "Profiler.startPreciseCoverage",
             "params": {
@@ -428,9 +429,10 @@ def start_precise_coverage(
             },
         }
     )
+    return response
 
 
-def start_type_profile():
+def start_type_profile() -> dict:
     """Enable type profile.
 
     **Experimental**
@@ -438,24 +440,25 @@ def start_type_profile():
     return {"method": "Profiler.startTypeProfile", "params": {}}
 
 
-def stop():
+def stop() -> Generator[dict, dict, Profile]:
     """
     Returns
     -------
     profile: Profile
             Recorded profile.
     """
-    return {"method": "Profiler.stop", "params": {}}
+    response = yield {"method": "Profiler.stop", "params": {}}
+    return Profile.from_json(response)
 
 
-def stop_precise_coverage():
+def stop_precise_coverage() -> dict:
     """Disable precise code coverage. Disabling releases unnecessary execution count records and allows
     executing optimized code.
     """
     return {"method": "Profiler.stopPreciseCoverage", "params": {}}
 
 
-def stop_type_profile():
+def stop_type_profile() -> dict:
     """Disable type profile. Disabling releases type profile data collected so far.
 
     **Experimental**
@@ -463,7 +466,7 @@ def stop_type_profile():
     return {"method": "Profiler.stopTypeProfile", "params": {}}
 
 
-def take_precise_coverage():
+def take_precise_coverage() -> Generator[dict, dict, dict]:
     """Collect coverage data for the current isolate, and resets execution counters. Precise code
     coverage needs to have started.
 
@@ -474,10 +477,14 @@ def take_precise_coverage():
     timestamp: float
             Monotonically increasing time (in seconds) when the coverage update was taken in the backend.
     """
-    return {"method": "Profiler.takePreciseCoverage", "params": {}}
+    response = yield {"method": "Profiler.takePreciseCoverage", "params": {}}
+    return {
+        "result": [ScriptCoverage.from_json(r) for r in response["result"]],
+        "timestamp": response["timestamp"],
+    }
 
 
-def take_type_profile():
+def take_type_profile() -> Generator[dict, dict, list[ScriptTypeProfile]]:
     """Collect type profile.
 
     **Experimental**
@@ -487,10 +494,11 @@ def take_type_profile():
     result: list[ScriptTypeProfile]
             Type profile for all scripts since startTypeProfile() was turned on.
     """
-    return {"method": "Profiler.takeTypeProfile", "params": {}}
+    response = yield {"method": "Profiler.takeTypeProfile", "params": {}}
+    return [ScriptTypeProfile.from_json(r) for r in response]
 
 
-def enable_counters():
+def enable_counters() -> dict:
     """Enable counters collection.
 
     **Experimental**
@@ -498,7 +506,7 @@ def enable_counters():
     return {"method": "Profiler.enableCounters", "params": {}}
 
 
-def disable_counters():
+def disable_counters() -> dict:
     """Disable counters collection.
 
     **Experimental**
@@ -506,7 +514,7 @@ def disable_counters():
     return {"method": "Profiler.disableCounters", "params": {}}
 
 
-def get_counters():
+def get_counters() -> Generator[dict, dict, list[CounterInfo]]:
     """Retrieve counters.
 
     **Experimental**
@@ -516,10 +524,11 @@ def get_counters():
     result: list[CounterInfo]
             Collected counters information.
     """
-    return {"method": "Profiler.getCounters", "params": {}}
+    response = yield {"method": "Profiler.getCounters", "params": {}}
+    return [CounterInfo.from_json(r) for r in response]
 
 
-def enable_runtime_call_stats():
+def enable_runtime_call_stats() -> dict:
     """Enable run time call stats collection.
 
     **Experimental**
@@ -527,7 +536,7 @@ def enable_runtime_call_stats():
     return {"method": "Profiler.enableRuntimeCallStats", "params": {}}
 
 
-def disable_runtime_call_stats():
+def disable_runtime_call_stats() -> dict:
     """Disable run time call stats collection.
 
     **Experimental**
@@ -535,7 +544,7 @@ def disable_runtime_call_stats():
     return {"method": "Profiler.disableRuntimeCallStats", "params": {}}
 
 
-def get_runtime_call_stats():
+def get_runtime_call_stats() -> Generator[dict, dict, list[RuntimeCallCounterInfo]]:
     """Retrieve run time call stats.
 
     **Experimental**
@@ -545,4 +554,5 @@ def get_runtime_call_stats():
     result: list[RuntimeCallCounterInfo]
             Collected runtime call counter information.
     """
-    return {"method": "Profiler.getRuntimeCallStats", "params": {}}
+    response = yield {"method": "Profiler.getRuntimeCallStats", "params": {}}
+    return [RuntimeCallCounterInfo.from_json(r) for r in response]
