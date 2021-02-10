@@ -631,23 +631,20 @@ class CDPCommand:
 
         body = [self.create_docstring()]
 
-        method_params = ast.Dict(
-            list(map(lambda param: ast.Str(param.name), self.parameters)),
-            list(map(lambda param: ast.Name(param.name), self.parameters)),
-        )
-        method_dict = ast.Dict(
-            [ast.Str("method"), ast.Str("params")],
-            [ast.Str(f"{self.context.domain_name}.{self.name}"), method_params],
-        )
-
-        # Remove unset optional parameters from method dict
-        if self.has_optional_params:
-            self.context.require(".common", "filter_unset_parameters")
-            method_dict = ast_call("filter_unset_parameters", [method_dict])
-
-        body.append(ast.Return(method_dict))
+        body.append(ast_from_str(f"return {self.create_command_json()}"))
 
         return ast_function(snake_case(self.name), args, body)
+
+    def create_command_json(self):
+        params = ",".join([f'"{p.name}": {p.name}' for p in self.parameters])
+        command_json = f'{{"method": "{self.context.domain_name}.{self.name}", "params": {{{params}}}}}'
+
+        # Remove unset optional parameters
+        if self.has_optional_params:
+            self.context.require(".common", "filter_unset_parameters")
+            command_json = f"filter_unset_parameters({command_json})"
+
+        return command_json
 
     def create_docstring(self):
         lines = []
