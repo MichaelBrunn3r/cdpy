@@ -139,3 +139,38 @@ def clear_events(service: ServiceName) -> dict:
     service: ServiceName
     """
     return {"method": "BackgroundService.clearEvents", "params": {"service": service}}
+
+
+@dataclasses.dataclass
+class RecordingStateChanged:
+    """Called when the recording state for the service has been updated.
+
+    Attributes
+    ----------
+    isRecording: bool
+    service: ServiceName
+    """
+
+    isRecording: bool
+    service: ServiceName
+
+    @classmethod
+    def from_json(cls, json: dict) -> RecordingStateChanged:
+        return cls(json["isRecording"], ServiceName(json["service"]))
+
+
+@dataclasses.dataclass
+class BackgroundServiceEventReceived:
+    """Called with all existing backgroundServiceEvents when enabled, and all new
+    events afterwards if enabled and recording.
+
+    Attributes
+    ----------
+    backgroundServiceEvent: BackgroundServiceEvent
+    """
+
+    backgroundServiceEvent: BackgroundServiceEvent
+
+    @classmethod
+    def from_json(cls, json: dict) -> BackgroundServiceEventReceived:
+        return cls(BackgroundServiceEvent.from_json(json["backgroundServiceEvent"]))

@@ -676,3 +676,12 @@ def set_user_agent_override(
             },
         }
     )
+
+
+@dataclasses.dataclass
+class VirtualTimeBudgetExpired:
+    """Notification sent after the virtual time budget for the current VirtualTimePolicy has run out."""
+
+    @classmethod
+    def from_json(cls, json: dict) -> VirtualTimeBudgetExpired:
+        return cls()

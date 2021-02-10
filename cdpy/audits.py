@@ -819,3 +819,18 @@ def check_contrast() -> dict:
     using Audits.issueAdded event.
     """
     return {"method": "Audits.checkContrast", "params": {}}
+
+
+@dataclasses.dataclass
+class IssueAdded:
+    """
+    Attributes
+    ----------
+    issue: InspectorIssue
+    """
+
+    issue: InspectorIssue
+
+    @classmethod
+    def from_json(cls, json: dict) -> IssueAdded:
+        return cls(InspectorIssue.from_json(json["issue"]))

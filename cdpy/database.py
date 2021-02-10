@@ -123,3 +123,18 @@ def get_database_table_names(
         "params": {"databaseId": databaseId},
     }
     return response
+
+
+@dataclasses.dataclass
+class AddDatabase:
+    """
+    Attributes
+    ----------
+    database: Database
+    """
+
+    database: Database
+
+    @classmethod
+    def from_json(cls, json: dict) -> AddDatabase:
+        return cls(Database.from_json(json["database"]))

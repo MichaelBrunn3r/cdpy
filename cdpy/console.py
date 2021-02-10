@@ -72,3 +72,20 @@ def enable() -> dict:
     `messageAdded` notification.
     """
     return {"method": "Console.enable", "params": {}}
+
+
+@dataclasses.dataclass
+class MessageAdded:
+    """Issued when new console message is added.
+
+    Attributes
+    ----------
+    message: ConsoleMessage
+            Console message that has been added.
+    """
+
+    message: ConsoleMessage
+
+    @classmethod
+    def from_json(cls, json: dict) -> MessageAdded:
+        return cls(ConsoleMessage.from_json(json["message"]))

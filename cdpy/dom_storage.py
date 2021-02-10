@@ -98,3 +98,82 @@ def set_dom_storage_item(storageId: StorageId, key: str, value: str) -> dict:
         "method": "DOMStorage.setDOMStorageItem",
         "params": {"storageId": storageId, "key": key, "value": value},
     }
+
+
+@dataclasses.dataclass
+class DomStorageItemAdded:
+    """
+    Attributes
+    ----------
+    storageId: StorageId
+    key: str
+    newValue: str
+    """
+
+    storageId: StorageId
+    key: str
+    newValue: str
+
+    @classmethod
+    def from_json(cls, json: dict) -> DomStorageItemAdded:
+        return cls(
+            StorageId.from_json(json["storageId"]), json["key"], json["newValue"]
+        )
+
+
+@dataclasses.dataclass
+class DomStorageItemRemoved:
+    """
+    Attributes
+    ----------
+    storageId: StorageId
+    key: str
+    """
+
+    storageId: StorageId
+    key: str
+
+    @classmethod
+    def from_json(cls, json: dict) -> DomStorageItemRemoved:
+        return cls(StorageId.from_json(json["storageId"]), json["key"])
+
+
+@dataclasses.dataclass
+class DomStorageItemUpdated:
+    """
+    Attributes
+    ----------
+    storageId: StorageId
+    key: str
+    oldValue: str
+    newValue: str
+    """
+
+    storageId: StorageId
+    key: str
+    oldValue: str
+    newValue: str
+
+    @classmethod
+    def from_json(cls, json: dict) -> DomStorageItemUpdated:
+        return cls(
+            StorageId.from_json(json["storageId"]),
+            json["key"],
+            json["oldValue"],
+            json["newValue"],
+        )
+
+
+@dataclasses.dataclass
+class DomStorageItemsCleared:
+    """
+    Attributes
+    ----------
+    storageId: StorageId
+    """
+
+    storageId: StorageId
+
+    @classmethod
+    def from_json(cls, json: dict) -> DomStorageItemsCleared:
+        return cls(StorageId.from_json(json["storageId"]))

@@ -1316,3 +1316,175 @@ def remove_binding(name: str) -> dict:
     name: str
     """
     return {"method": "Runtime.removeBinding", "params": {"name": name}}
+
+
+@dataclasses.dataclass
+class BindingCalled:
+    """Notification is issued every time when binding is called.
+
+    Attributes
+    ----------
+    name: str
+    payload: str
+    executionContextId: ExecutionContextId
+            Identifier of the context where the call was made.
+    """
+
+    name: str
+    payload: str
+    executionContextId: ExecutionContextId
+
+    @classmethod
+    def from_json(cls, json: dict) -> BindingCalled:
+        return cls(
+            json["name"],
+            json["payload"],
+            ExecutionContextId(json["executionContextId"]),
+        )
+
+
+@dataclasses.dataclass
+class ConsoleAPICalled:
+    """Issued when console API was called.
+
+    Attributes
+    ----------
+    type: str
+            Type of the call.
+    args: list[RemoteObject]
+            Call arguments.
+    executionContextId: ExecutionContextId
+            Identifier of the context where the call was made.
+    timestamp: Timestamp
+            Call timestamp.
+    stackTrace: Optional[StackTrace]
+            Stack trace captured when the call was made. The async stack chain is automatically reported for
+            the following call types: `assert`, `error`, `trace`, `warning`. For other types the async call
+            chain can be retrieved using `Debugger.getStackTrace` and `stackTrace.parentId` field.
+    context: Optional[str]
+            Console context descriptor for calls on non-default console context (not console.*):
+            'anonymous#unique-logger-id' for call on unnamed context, 'name#unique-logger-id' for call
+            on named context.
+    """
+
+    type: str
+    args: list[RemoteObject]
+    executionContextId: ExecutionContextId
+    timestamp: Timestamp
+    stackTrace: Optional[StackTrace] = None
+    context: Optional[str] = None
+
+    @classmethod
+    def from_json(cls, json: dict) -> ConsoleAPICalled:
+        return cls(
+            json["type"],
+            [RemoteObject.from_json(a) for a in json["args"]],
+            ExecutionContextId(json["executionContextId"]),
+            Timestamp(json["timestamp"]),
+            StackTrace.from_json(json["stackTrace"]) if "stackTrace" in json else None,
+            json.get("context"),
+        )
+
+
+@dataclasses.dataclass
+class ExceptionRevoked:
+    """Issued when unhandled exception was revoked.
+
+    Attributes
+    ----------
+    reason: str
+            Reason describing why exception was revoked.
+    exceptionId: int
+            The id of revoked exception, as reported in `exceptionThrown`.
+    """
+
+    reason: str
+    exceptionId: int
+
+    @classmethod
+    def from_json(cls, json: dict) -> ExceptionRevoked:
+        return cls(json["reason"], json["exceptionId"])
+
+
+@dataclasses.dataclass
+class ExceptionThrown:
+    """Issued when exception was thrown and unhandled.
+
+    Attributes
+    ----------
+    timestamp: Timestamp
+            Timestamp of the exception.
+    exceptionDetails: ExceptionDetails
+    """
+
+    timestamp: Timestamp
+    exceptionDetails: ExceptionDetails
+
+    @classmethod
+    def from_json(cls, json: dict) -> ExceptionThrown:
+        return cls(
+            Timestamp(json["timestamp"]),
+            ExceptionDetails.from_json(json["exceptionDetails"]),
+        )
+
+
+@dataclasses.dataclass
+class ExecutionContextCreated:
+    """Issued when new execution context is created.
+
+    Attributes
+    ----------
+    context: ExecutionContextDescription
+            A newly created execution context.
+    """
+
+    context: ExecutionContextDescription
+
+    @classmethod
+    def from_json(cls, json: dict) -> ExecutionContextCreated:
+        return cls(ExecutionContextDescription.from_json(json["context"]))
+
+
+@dataclasses.dataclass
+class ExecutionContextDestroyed:
+    """Issued when execution context is destroyed.
+
+    Attributes
+    ----------
+    executionContextId: ExecutionContextId
+            Id of the destroyed context
+    """
+
+    executionContextId: ExecutionContextId
+
+    @classmethod
+    def from_json(cls, json: dict) -> ExecutionContextDestroyed:
+        return cls(ExecutionContextId(json["executionContextId"]))
+
+
+@dataclasses.dataclass
+class ExecutionContextsCleared:
+    """Issued when all executionContexts were cleared in browser"""
+
+    @classmethod
+    def from_json(cls, json: dict) -> ExecutionContextsCleared:
+        return cls()
+
+
+@dataclasses.dataclass
+class InspectRequested:
+    """Issued when object should be inspected (for example, as a result of inspect() command line API
+    call).
+
+    Attributes
+    ----------
+    object: RemoteObject
+    hints: dict
+    """
+
+    object: RemoteObject
+    hints: dict
+
+    @classmethod
+    def from_json(cls, json: dict) -> InspectRequested:
+        return cls(RemoteObject.from_json(json["object"]), json["hints"])

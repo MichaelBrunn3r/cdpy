@@ -267,3 +267,80 @@ def get_trust_tokens() -> Generator[dict, dict, list[TrustTokens]]:
     """
     response = yield {"method": "Storage.getTrustTokens", "params": {}}
     return [TrustTokens.from_json(t) for t in response]
+
+
+@dataclasses.dataclass
+class CacheStorageContentUpdated:
+    """A cache's contents have been modified.
+
+    Attributes
+    ----------
+    origin: str
+            Origin to update.
+    cacheName: str
+            Name of cache in origin.
+    """
+
+    origin: str
+    cacheName: str
+
+    @classmethod
+    def from_json(cls, json: dict) -> CacheStorageContentUpdated:
+        return cls(json["origin"], json["cacheName"])
+
+
+@dataclasses.dataclass
+class CacheStorageListUpdated:
+    """A cache has been added/deleted.
+
+    Attributes
+    ----------
+    origin: str
+            Origin to update.
+    """
+
+    origin: str
+
+    @classmethod
+    def from_json(cls, json: dict) -> CacheStorageListUpdated:
+        return cls(json["origin"])
+
+
+@dataclasses.dataclass
+class IndexedDBContentUpdated:
+    """The origin's IndexedDB object store has been modified.
+
+    Attributes
+    ----------
+    origin: str
+            Origin to update.
+    databaseName: str
+            Database to update.
+    objectStoreName: str
+            ObjectStore to update.
+    """
+
+    origin: str
+    databaseName: str
+    objectStoreName: str
+
+    @classmethod
+    def from_json(cls, json: dict) -> IndexedDBContentUpdated:
+        return cls(json["origin"], json["databaseName"], json["objectStoreName"])
+
+
+@dataclasses.dataclass
+class IndexedDBListUpdated:
+    """The origin's IndexedDB database list has been modified.
+
+    Attributes
+    ----------
+    origin: str
+            Origin to update.
+    """
+
+    origin: str
+
+    @classmethod
+    def from_json(cls, json: dict) -> IndexedDBListUpdated:
+        return cls(json["origin"])

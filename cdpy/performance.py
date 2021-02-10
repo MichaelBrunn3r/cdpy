@@ -74,3 +74,23 @@ def get_metrics() -> Generator[dict, dict, list[Metric]]:
     """
     response = yield {"method": "Performance.getMetrics", "params": {}}
     return [Metric.from_json(m) for m in response]
+
+
+@dataclasses.dataclass
+class Metrics:
+    """Current values of the metrics.
+
+    Attributes
+    ----------
+    metrics: list[Metric]
+            Current values of the metrics.
+    title: str
+            Timestamp title.
+    """
+
+    metrics: list[Metric]
+    title: str
+
+    @classmethod
+    def from_json(cls, json: dict) -> Metrics:
+        return cls([Metric.from_json(m) for m in json["metrics"]], json["title"])

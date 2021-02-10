@@ -1427,3 +1427,82 @@ def set_local_fonts_enabled(enabled: bool) -> dict:
             Whether rendering of local fonts is enabled.
     """
     return {"method": "CSS.setLocalFontsEnabled", "params": {"enabled": enabled}}
+
+
+@dataclasses.dataclass
+class FontsUpdated:
+    """Fires whenever a web font is updated.  A non-empty font parameter indicates a successfully loaded
+    web font
+
+    Attributes
+    ----------
+    font: Optional[FontFace]
+            The web font that has loaded.
+    """
+
+    font: Optional[FontFace] = None
+
+    @classmethod
+    def from_json(cls, json: dict) -> FontsUpdated:
+        return cls(FontFace.from_json(json["font"]) if "font" in json else None)
+
+
+@dataclasses.dataclass
+class MediaQueryResultChanged:
+    """Fires whenever a MediaQuery result changes (for example, after a browser window has been
+    resized.) The current implementation considers only viewport-dependent media features.
+    """
+
+    @classmethod
+    def from_json(cls, json: dict) -> MediaQueryResultChanged:
+        return cls()
+
+
+@dataclasses.dataclass
+class StyleSheetAdded:
+    """Fired whenever an active document stylesheet is added.
+
+    Attributes
+    ----------
+    header: CSSStyleSheetHeader
+            Added stylesheet metainfo.
+    """
+
+    header: CSSStyleSheetHeader
+
+    @classmethod
+    def from_json(cls, json: dict) -> StyleSheetAdded:
+        return cls(CSSStyleSheetHeader.from_json(json["header"]))
+
+
+@dataclasses.dataclass
+class StyleSheetChanged:
+    """Fired whenever a stylesheet is changed as a result of the client operation.
+
+    Attributes
+    ----------
+    styleSheetId: StyleSheetId
+    """
+
+    styleSheetId: StyleSheetId
+
+    @classmethod
+    def from_json(cls, json: dict) -> StyleSheetChanged:
+        return cls(StyleSheetId(json["styleSheetId"]))
+
+
+@dataclasses.dataclass
+class StyleSheetRemoved:
+    """Fired whenever an active document stylesheet is removed.
+
+    Attributes
+    ----------
+    styleSheetId: StyleSheetId
+            Identifier of the removed stylesheet.
+    """
+
+    styleSheetId: StyleSheetId
+
+    @classmethod
+    def from_json(cls, json: dict) -> StyleSheetRemoved:
+        return cls(StyleSheetId(json["styleSheetId"]))

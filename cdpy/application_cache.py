@@ -165,3 +165,40 @@ def get_manifest_for_frame(frameId: page.FrameId) -> Generator[dict, dict, str]:
         "params": {"frameId": frameId},
     }
     return response
+
+
+@dataclasses.dataclass
+class ApplicationCacheStatusUpdated:
+    """
+    Attributes
+    ----------
+    frameId: page.FrameId
+            Identifier of the frame containing document whose application cache updated status.
+    manifestURL: str
+            Manifest URL.
+    status: int
+            Updated application cache status.
+    """
+
+    frameId: page.FrameId
+    manifestURL: str
+    status: int
+
+    @classmethod
+    def from_json(cls, json: dict) -> ApplicationCacheStatusUpdated:
+        return cls(page.FrameId(json["frameId"]), json["manifestURL"], json["status"])
+
+
+@dataclasses.dataclass
+class NetworkStateUpdated:
+    """
+    Attributes
+    ----------
+    isNowOnline: bool
+    """
+
+    isNowOnline: bool
+
+    @classmethod
+    def from_json(cls, json: dict) -> NetworkStateUpdated:
+        return cls(json["isNowOnline"])

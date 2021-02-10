@@ -3,7 +3,7 @@ from __future__ import annotations
 import dataclasses
 from typing import Generator, Optional
 
-from . import runtime
+from . import debugger, runtime
 from .common import filter_none, filter_unset_parameters
 
 
@@ -556,3 +556,85 @@ def get_runtime_call_stats() -> Generator[dict, dict, list[RuntimeCallCounterInf
     """
     response = yield {"method": "Profiler.getRuntimeCallStats", "params": {}}
     return [RuntimeCallCounterInfo.from_json(r) for r in response]
+
+
+@dataclasses.dataclass
+class ConsoleProfileFinished:
+    """
+    Attributes
+    ----------
+    id: str
+    location: debugger.Location
+            Location of console.profileEnd().
+    profile: Profile
+    title: Optional[str]
+            Profile title passed as an argument to console.profile().
+    """
+
+    id: str
+    location: debugger.Location
+    profile: Profile
+    title: Optional[str] = None
+
+    @classmethod
+    def from_json(cls, json: dict) -> ConsoleProfileFinished:
+        return cls(
+            json["id"],
+            debugger.Location.from_json(json["location"]),
+            Profile.from_json(json["profile"]),
+            json.get("title"),
+        )
+
+
+@dataclasses.dataclass
+class ConsoleProfileStarted:
+    """Sent when new profile recording is started using console.profile() call.
+
+    Attributes
+    ----------
+    id: str
+    location: debugger.Location
+            Location of console.profile().
+    title: Optional[str]
+            Profile title passed as an argument to console.profile().
+    """
+
+    id: str
+    location: debugger.Location
+    title: Optional[str] = None
+
+    @classmethod
+    def from_json(cls, json: dict) -> ConsoleProfileStarted:
+        return cls(
+            json["id"], debugger.Location.from_json(json["location"]), json.get("title")
+        )
+
+
+@dataclasses.dataclass
+class PreciseCoverageDeltaUpdate:
+    """Reports coverage delta since the last poll (either from an event like this, or from
+    `takePreciseCoverage` for the current isolate. May only be sent if precise code
+    coverage has been started. This event can be trigged by the embedder to, for example,
+    trigger collection of coverage data immediatelly at a certain point in time.
+
+    Attributes
+    ----------
+    timestamp: float
+            Monotonically increasing time (in seconds) when the coverage update was taken in the backend.
+    occassion: str
+            Identifier for distinguishing coverage events.
+    result: list[ScriptCoverage]
+            Coverage data for the current isolate.
+    """
+
+    timestamp: float
+    occassion: str
+    result: list[ScriptCoverage]
+
+    @classmethod
+    def from_json(cls, json: dict) -> PreciseCoverageDeltaUpdate:
+        return cls(
+            json["timestamp"],
+            json["occassion"],
+            [ScriptCoverage.from_json(r) for r in json["result"]],
+        )

@@ -90,3 +90,22 @@ def disable() -> dict:
 def enable() -> dict:
     """Enables headless events for the target."""
     return {"method": "HeadlessExperimental.enable", "params": {}}
+
+
+@dataclasses.dataclass
+class NeedsBeginFramesChanged:
+    """Issued when the target starts or stops needing BeginFrames.
+    Deprecated. Issue beginFrame unconditionally instead and use result from
+    beginFrame to detect whether the frames were suppressed.
+
+    Attributes
+    ----------
+    needsBeginFrames: bool
+            True if BeginFrames are needed, false otherwise.
+    """
+
+    needsBeginFrames: bool
+
+    @classmethod
+    def from_json(cls, json: dict) -> NeedsBeginFramesChanged:
+        return cls(json["needsBeginFrames"])

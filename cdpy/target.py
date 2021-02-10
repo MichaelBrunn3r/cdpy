@@ -462,3 +462,150 @@ def set_remote_locations(locations: list[RemoteLocation]) -> dict:
             List of remote locations.
     """
     return {"method": "Target.setRemoteLocations", "params": {"locations": locations}}
+
+
+@dataclasses.dataclass
+class AttachedToTarget:
+    """Issued when attached to target because of auto-attach or `attachToTarget` command.
+
+    Attributes
+    ----------
+    sessionId: SessionID
+            Identifier assigned to the session used to send/receive messages.
+    targetInfo: TargetInfo
+    waitingForDebugger: bool
+    """
+
+    sessionId: SessionID
+    targetInfo: TargetInfo
+    waitingForDebugger: bool
+
+    @classmethod
+    def from_json(cls, json: dict) -> AttachedToTarget:
+        return cls(
+            SessionID(json["sessionId"]),
+            TargetInfo.from_json(json["targetInfo"]),
+            json["waitingForDebugger"],
+        )
+
+
+@dataclasses.dataclass
+class DetachedFromTarget:
+    """Issued when detached from target for any reason (including `detachFromTarget` command). Can be
+    issued multiple times per target if multiple sessions have been attached to it.
+
+    Attributes
+    ----------
+    sessionId: SessionID
+            Detached session identifier.
+    targetId: Optional[TargetID]
+            Deprecated.
+    """
+
+    sessionId: SessionID
+    targetId: Optional[TargetID] = None
+
+    @classmethod
+    def from_json(cls, json: dict) -> DetachedFromTarget:
+        return cls(
+            SessionID(json["sessionId"]),
+            TargetID(json["targetId"]) if "targetId" in json else None,
+        )
+
+
+@dataclasses.dataclass
+class ReceivedMessageFromTarget:
+    """Notifies about a new protocol message received from the session (as reported in
+    `attachedToTarget` event).
+
+    Attributes
+    ----------
+    sessionId: SessionID
+            Identifier of a session which sends a message.
+    message: str
+    targetId: Optional[TargetID]
+            Deprecated.
+    """
+
+    sessionId: SessionID
+    message: str
+    targetId: Optional[TargetID] = None
+
+    @classmethod
+    def from_json(cls, json: dict) -> ReceivedMessageFromTarget:
+        return cls(
+            SessionID(json["sessionId"]),
+            json["message"],
+            TargetID(json["targetId"]) if "targetId" in json else None,
+        )
+
+
+@dataclasses.dataclass
+class TargetCreated:
+    """Issued when a possible inspection target is created.
+
+    Attributes
+    ----------
+    targetInfo: TargetInfo
+    """
+
+    targetInfo: TargetInfo
+
+    @classmethod
+    def from_json(cls, json: dict) -> TargetCreated:
+        return cls(TargetInfo.from_json(json["targetInfo"]))
+
+
+@dataclasses.dataclass
+class TargetDestroyed:
+    """Issued when a target is destroyed.
+
+    Attributes
+    ----------
+    targetId: TargetID
+    """
+
+    targetId: TargetID
+
+    @classmethod
+    def from_json(cls, json: dict) -> TargetDestroyed:
+        return cls(TargetID(json["targetId"]))
+
+
+@dataclasses.dataclass
+class TargetCrashed:
+    """Issued when a target has crashed.
+
+    Attributes
+    ----------
+    targetId: TargetID
+    status: str
+            Termination status type.
+    errorCode: int
+            Termination error code.
+    """
+
+    targetId: TargetID
+    status: str
+    errorCode: int
+
+    @classmethod
+    def from_json(cls, json: dict) -> TargetCrashed:
+        return cls(TargetID(json["targetId"]), json["status"], json["errorCode"])
+
+
+@dataclasses.dataclass
+class TargetInfoChanged:
+    """Issued when some information about a target has changed. This only happens between
+    `targetCreated` and `targetDestroyed`.
+
+    Attributes
+    ----------
+    targetInfo: TargetInfo
+    """
+
+    targetInfo: TargetInfo
+
+    @classmethod
+    def from_json(cls, json: dict) -> TargetInfoChanged:
+        return cls(TargetInfo.from_json(json["targetInfo"]))

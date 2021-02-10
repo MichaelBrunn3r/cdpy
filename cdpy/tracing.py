@@ -4,6 +4,7 @@ import dataclasses
 import enum
 from typing import Generator, Optional
 
+from . import io
 from .common import filter_none, filter_unset_parameters
 
 
@@ -212,3 +213,79 @@ def start(
             },
         }
     )
+
+
+@dataclasses.dataclass
+class BufferUsage:
+    """
+    Attributes
+    ----------
+    percentFull: Optional[float]
+            A number in range [0..1] that indicates the used size of event buffer as a fraction of its
+            total size.
+    eventCount: Optional[float]
+            An approximate number of events in the trace log.
+    value: Optional[float]
+            A number in range [0..1] that indicates the used size of event buffer as a fraction of its
+            total size.
+    """
+
+    percentFull: Optional[float] = None
+    eventCount: Optional[float] = None
+    value: Optional[float] = None
+
+    @classmethod
+    def from_json(cls, json: dict) -> BufferUsage:
+        return cls(json.get("percentFull"), json.get("eventCount"), json.get("value"))
+
+
+@dataclasses.dataclass
+class DataCollected:
+    """Contains an bucket of collected trace events. When tracing is stopped collected events will be
+    send as a sequence of dataCollected events followed by tracingComplete event.
+
+    Attributes
+    ----------
+    value: list[dict]
+    """
+
+    value: list[dict]
+
+    @classmethod
+    def from_json(cls, json: dict) -> DataCollected:
+        return cls(json["value"])
+
+
+@dataclasses.dataclass
+class TracingComplete:
+    """Signals that tracing is stopped and there is no trace buffers pending flush, all data were
+    delivered via dataCollected events.
+
+    Attributes
+    ----------
+    dataLossOccurred: bool
+            Indicates whether some trace data is known to have been lost, e.g. because the trace ring
+            buffer wrapped around.
+    stream: Optional[io.StreamHandle]
+            A handle of the stream that holds resulting trace data.
+    traceFormat: Optional[StreamFormat]
+            Trace data format of returned stream.
+    streamCompression: Optional[StreamCompression]
+            Compression format of returned stream.
+    """
+
+    dataLossOccurred: bool
+    stream: Optional[io.StreamHandle] = None
+    traceFormat: Optional[StreamFormat] = None
+    streamCompression: Optional[StreamCompression] = None
+
+    @classmethod
+    def from_json(cls, json: dict) -> TracingComplete:
+        return cls(
+            json["dataLossOccurred"],
+            io.StreamHandle(json["stream"]) if "stream" in json else None,
+            StreamFormat(json["traceFormat"]) if "traceFormat" in json else None,
+            StreamCompression(json["streamCompression"])
+            if "streamCompression" in json
+            else None,
+        )

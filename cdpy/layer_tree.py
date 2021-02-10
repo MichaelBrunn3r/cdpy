@@ -420,3 +420,40 @@ def snapshot_command_log(snapshotId: SnapshotId) -> Generator[dict, dict, list[d
         "params": {"snapshotId": snapshotId},
     }
     return response
+
+
+@dataclasses.dataclass
+class LayerPainted:
+    """
+    Attributes
+    ----------
+    layerId: LayerId
+            The id of the painted layer.
+    clip: dom.Rect
+            Clip rectangle.
+    """
+
+    layerId: LayerId
+    clip: dom.Rect
+
+    @classmethod
+    def from_json(cls, json: dict) -> LayerPainted:
+        return cls(LayerId(json["layerId"]), dom.Rect.from_json(json["clip"]))
+
+
+@dataclasses.dataclass
+class LayerTreeDidChange:
+    """
+    Attributes
+    ----------
+    layers: Optional[list[Layer]]
+            Layer tree, absent if not in the comspositing mode.
+    """
+
+    layers: Optional[list[Layer]] = None
+
+    @classmethod
+    def from_json(cls, json: dict) -> LayerTreeDidChange:
+        return cls(
+            [Layer.from_json(l) for l in json["layers"]] if "layers" in json else None
+        )

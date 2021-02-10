@@ -1086,3 +1086,268 @@ def step_over(skipList: Optional[list[LocationRange]] = None) -> dict:
     return filter_unset_parameters(
         {"method": "Debugger.stepOver", "params": {"skipList": skipList}}
     )
+
+
+@dataclasses.dataclass
+class BreakpointResolved:
+    """Fired when breakpoint is resolved to an actual script and location.
+
+    Attributes
+    ----------
+    breakpointId: BreakpointId
+            Breakpoint unique identifier.
+    location: Location
+            Actual breakpoint location.
+    """
+
+    breakpointId: BreakpointId
+    location: Location
+
+    @classmethod
+    def from_json(cls, json: dict) -> BreakpointResolved:
+        return cls(
+            BreakpointId(json["breakpointId"]), Location.from_json(json["location"])
+        )
+
+
+@dataclasses.dataclass
+class Paused:
+    """Fired when the virtual machine stopped on breakpoint or exception or any other stop criteria.
+
+    Attributes
+    ----------
+    callFrames: list[CallFrame]
+            Call stack the virtual machine stopped on.
+    reason: str
+            Pause reason.
+    data: Optional[dict]
+            Object containing break-specific auxiliary properties.
+    hitBreakpoints: Optional[list[str]]
+            Hit breakpoints IDs
+    asyncStackTrace: Optional[runtime.StackTrace]
+            Async stack trace, if any.
+    asyncStackTraceId: Optional[runtime.StackTraceId]
+            Async stack trace, if any.
+    asyncCallStackTraceId: Optional[runtime.StackTraceId]
+            Never present, will be removed.
+    """
+
+    callFrames: list[CallFrame]
+    reason: str
+    data: Optional[dict] = None
+    hitBreakpoints: Optional[list[str]] = None
+    asyncStackTrace: Optional[runtime.StackTrace] = None
+    asyncStackTraceId: Optional[runtime.StackTraceId] = None
+    asyncCallStackTraceId: Optional[runtime.StackTraceId] = None
+
+    @classmethod
+    def from_json(cls, json: dict) -> Paused:
+        return cls(
+            [CallFrame.from_json(c) for c in json["callFrames"]],
+            json["reason"],
+            json.get("data"),
+            json.get("hitBreakpoints"),
+            runtime.StackTrace.from_json(json["asyncStackTrace"])
+            if "asyncStackTrace" in json
+            else None,
+            runtime.StackTraceId.from_json(json["asyncStackTraceId"])
+            if "asyncStackTraceId" in json
+            else None,
+            runtime.StackTraceId.from_json(json["asyncCallStackTraceId"])
+            if "asyncCallStackTraceId" in json
+            else None,
+        )
+
+
+@dataclasses.dataclass
+class Resumed:
+    """Fired when the virtual machine resumed execution."""
+
+    @classmethod
+    def from_json(cls, json: dict) -> Resumed:
+        return cls()
+
+
+@dataclasses.dataclass
+class ScriptFailedToParse:
+    """Fired when virtual machine fails to parse the script.
+
+    Attributes
+    ----------
+    scriptId: runtime.ScriptId
+            Identifier of the script parsed.
+    url: str
+            URL or name of the script parsed (if any).
+    startLine: int
+            Line offset of the script within the resource with given URL (for script tags).
+    startColumn: int
+            Column offset of the script within the resource with given URL.
+    endLine: int
+            Last line of the script.
+    endColumn: int
+            Length of the last line of the script.
+    executionContextId: runtime.ExecutionContextId
+            Specifies script creation context.
+    hash: str
+            Content hash of the script.
+    executionContextAuxData: Optional[dict]
+            Embedder-specific auxiliary data.
+    sourceMapURL: Optional[str]
+            URL of source map associated with script (if any).
+    hasSourceURL: Optional[bool]
+            True, if this script has sourceURL.
+    isModule: Optional[bool]
+            True, if this script is ES6 module.
+    length: Optional[int]
+            This script length.
+    stackTrace: Optional[runtime.StackTrace]
+            JavaScript top stack frame of where the script parsed event was triggered if available.
+    codeOffset: Optional[int]
+            If the scriptLanguage is WebAssembly, the code section offset in the module.
+    scriptLanguage: Optional[ScriptLanguage]
+            The language of the script.
+    embedderName: Optional[str]
+            The name the embedder supplied for this script.
+    """
+
+    scriptId: runtime.ScriptId
+    url: str
+    startLine: int
+    startColumn: int
+    endLine: int
+    endColumn: int
+    executionContextId: runtime.ExecutionContextId
+    hash: str
+    executionContextAuxData: Optional[dict] = None
+    sourceMapURL: Optional[str] = None
+    hasSourceURL: Optional[bool] = None
+    isModule: Optional[bool] = None
+    length: Optional[int] = None
+    stackTrace: Optional[runtime.StackTrace] = None
+    codeOffset: Optional[int] = None
+    scriptLanguage: Optional[ScriptLanguage] = None
+    embedderName: Optional[str] = None
+
+    @classmethod
+    def from_json(cls, json: dict) -> ScriptFailedToParse:
+        return cls(
+            runtime.ScriptId(json["scriptId"]),
+            json["url"],
+            json["startLine"],
+            json["startColumn"],
+            json["endLine"],
+            json["endColumn"],
+            runtime.ExecutionContextId(json["executionContextId"]),
+            json["hash"],
+            json.get("executionContextAuxData"),
+            json.get("sourceMapURL"),
+            json.get("hasSourceURL"),
+            json.get("isModule"),
+            json.get("length"),
+            runtime.StackTrace.from_json(json["stackTrace"])
+            if "stackTrace" in json
+            else None,
+            json.get("codeOffset"),
+            ScriptLanguage(json["scriptLanguage"])
+            if "scriptLanguage" in json
+            else None,
+            json.get("embedderName"),
+        )
+
+
+@dataclasses.dataclass
+class ScriptParsed:
+    """Fired when virtual machine parses script. This event is also fired for all known and uncollected
+    scripts upon enabling debugger.
+
+    Attributes
+    ----------
+    scriptId: runtime.ScriptId
+            Identifier of the script parsed.
+    url: str
+            URL or name of the script parsed (if any).
+    startLine: int
+            Line offset of the script within the resource with given URL (for script tags).
+    startColumn: int
+            Column offset of the script within the resource with given URL.
+    endLine: int
+            Last line of the script.
+    endColumn: int
+            Length of the last line of the script.
+    executionContextId: runtime.ExecutionContextId
+            Specifies script creation context.
+    hash: str
+            Content hash of the script.
+    executionContextAuxData: Optional[dict]
+            Embedder-specific auxiliary data.
+    isLiveEdit: Optional[bool]
+            True, if this script is generated as a result of the live edit operation.
+    sourceMapURL: Optional[str]
+            URL of source map associated with script (if any).
+    hasSourceURL: Optional[bool]
+            True, if this script has sourceURL.
+    isModule: Optional[bool]
+            True, if this script is ES6 module.
+    length: Optional[int]
+            This script length.
+    stackTrace: Optional[runtime.StackTrace]
+            JavaScript top stack frame of where the script parsed event was triggered if available.
+    codeOffset: Optional[int]
+            If the scriptLanguage is WebAssembly, the code section offset in the module.
+    scriptLanguage: Optional[ScriptLanguage]
+            The language of the script.
+    debugSymbols: Optional[DebugSymbols]
+            If the scriptLanguage is WebASsembly, the source of debug symbols for the module.
+    embedderName: Optional[str]
+            The name the embedder supplied for this script.
+    """
+
+    scriptId: runtime.ScriptId
+    url: str
+    startLine: int
+    startColumn: int
+    endLine: int
+    endColumn: int
+    executionContextId: runtime.ExecutionContextId
+    hash: str
+    executionContextAuxData: Optional[dict] = None
+    isLiveEdit: Optional[bool] = None
+    sourceMapURL: Optional[str] = None
+    hasSourceURL: Optional[bool] = None
+    isModule: Optional[bool] = None
+    length: Optional[int] = None
+    stackTrace: Optional[runtime.StackTrace] = None
+    codeOffset: Optional[int] = None
+    scriptLanguage: Optional[ScriptLanguage] = None
+    debugSymbols: Optional[DebugSymbols] = None
+    embedderName: Optional[str] = None
+
+    @classmethod
+    def from_json(cls, json: dict) -> ScriptParsed:
+        return cls(
+            runtime.ScriptId(json["scriptId"]),
+            json["url"],
+            json["startLine"],
+            json["startColumn"],
+            json["endLine"],
+            json["endColumn"],
+            runtime.ExecutionContextId(json["executionContextId"]),
+            json["hash"],
+            json.get("executionContextAuxData"),
+            json.get("isLiveEdit"),
+            json.get("sourceMapURL"),
+            json.get("hasSourceURL"),
+            json.get("isModule"),
+            json.get("length"),
+            runtime.StackTrace.from_json(json["stackTrace"])
+            if "stackTrace" in json
+            else None,
+            json.get("codeOffset"),
+            ScriptLanguage(json["scriptLanguage"])
+            if "scriptLanguage" in json
+            else None,
+            DebugSymbols.from_json(json["debugSymbols"])
+            if "debugSymbols" in json
+            else None,
+            json.get("embedderName"),
+        )

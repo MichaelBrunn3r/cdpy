@@ -1102,3 +1102,63 @@ def set_show_hinge(hingeConfig: Optional[HingeConfig] = None) -> dict:
     return filter_unset_parameters(
         {"method": "Overlay.setShowHinge", "params": {"hingeConfig": hingeConfig}}
     )
+
+
+@dataclasses.dataclass
+class InspectNodeRequested:
+    """Fired when the node should be inspected. This happens after call to `setInspectMode` or when
+    user manually inspects an element.
+
+    Attributes
+    ----------
+    backendNodeId: dom.BackendNodeId
+            Id of the node to inspect.
+    """
+
+    backendNodeId: dom.BackendNodeId
+
+    @classmethod
+    def from_json(cls, json: dict) -> InspectNodeRequested:
+        return cls(dom.BackendNodeId(json["backendNodeId"]))
+
+
+@dataclasses.dataclass
+class NodeHighlightRequested:
+    """Fired when the node should be highlighted. This happens after call to `setInspectMode`.
+
+    Attributes
+    ----------
+    nodeId: dom.NodeId
+    """
+
+    nodeId: dom.NodeId
+
+    @classmethod
+    def from_json(cls, json: dict) -> NodeHighlightRequested:
+        return cls(dom.NodeId(json["nodeId"]))
+
+
+@dataclasses.dataclass
+class ScreenshotRequested:
+    """Fired when user asks to capture screenshot of some area on the page.
+
+    Attributes
+    ----------
+    viewport: page.Viewport
+            Viewport to capture, in device independent pixels (dip).
+    """
+
+    viewport: page.Viewport
+
+    @classmethod
+    def from_json(cls, json: dict) -> ScreenshotRequested:
+        return cls(page.Viewport.from_json(json["viewport"]))
+
+
+@dataclasses.dataclass
+class InspectModeCanceled:
+    """Fired when user cancels the inspect mode."""
+
+    @classmethod
+    def from_json(cls, json: dict) -> InspectModeCanceled:
+        return cls()

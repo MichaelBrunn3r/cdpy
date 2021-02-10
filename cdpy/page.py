@@ -1843,3 +1843,542 @@ def set_intercept_file_chooser_dialog(enabled: bool) -> dict:
         "method": "Page.setInterceptFileChooserDialog",
         "params": {"enabled": enabled},
     }
+
+
+@dataclasses.dataclass
+class DomContentEventFired:
+    """
+    Attributes
+    ----------
+    timestamp: network.MonotonicTime
+    """
+
+    timestamp: network.MonotonicTime
+
+    @classmethod
+    def from_json(cls, json: dict) -> DomContentEventFired:
+        return cls(network.MonotonicTime(json["timestamp"]))
+
+
+@dataclasses.dataclass
+class FileChooserOpened:
+    """Emitted only when `page.interceptFileChooser` is enabled.
+
+    Attributes
+    ----------
+    frameId: FrameId
+            Id of the frame containing input node.
+    backendNodeId: dom.BackendNodeId
+            Input node id.
+    mode: str
+            Input mode.
+    """
+
+    frameId: FrameId
+    backendNodeId: dom.BackendNodeId
+    mode: str
+
+    @classmethod
+    def from_json(cls, json: dict) -> FileChooserOpened:
+        return cls(
+            FrameId(json["frameId"]),
+            dom.BackendNodeId(json["backendNodeId"]),
+            json["mode"],
+        )
+
+
+@dataclasses.dataclass
+class FrameAttached:
+    """Fired when frame has been attached to its parent.
+
+    Attributes
+    ----------
+    frameId: FrameId
+            Id of the frame that has been attached.
+    parentFrameId: FrameId
+            Parent frame identifier.
+    stack: Optional[runtime.StackTrace]
+            JavaScript stack trace of when frame was attached, only set if frame initiated from script.
+    """
+
+    frameId: FrameId
+    parentFrameId: FrameId
+    stack: Optional[runtime.StackTrace] = None
+
+    @classmethod
+    def from_json(cls, json: dict) -> FrameAttached:
+        return cls(
+            FrameId(json["frameId"]),
+            FrameId(json["parentFrameId"]),
+            runtime.StackTrace.from_json(json["stack"]) if "stack" in json else None,
+        )
+
+
+@dataclasses.dataclass
+class FrameClearedScheduledNavigation:
+    """Fired when frame no longer has a scheduled navigation.
+
+    Attributes
+    ----------
+    frameId: FrameId
+            Id of the frame that has cleared its scheduled navigation.
+    """
+
+    frameId: FrameId
+
+    @classmethod
+    def from_json(cls, json: dict) -> FrameClearedScheduledNavigation:
+        return cls(FrameId(json["frameId"]))
+
+
+@dataclasses.dataclass
+class FrameDetached:
+    """Fired when frame has been detached from its parent.
+
+    Attributes
+    ----------
+    frameId: FrameId
+            Id of the frame that has been detached.
+    reason: str
+    """
+
+    frameId: FrameId
+    reason: str
+
+    @classmethod
+    def from_json(cls, json: dict) -> FrameDetached:
+        return cls(FrameId(json["frameId"]), json["reason"])
+
+
+@dataclasses.dataclass
+class FrameNavigated:
+    """Fired once navigation of the frame has completed. Frame is now associated with the new loader.
+
+    Attributes
+    ----------
+    frame: Frame
+            Frame object.
+    """
+
+    frame: Frame
+
+    @classmethod
+    def from_json(cls, json: dict) -> FrameNavigated:
+        return cls(Frame.from_json(json["frame"]))
+
+
+@dataclasses.dataclass
+class DocumentOpened:
+    """Fired when opening document to write to.
+
+    Attributes
+    ----------
+    frame: Frame
+            Frame object.
+    """
+
+    frame: Frame
+
+    @classmethod
+    def from_json(cls, json: dict) -> DocumentOpened:
+        return cls(Frame.from_json(json["frame"]))
+
+
+@dataclasses.dataclass
+class FrameResized:
+    """"""
+
+    @classmethod
+    def from_json(cls, json: dict) -> FrameResized:
+        return cls()
+
+
+@dataclasses.dataclass
+class FrameRequestedNavigation:
+    """Fired when a renderer-initiated navigation is requested.
+    Navigation may still be cancelled after the event is issued.
+
+    Attributes
+    ----------
+    frameId: FrameId
+            Id of the frame that is being navigated.
+    reason: ClientNavigationReason
+            The reason for the navigation.
+    url: str
+            The destination URL for the requested navigation.
+    disposition: ClientNavigationDisposition
+            The disposition for the navigation.
+    """
+
+    frameId: FrameId
+    reason: ClientNavigationReason
+    url: str
+    disposition: ClientNavigationDisposition
+
+    @classmethod
+    def from_json(cls, json: dict) -> FrameRequestedNavigation:
+        return cls(
+            FrameId(json["frameId"]),
+            ClientNavigationReason(json["reason"]),
+            json["url"],
+            ClientNavigationDisposition(json["disposition"]),
+        )
+
+
+@dataclasses.dataclass
+class FrameScheduledNavigation:
+    """Fired when frame schedules a potential navigation.
+
+    Attributes
+    ----------
+    frameId: FrameId
+            Id of the frame that has scheduled a navigation.
+    delay: float
+            Delay (in seconds) until the navigation is scheduled to begin. The navigation is not
+            guaranteed to start.
+    reason: ClientNavigationReason
+            The reason for the navigation.
+    url: str
+            The destination URL for the scheduled navigation.
+    """
+
+    frameId: FrameId
+    delay: float
+    reason: ClientNavigationReason
+    url: str
+
+    @classmethod
+    def from_json(cls, json: dict) -> FrameScheduledNavigation:
+        return cls(
+            FrameId(json["frameId"]),
+            json["delay"],
+            ClientNavigationReason(json["reason"]),
+            json["url"],
+        )
+
+
+@dataclasses.dataclass
+class FrameStartedLoading:
+    """Fired when frame has started loading.
+
+    Attributes
+    ----------
+    frameId: FrameId
+            Id of the frame that has started loading.
+    """
+
+    frameId: FrameId
+
+    @classmethod
+    def from_json(cls, json: dict) -> FrameStartedLoading:
+        return cls(FrameId(json["frameId"]))
+
+
+@dataclasses.dataclass
+class FrameStoppedLoading:
+    """Fired when frame has stopped loading.
+
+    Attributes
+    ----------
+    frameId: FrameId
+            Id of the frame that has stopped loading.
+    """
+
+    frameId: FrameId
+
+    @classmethod
+    def from_json(cls, json: dict) -> FrameStoppedLoading:
+        return cls(FrameId(json["frameId"]))
+
+
+@dataclasses.dataclass
+class DownloadWillBegin:
+    """Fired when page is about to start a download.
+
+    Attributes
+    ----------
+    frameId: FrameId
+            Id of the frame that caused download to begin.
+    guid: str
+            Global unique identifier of the download.
+    url: str
+            URL of the resource being downloaded.
+    suggestedFilename: str
+            Suggested file name of the resource (the actual name of the file saved on disk may differ).
+    """
+
+    frameId: FrameId
+    guid: str
+    url: str
+    suggestedFilename: str
+
+    @classmethod
+    def from_json(cls, json: dict) -> DownloadWillBegin:
+        return cls(
+            FrameId(json["frameId"]),
+            json["guid"],
+            json["url"],
+            json["suggestedFilename"],
+        )
+
+
+@dataclasses.dataclass
+class DownloadProgress:
+    """Fired when download makes progress. Last call has |done| == true.
+
+    Attributes
+    ----------
+    guid: str
+            Global unique identifier of the download.
+    totalBytes: float
+            Total expected bytes to download.
+    receivedBytes: float
+            Total bytes received.
+    state: str
+            Download status.
+    """
+
+    guid: str
+    totalBytes: float
+    receivedBytes: float
+    state: str
+
+    @classmethod
+    def from_json(cls, json: dict) -> DownloadProgress:
+        return cls(
+            json["guid"], json["totalBytes"], json["receivedBytes"], json["state"]
+        )
+
+
+@dataclasses.dataclass
+class InterstitialHidden:
+    """Fired when interstitial page was hidden"""
+
+    @classmethod
+    def from_json(cls, json: dict) -> InterstitialHidden:
+        return cls()
+
+
+@dataclasses.dataclass
+class InterstitialShown:
+    """Fired when interstitial page was shown"""
+
+    @classmethod
+    def from_json(cls, json: dict) -> InterstitialShown:
+        return cls()
+
+
+@dataclasses.dataclass
+class JavascriptDialogClosed:
+    """Fired when a JavaScript initiated dialog (alert, confirm, prompt, or onbeforeunload) has been
+    closed.
+
+    Attributes
+    ----------
+    result: bool
+            Whether dialog was confirmed.
+    userInput: str
+            User input in case of prompt.
+    """
+
+    result: bool
+    userInput: str
+
+    @classmethod
+    def from_json(cls, json: dict) -> JavascriptDialogClosed:
+        return cls(json["result"], json["userInput"])
+
+
+@dataclasses.dataclass
+class JavascriptDialogOpening:
+    """Fired when a JavaScript initiated dialog (alert, confirm, prompt, or onbeforeunload) is about to
+    open.
+
+    Attributes
+    ----------
+    url: str
+            Frame url.
+    message: str
+            Message that will be displayed by the dialog.
+    type: DialogType
+            Dialog type.
+    hasBrowserHandler: bool
+            True iff browser is capable showing or acting on the given dialog. When browser has no
+            dialog handler for given target, calling alert while Page domain is engaged will stall
+            the page execution. Execution can be resumed via calling Page.handleJavaScriptDialog.
+    defaultPrompt: Optional[str]
+            Default dialog prompt.
+    """
+
+    url: str
+    message: str
+    type: DialogType
+    hasBrowserHandler: bool
+    defaultPrompt: Optional[str] = None
+
+    @classmethod
+    def from_json(cls, json: dict) -> JavascriptDialogOpening:
+        return cls(
+            json["url"],
+            json["message"],
+            DialogType(json["type"]),
+            json["hasBrowserHandler"],
+            json.get("defaultPrompt"),
+        )
+
+
+@dataclasses.dataclass
+class LifecycleEvent:
+    """Fired for top level page lifecycle events such as navigation, load, paint, etc.
+
+    Attributes
+    ----------
+    frameId: FrameId
+            Id of the frame.
+    loaderId: network.LoaderId
+            Loader identifier. Empty string if the request is fetched from worker.
+    name: str
+    timestamp: network.MonotonicTime
+    """
+
+    frameId: FrameId
+    loaderId: network.LoaderId
+    name: str
+    timestamp: network.MonotonicTime
+
+    @classmethod
+    def from_json(cls, json: dict) -> LifecycleEvent:
+        return cls(
+            FrameId(json["frameId"]),
+            network.LoaderId(json["loaderId"]),
+            json["name"],
+            network.MonotonicTime(json["timestamp"]),
+        )
+
+
+@dataclasses.dataclass
+class LoadEventFired:
+    """
+    Attributes
+    ----------
+    timestamp: network.MonotonicTime
+    """
+
+    timestamp: network.MonotonicTime
+
+    @classmethod
+    def from_json(cls, json: dict) -> LoadEventFired:
+        return cls(network.MonotonicTime(json["timestamp"]))
+
+
+@dataclasses.dataclass
+class NavigatedWithinDocument:
+    """Fired when same-document navigation happens, e.g. due to history API usage or anchor navigation.
+
+    Attributes
+    ----------
+    frameId: FrameId
+            Id of the frame.
+    url: str
+            Frame's new url.
+    """
+
+    frameId: FrameId
+    url: str
+
+    @classmethod
+    def from_json(cls, json: dict) -> NavigatedWithinDocument:
+        return cls(FrameId(json["frameId"]), json["url"])
+
+
+@dataclasses.dataclass
+class ScreencastFrame:
+    """Compressed image data requested by the `startScreencast`.
+
+    Attributes
+    ----------
+    data: str
+            Base64-encoded compressed image. (Encoded as a base64 string when passed over JSON)
+    metadata: ScreencastFrameMetadata
+            Screencast frame metadata.
+    sessionId: int
+            Frame number.
+    """
+
+    data: str
+    metadata: ScreencastFrameMetadata
+    sessionId: int
+
+    @classmethod
+    def from_json(cls, json: dict) -> ScreencastFrame:
+        return cls(
+            json["data"],
+            ScreencastFrameMetadata.from_json(json["metadata"]),
+            json["sessionId"],
+        )
+
+
+@dataclasses.dataclass
+class ScreencastVisibilityChanged:
+    """Fired when the page with currently enabled screencast was shown or hidden `.
+
+    Attributes
+    ----------
+    visible: bool
+            True if the page is visible.
+    """
+
+    visible: bool
+
+    @classmethod
+    def from_json(cls, json: dict) -> ScreencastVisibilityChanged:
+        return cls(json["visible"])
+
+
+@dataclasses.dataclass
+class WindowOpen:
+    """Fired when a new window is going to be opened, via window.open(), link click, form submission,
+    etc.
+
+    Attributes
+    ----------
+    url: str
+            The URL for the new window.
+    windowName: str
+            Window name.
+    windowFeatures: list[str]
+            An array of enabled window features.
+    userGesture: bool
+            Whether or not it was triggered by user gesture.
+    """
+
+    url: str
+    windowName: str
+    windowFeatures: list[str]
+    userGesture: bool
+
+    @classmethod
+    def from_json(cls, json: dict) -> WindowOpen:
+        return cls(
+            json["url"], json["windowName"], json["windowFeatures"], json["userGesture"]
+        )
+
+
+@dataclasses.dataclass
+class CompilationCacheProduced:
+    """Issued for every compilation cache generated. Is only available
+    if Page.setGenerateCompilationCache is enabled.
+
+    Attributes
+    ----------
+    url: str
+    data: str
+            Base64-encoded data (Encoded as a base64 string when passed over JSON)
+    """
+
+    url: str
+    data: str
+
+    @classmethod
+    def from_json(cls, json: dict) -> CompilationCacheProduced:
+        return cls(json["url"], json["data"])

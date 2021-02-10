@@ -4,7 +4,7 @@ import dataclasses
 import enum
 from typing import Generator, Optional
 
-from . import io, network
+from . import io, network, page
 from .common import filter_none, filter_unset_parameters
 
 
@@ -357,3 +357,98 @@ def take_response_body_as_stream(
         "params": {"requestId": requestId},
     }
     return io.StreamHandle(response)
+
+
+@dataclasses.dataclass
+class RequestPaused:
+    """Issued when the domain is enabled and the request URL matches the
+    specified filter. The request is paused until the client responds
+    with one of continueRequest, failRequest or fulfillRequest.
+    The stage of the request can be determined by presence of responseErrorReason
+    and responseStatusCode -- the request is at the response stage if either
+    of these fields is present and in the request stage otherwise.
+
+    Attributes
+    ----------
+    requestId: RequestId
+            Each request the page makes will have a unique id.
+    request: network.Request
+            The details of the request.
+    frameId: page.FrameId
+            The id of the frame that initiated the request.
+    resourceType: network.ResourceType
+            How the requested resource will be used.
+    responseErrorReason: Optional[network.ErrorReason]
+            Response error if intercepted at response stage.
+    responseStatusCode: Optional[int]
+            Response code if intercepted at response stage.
+    responseHeaders: Optional[list[HeaderEntry]]
+            Response headers if intercepted at the response stage.
+    networkId: Optional[RequestId]
+            If the intercepted request had a corresponding Network.requestWillBeSent event fired for it,
+            then this networkId will be the same as the requestId present in the requestWillBeSent event.
+    """
+
+    requestId: RequestId
+    request: network.Request
+    frameId: page.FrameId
+    resourceType: network.ResourceType
+    responseErrorReason: Optional[network.ErrorReason] = None
+    responseStatusCode: Optional[int] = None
+    responseHeaders: Optional[list[HeaderEntry]] = None
+    networkId: Optional[RequestId] = None
+
+    @classmethod
+    def from_json(cls, json: dict) -> RequestPaused:
+        return cls(
+            RequestId(json["requestId"]),
+            network.Request.from_json(json["request"]),
+            page.FrameId(json["frameId"]),
+            network.ResourceType(json["resourceType"]),
+            network.ErrorReason(json["responseErrorReason"])
+            if "responseErrorReason" in json
+            else None,
+            json.get("responseStatusCode"),
+            [HeaderEntry.from_json(r) for r in json["responseHeaders"]]
+            if "responseHeaders" in json
+            else None,
+            RequestId(json["networkId"]) if "networkId" in json else None,
+        )
+
+
+@dataclasses.dataclass
+class AuthRequired:
+    """Issued when the domain is enabled with handleAuthRequests set to true.
+    The request is paused until client responds with continueWithAuth.
+
+    Attributes
+    ----------
+    requestId: RequestId
+            Each request the page makes will have a unique id.
+    request: network.Request
+            The details of the request.
+    frameId: page.FrameId
+            The id of the frame that initiated the request.
+    resourceType: network.ResourceType
+            How the requested resource will be used.
+    authChallenge: AuthChallenge
+            Details of the Authorization Challenge encountered.
+            If this is set, client should respond with continueRequest that
+            contains AuthChallengeResponse.
+    """
+
+    requestId: RequestId
+    request: network.Request
+    frameId: page.FrameId
+    resourceType: network.ResourceType
+    authChallenge: AuthChallenge
+
+    @classmethod
+    def from_json(cls, json: dict) -> AuthRequired:
+        return cls(
+            RequestId(json["requestId"]),
+            network.Request.from_json(json["request"]),
+            page.FrameId(json["frameId"]),
+            network.ResourceType(json["resourceType"]),
+            AuthChallenge.from_json(json["authChallenge"]),
+        )

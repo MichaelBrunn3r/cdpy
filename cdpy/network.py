@@ -2498,3 +2498,766 @@ def load_network_resource(
         "params": {"frameId": frameId, "url": url, "options": options},
     }
     return LoadNetworkResourcePageResult.from_json(response)
+
+
+@dataclasses.dataclass
+class DataReceived:
+    """Fired when data chunk was received over the network.
+
+    Attributes
+    ----------
+    requestId: RequestId
+            Request identifier.
+    timestamp: MonotonicTime
+            Timestamp.
+    dataLength: int
+            Data chunk length.
+    encodedDataLength: int
+            Actual bytes received (might be less than dataLength for compressed encodings).
+    """
+
+    requestId: RequestId
+    timestamp: MonotonicTime
+    dataLength: int
+    encodedDataLength: int
+
+    @classmethod
+    def from_json(cls, json: dict) -> DataReceived:
+        return cls(
+            RequestId(json["requestId"]),
+            MonotonicTime(json["timestamp"]),
+            json["dataLength"],
+            json["encodedDataLength"],
+        )
+
+
+@dataclasses.dataclass
+class EventSourceMessageReceived:
+    """Fired when EventSource message is received.
+
+    Attributes
+    ----------
+    requestId: RequestId
+            Request identifier.
+    timestamp: MonotonicTime
+            Timestamp.
+    eventName: str
+            Message type.
+    eventId: str
+            Message identifier.
+    data: str
+            Message content.
+    """
+
+    requestId: RequestId
+    timestamp: MonotonicTime
+    eventName: str
+    eventId: str
+    data: str
+
+    @classmethod
+    def from_json(cls, json: dict) -> EventSourceMessageReceived:
+        return cls(
+            RequestId(json["requestId"]),
+            MonotonicTime(json["timestamp"]),
+            json["eventName"],
+            json["eventId"],
+            json["data"],
+        )
+
+
+@dataclasses.dataclass
+class LoadingFailed:
+    """Fired when HTTP request has failed to load.
+
+    Attributes
+    ----------
+    requestId: RequestId
+            Request identifier.
+    timestamp: MonotonicTime
+            Timestamp.
+    type: ResourceType
+            Resource type.
+    errorText: str
+            User friendly error message.
+    canceled: Optional[bool]
+            True if loading was canceled.
+    blockedReason: Optional[BlockedReason]
+            The reason why loading was blocked, if any.
+    corsErrorStatus: Optional[CorsErrorStatus]
+            The reason why loading was blocked by CORS, if any.
+    """
+
+    requestId: RequestId
+    timestamp: MonotonicTime
+    type: ResourceType
+    errorText: str
+    canceled: Optional[bool] = None
+    blockedReason: Optional[BlockedReason] = None
+    corsErrorStatus: Optional[CorsErrorStatus] = None
+
+    @classmethod
+    def from_json(cls, json: dict) -> LoadingFailed:
+        return cls(
+            RequestId(json["requestId"]),
+            MonotonicTime(json["timestamp"]),
+            ResourceType(json["type"]),
+            json["errorText"],
+            json.get("canceled"),
+            BlockedReason(json["blockedReason"]) if "blockedReason" in json else None,
+            CorsErrorStatus.from_json(json["corsErrorStatus"])
+            if "corsErrorStatus" in json
+            else None,
+        )
+
+
+@dataclasses.dataclass
+class LoadingFinished:
+    """Fired when HTTP request has finished loading.
+
+    Attributes
+    ----------
+    requestId: RequestId
+            Request identifier.
+    timestamp: MonotonicTime
+            Timestamp.
+    encodedDataLength: float
+            Total number of bytes received for this request.
+    shouldReportCorbBlocking: Optional[bool]
+            Set when 1) response was blocked by Cross-Origin Read Blocking and also
+            2) this needs to be reported to the DevTools console.
+    """
+
+    requestId: RequestId
+    timestamp: MonotonicTime
+    encodedDataLength: float
+    shouldReportCorbBlocking: Optional[bool] = None
+
+    @classmethod
+    def from_json(cls, json: dict) -> LoadingFinished:
+        return cls(
+            RequestId(json["requestId"]),
+            MonotonicTime(json["timestamp"]),
+            json["encodedDataLength"],
+            json.get("shouldReportCorbBlocking"),
+        )
+
+
+@dataclasses.dataclass
+class RequestIntercepted:
+    """Details of an intercepted HTTP request, which must be either allowed, blocked, modified or
+    mocked.
+    Deprecated, use Fetch.requestPaused instead.
+
+    Attributes
+    ----------
+    interceptionId: InterceptionId
+            Each request the page makes will have a unique id, however if any redirects are encountered
+            while processing that fetch, they will be reported with the same id as the original fetch.
+            Likewise if HTTP authentication is needed then the same fetch id will be used.
+    request: Request
+    frameId: page.FrameId
+            The id of the frame that initiated the request.
+    resourceType: ResourceType
+            How the requested resource will be used.
+    isNavigationRequest: bool
+            Whether this is a navigation request, which can abort the navigation completely.
+    isDownload: Optional[bool]
+            Set if the request is a navigation that will result in a download.
+            Only present after response is received from the server (i.e. HeadersReceived stage).
+    redirectUrl: Optional[str]
+            Redirect location, only sent if a redirect was intercepted.
+    authChallenge: Optional[AuthChallenge]
+            Details of the Authorization Challenge encountered. If this is set then
+            continueInterceptedRequest must contain an authChallengeResponse.
+    responseErrorReason: Optional[ErrorReason]
+            Response error if intercepted at response stage or if redirect occurred while intercepting
+            request.
+    responseStatusCode: Optional[int]
+            Response code if intercepted at response stage or if redirect occurred while intercepting
+            request or auth retry occurred.
+    responseHeaders: Optional[Headers]
+            Response headers if intercepted at the response stage or if redirect occurred while
+            intercepting request or auth retry occurred.
+    requestId: Optional[RequestId]
+            If the intercepted request had a corresponding requestWillBeSent event fired for it, then
+            this requestId will be the same as the requestId present in the requestWillBeSent event.
+    """
+
+    interceptionId: InterceptionId
+    request: Request
+    frameId: page.FrameId
+    resourceType: ResourceType
+    isNavigationRequest: bool
+    isDownload: Optional[bool] = None
+    redirectUrl: Optional[str] = None
+    authChallenge: Optional[AuthChallenge] = None
+    responseErrorReason: Optional[ErrorReason] = None
+    responseStatusCode: Optional[int] = None
+    responseHeaders: Optional[Headers] = None
+    requestId: Optional[RequestId] = None
+
+    @classmethod
+    def from_json(cls, json: dict) -> RequestIntercepted:
+        return cls(
+            InterceptionId(json["interceptionId"]),
+            Request.from_json(json["request"]),
+            page.FrameId(json["frameId"]),
+            ResourceType(json["resourceType"]),
+            json["isNavigationRequest"],
+            json.get("isDownload"),
+            json.get("redirectUrl"),
+            AuthChallenge.from_json(json["authChallenge"])
+            if "authChallenge" in json
+            else None,
+            ErrorReason(json["responseErrorReason"])
+            if "responseErrorReason" in json
+            else None,
+            json.get("responseStatusCode"),
+            Headers(json["responseHeaders"]) if "responseHeaders" in json else None,
+            RequestId(json["requestId"]) if "requestId" in json else None,
+        )
+
+
+@dataclasses.dataclass
+class RequestServedFromCache:
+    """Fired if request ended up loading from cache.
+
+    Attributes
+    ----------
+    requestId: RequestId
+            Request identifier.
+    """
+
+    requestId: RequestId
+
+    @classmethod
+    def from_json(cls, json: dict) -> RequestServedFromCache:
+        return cls(RequestId(json["requestId"]))
+
+
+@dataclasses.dataclass
+class RequestWillBeSent:
+    """Fired when page is about to send HTTP request.
+
+    Attributes
+    ----------
+    requestId: RequestId
+            Request identifier.
+    loaderId: LoaderId
+            Loader identifier. Empty string if the request is fetched from worker.
+    documentURL: str
+            URL of the document this request is loaded for.
+    request: Request
+            Request data.
+    timestamp: MonotonicTime
+            Timestamp.
+    wallTime: TimeSinceEpoch
+            Timestamp.
+    initiator: Initiator
+            Request initiator.
+    redirectResponse: Optional[Response]
+            Redirect response data.
+    type: Optional[ResourceType]
+            Type of this resource.
+    frameId: Optional[page.FrameId]
+            Frame identifier.
+    hasUserGesture: Optional[bool]
+            Whether the request is initiated by a user gesture. Defaults to false.
+    """
+
+    requestId: RequestId
+    loaderId: LoaderId
+    documentURL: str
+    request: Request
+    timestamp: MonotonicTime
+    wallTime: TimeSinceEpoch
+    initiator: Initiator
+    redirectResponse: Optional[Response] = None
+    type: Optional[ResourceType] = None
+    frameId: Optional[page.FrameId] = None
+    hasUserGesture: Optional[bool] = None
+
+    @classmethod
+    def from_json(cls, json: dict) -> RequestWillBeSent:
+        return cls(
+            RequestId(json["requestId"]),
+            LoaderId(json["loaderId"]),
+            json["documentURL"],
+            Request.from_json(json["request"]),
+            MonotonicTime(json["timestamp"]),
+            TimeSinceEpoch(json["wallTime"]),
+            Initiator.from_json(json["initiator"]),
+            Response.from_json(json["redirectResponse"])
+            if "redirectResponse" in json
+            else None,
+            ResourceType(json["type"]) if "type" in json else None,
+            page.FrameId(json["frameId"]) if "frameId" in json else None,
+            json.get("hasUserGesture"),
+        )
+
+
+@dataclasses.dataclass
+class ResourceChangedPriority:
+    """Fired when resource loading priority is changed
+
+    Attributes
+    ----------
+    requestId: RequestId
+            Request identifier.
+    newPriority: ResourcePriority
+            New priority
+    timestamp: MonotonicTime
+            Timestamp.
+    """
+
+    requestId: RequestId
+    newPriority: ResourcePriority
+    timestamp: MonotonicTime
+
+    @classmethod
+    def from_json(cls, json: dict) -> ResourceChangedPriority:
+        return cls(
+            RequestId(json["requestId"]),
+            ResourcePriority(json["newPriority"]),
+            MonotonicTime(json["timestamp"]),
+        )
+
+
+@dataclasses.dataclass
+class SignedExchangeReceived:
+    """Fired when a signed exchange was received over the network
+
+    Attributes
+    ----------
+    requestId: RequestId
+            Request identifier.
+    info: SignedExchangeInfo
+            Information about the signed exchange response.
+    """
+
+    requestId: RequestId
+    info: SignedExchangeInfo
+
+    @classmethod
+    def from_json(cls, json: dict) -> SignedExchangeReceived:
+        return cls(
+            RequestId(json["requestId"]), SignedExchangeInfo.from_json(json["info"])
+        )
+
+
+@dataclasses.dataclass
+class ResponseReceived:
+    """Fired when HTTP response is available.
+
+    Attributes
+    ----------
+    requestId: RequestId
+            Request identifier.
+    loaderId: LoaderId
+            Loader identifier. Empty string if the request is fetched from worker.
+    timestamp: MonotonicTime
+            Timestamp.
+    type: ResourceType
+            Resource type.
+    response: Response
+            Response data.
+    frameId: Optional[page.FrameId]
+            Frame identifier.
+    """
+
+    requestId: RequestId
+    loaderId: LoaderId
+    timestamp: MonotonicTime
+    type: ResourceType
+    response: Response
+    frameId: Optional[page.FrameId] = None
+
+    @classmethod
+    def from_json(cls, json: dict) -> ResponseReceived:
+        return cls(
+            RequestId(json["requestId"]),
+            LoaderId(json["loaderId"]),
+            MonotonicTime(json["timestamp"]),
+            ResourceType(json["type"]),
+            Response.from_json(json["response"]),
+            page.FrameId(json["frameId"]) if "frameId" in json else None,
+        )
+
+
+@dataclasses.dataclass
+class WebSocketClosed:
+    """Fired when WebSocket is closed.
+
+    Attributes
+    ----------
+    requestId: RequestId
+            Request identifier.
+    timestamp: MonotonicTime
+            Timestamp.
+    """
+
+    requestId: RequestId
+    timestamp: MonotonicTime
+
+    @classmethod
+    def from_json(cls, json: dict) -> WebSocketClosed:
+        return cls(RequestId(json["requestId"]), MonotonicTime(json["timestamp"]))
+
+
+@dataclasses.dataclass
+class WebSocketCreated:
+    """Fired upon WebSocket creation.
+
+    Attributes
+    ----------
+    requestId: RequestId
+            Request identifier.
+    url: str
+            WebSocket request URL.
+    initiator: Optional[Initiator]
+            Request initiator.
+    """
+
+    requestId: RequestId
+    url: str
+    initiator: Optional[Initiator] = None
+
+    @classmethod
+    def from_json(cls, json: dict) -> WebSocketCreated:
+        return cls(
+            RequestId(json["requestId"]),
+            json["url"],
+            Initiator.from_json(json["initiator"]) if "initiator" in json else None,
+        )
+
+
+@dataclasses.dataclass
+class WebSocketFrameError:
+    """Fired when WebSocket message error occurs.
+
+    Attributes
+    ----------
+    requestId: RequestId
+            Request identifier.
+    timestamp: MonotonicTime
+            Timestamp.
+    errorMessage: str
+            WebSocket error message.
+    """
+
+    requestId: RequestId
+    timestamp: MonotonicTime
+    errorMessage: str
+
+    @classmethod
+    def from_json(cls, json: dict) -> WebSocketFrameError:
+        return cls(
+            RequestId(json["requestId"]),
+            MonotonicTime(json["timestamp"]),
+            json["errorMessage"],
+        )
+
+
+@dataclasses.dataclass
+class WebSocketFrameReceived:
+    """Fired when WebSocket message is received.
+
+    Attributes
+    ----------
+    requestId: RequestId
+            Request identifier.
+    timestamp: MonotonicTime
+            Timestamp.
+    response: WebSocketFrame
+            WebSocket response data.
+    """
+
+    requestId: RequestId
+    timestamp: MonotonicTime
+    response: WebSocketFrame
+
+    @classmethod
+    def from_json(cls, json: dict) -> WebSocketFrameReceived:
+        return cls(
+            RequestId(json["requestId"]),
+            MonotonicTime(json["timestamp"]),
+            WebSocketFrame.from_json(json["response"]),
+        )
+
+
+@dataclasses.dataclass
+class WebSocketFrameSent:
+    """Fired when WebSocket message is sent.
+
+    Attributes
+    ----------
+    requestId: RequestId
+            Request identifier.
+    timestamp: MonotonicTime
+            Timestamp.
+    response: WebSocketFrame
+            WebSocket response data.
+    """
+
+    requestId: RequestId
+    timestamp: MonotonicTime
+    response: WebSocketFrame
+
+    @classmethod
+    def from_json(cls, json: dict) -> WebSocketFrameSent:
+        return cls(
+            RequestId(json["requestId"]),
+            MonotonicTime(json["timestamp"]),
+            WebSocketFrame.from_json(json["response"]),
+        )
+
+
+@dataclasses.dataclass
+class WebSocketHandshakeResponseReceived:
+    """Fired when WebSocket handshake response becomes available.
+
+    Attributes
+    ----------
+    requestId: RequestId
+            Request identifier.
+    timestamp: MonotonicTime
+            Timestamp.
+    response: WebSocketResponse
+            WebSocket response data.
+    """
+
+    requestId: RequestId
+    timestamp: MonotonicTime
+    response: WebSocketResponse
+
+    @classmethod
+    def from_json(cls, json: dict) -> WebSocketHandshakeResponseReceived:
+        return cls(
+            RequestId(json["requestId"]),
+            MonotonicTime(json["timestamp"]),
+            WebSocketResponse.from_json(json["response"]),
+        )
+
+
+@dataclasses.dataclass
+class WebSocketWillSendHandshakeRequest:
+    """Fired when WebSocket is about to initiate handshake.
+
+    Attributes
+    ----------
+    requestId: RequestId
+            Request identifier.
+    timestamp: MonotonicTime
+            Timestamp.
+    wallTime: TimeSinceEpoch
+            UTC Timestamp.
+    request: WebSocketRequest
+            WebSocket request data.
+    """
+
+    requestId: RequestId
+    timestamp: MonotonicTime
+    wallTime: TimeSinceEpoch
+    request: WebSocketRequest
+
+    @classmethod
+    def from_json(cls, json: dict) -> WebSocketWillSendHandshakeRequest:
+        return cls(
+            RequestId(json["requestId"]),
+            MonotonicTime(json["timestamp"]),
+            TimeSinceEpoch(json["wallTime"]),
+            WebSocketRequest.from_json(json["request"]),
+        )
+
+
+@dataclasses.dataclass
+class WebTransportCreated:
+    """Fired upon WebTransport creation.
+
+    Attributes
+    ----------
+    transportId: RequestId
+            WebTransport identifier.
+    url: str
+            WebTransport request URL.
+    timestamp: MonotonicTime
+            Timestamp.
+    initiator: Optional[Initiator]
+            Request initiator.
+    """
+
+    transportId: RequestId
+    url: str
+    timestamp: MonotonicTime
+    initiator: Optional[Initiator] = None
+
+    @classmethod
+    def from_json(cls, json: dict) -> WebTransportCreated:
+        return cls(
+            RequestId(json["transportId"]),
+            json["url"],
+            MonotonicTime(json["timestamp"]),
+            Initiator.from_json(json["initiator"]) if "initiator" in json else None,
+        )
+
+
+@dataclasses.dataclass
+class WebTransportConnectionEstablished:
+    """Fired when WebTransport handshake is finished.
+
+    Attributes
+    ----------
+    transportId: RequestId
+            WebTransport identifier.
+    timestamp: MonotonicTime
+            Timestamp.
+    """
+
+    transportId: RequestId
+    timestamp: MonotonicTime
+
+    @classmethod
+    def from_json(cls, json: dict) -> WebTransportConnectionEstablished:
+        return cls(RequestId(json["transportId"]), MonotonicTime(json["timestamp"]))
+
+
+@dataclasses.dataclass
+class WebTransportClosed:
+    """Fired when WebTransport is disposed.
+
+    Attributes
+    ----------
+    transportId: RequestId
+            WebTransport identifier.
+    timestamp: MonotonicTime
+            Timestamp.
+    """
+
+    transportId: RequestId
+    timestamp: MonotonicTime
+
+    @classmethod
+    def from_json(cls, json: dict) -> WebTransportClosed:
+        return cls(RequestId(json["transportId"]), MonotonicTime(json["timestamp"]))
+
+
+@dataclasses.dataclass
+class RequestWillBeSentExtraInfo:
+    """Fired when additional information about a requestWillBeSent event is available from the
+    network stack. Not every requestWillBeSent event will have an additional
+    requestWillBeSentExtraInfo fired for it, and there is no guarantee whether requestWillBeSent
+    or requestWillBeSentExtraInfo will be fired first for the same request.
+
+    Attributes
+    ----------
+    requestId: RequestId
+            Request identifier. Used to match this information to an existing requestWillBeSent event.
+    associatedCookies: list[BlockedCookieWithReason]
+            A list of cookies potentially associated to the requested URL. This includes both cookies sent with
+            the request and the ones not sent; the latter are distinguished by having blockedReason field set.
+    headers: Headers
+            Raw request headers as they will be sent over the wire.
+    clientSecurityState: Optional[ClientSecurityState]
+            The client security state set for the request.
+    """
+
+    requestId: RequestId
+    associatedCookies: list[BlockedCookieWithReason]
+    headers: Headers
+    clientSecurityState: Optional[ClientSecurityState] = None
+
+    @classmethod
+    def from_json(cls, json: dict) -> RequestWillBeSentExtraInfo:
+        return cls(
+            RequestId(json["requestId"]),
+            [BlockedCookieWithReason.from_json(a) for a in json["associatedCookies"]],
+            Headers(json["headers"]),
+            ClientSecurityState.from_json(json["clientSecurityState"])
+            if "clientSecurityState" in json
+            else None,
+        )
+
+
+@dataclasses.dataclass
+class ResponseReceivedExtraInfo:
+    """Fired when additional information about a responseReceived event is available from the network
+    stack. Not every responseReceived event will have an additional responseReceivedExtraInfo for
+    it, and responseReceivedExtraInfo may be fired before or after responseReceived.
+
+    Attributes
+    ----------
+    requestId: RequestId
+            Request identifier. Used to match this information to another responseReceived event.
+    blockedCookies: list[BlockedSetCookieWithReason]
+            A list of cookies which were not stored from the response along with the corresponding
+            reasons for blocking. The cookies here may not be valid due to syntax errors, which
+            are represented by the invalid cookie line string instead of a proper cookie.
+    headers: Headers
+            Raw response headers as they were received over the wire.
+    resourceIPAddressSpace: IPAddressSpace
+            The IP address space of the resource. The address space can only be determined once the transport
+            established the connection, so we can't send it in `requestWillBeSentExtraInfo`.
+    headersText: Optional[str]
+            Raw response header text as it was received over the wire. The raw text may not always be
+            available, such as in the case of HTTP/2 or QUIC.
+    """
+
+    requestId: RequestId
+    blockedCookies: list[BlockedSetCookieWithReason]
+    headers: Headers
+    resourceIPAddressSpace: IPAddressSpace
+    headersText: Optional[str] = None
+
+    @classmethod
+    def from_json(cls, json: dict) -> ResponseReceivedExtraInfo:
+        return cls(
+            RequestId(json["requestId"]),
+            [BlockedSetCookieWithReason.from_json(b) for b in json["blockedCookies"]],
+            Headers(json["headers"]),
+            IPAddressSpace(json["resourceIPAddressSpace"]),
+            json.get("headersText"),
+        )
+
+
+@dataclasses.dataclass
+class TrustTokenOperationDone:
+    """Fired exactly once for each Trust Token operation. Depending on
+    the type of the operation and whether the operation succeeded or
+    failed, the event is fired before the corresponding request was sent
+    or after the response was received.
+
+    Attributes
+    ----------
+    status: str
+            Detailed success or error status of the operation.
+            'AlreadyExists' also signifies a successful operation, as the result
+            of the operation already exists und thus, the operation was abort
+            preemptively (e.g. a cache hit).
+    type: TrustTokenOperationType
+    requestId: RequestId
+    topLevelOrigin: Optional[str]
+            Top level origin. The context in which the operation was attempted.
+    issuerOrigin: Optional[str]
+            Origin of the issuer in case of a "Issuance" or "Redemption" operation.
+    issuedTokenCount: Optional[int]
+            The number of obtained Trust Tokens on a successful "Issuance" operation.
+    """
+
+    status: str
+    type: TrustTokenOperationType
+    requestId: RequestId
+    topLevelOrigin: Optional[str] = None
+    issuerOrigin: Optional[str] = None
+    issuedTokenCount: Optional[int] = None
+
+    @classmethod
+    def from_json(cls, json: dict) -> TrustTokenOperationDone:
+        return cls(
+            json["status"],
+            TrustTokenOperationType(json["type"]),
+            RequestId(json["requestId"]),
+            json.get("topLevelOrigin"),
+            json.get("issuerOrigin"),
+            json.get("issuedTokenCount"),
+        )

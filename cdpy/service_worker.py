@@ -307,3 +307,50 @@ def update_registration(scopeURL: str) -> dict:
         "method": "ServiceWorker.updateRegistration",
         "params": {"scopeURL": scopeURL},
     }
+
+
+@dataclasses.dataclass
+class WorkerErrorReported:
+    """
+    Attributes
+    ----------
+    errorMessage: ServiceWorkerErrorMessage
+    """
+
+    errorMessage: ServiceWorkerErrorMessage
+
+    @classmethod
+    def from_json(cls, json: dict) -> WorkerErrorReported:
+        return cls(ServiceWorkerErrorMessage.from_json(json["errorMessage"]))
+
+
+@dataclasses.dataclass
+class WorkerRegistrationUpdated:
+    """
+    Attributes
+    ----------
+    registrations: list[ServiceWorkerRegistration]
+    """
+
+    registrations: list[ServiceWorkerRegistration]
+
+    @classmethod
+    def from_json(cls, json: dict) -> WorkerRegistrationUpdated:
+        return cls(
+            [ServiceWorkerRegistration.from_json(r) for r in json["registrations"]]
+        )
+
+
+@dataclasses.dataclass
+class WorkerVersionUpdated:
+    """
+    Attributes
+    ----------
+    versions: list[ServiceWorkerVersion]
+    """
+
+    versions: list[ServiceWorkerVersion]
+
+    @classmethod
+    def from_json(cls, json: dict) -> WorkerVersionUpdated:
+        return cls([ServiceWorkerVersion.from_json(v) for v in json["versions"]])

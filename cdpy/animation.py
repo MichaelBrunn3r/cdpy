@@ -343,3 +343,54 @@ def set_timing(animationId: str, duration: float, delay: float) -> dict:
         "method": "Animation.setTiming",
         "params": {"animationId": animationId, "duration": duration, "delay": delay},
     }
+
+
+@dataclasses.dataclass
+class AnimationCanceled:
+    """Event for when an animation has been cancelled.
+
+    Attributes
+    ----------
+    id: str
+            Id of the animation that was cancelled.
+    """
+
+    id: str
+
+    @classmethod
+    def from_json(cls, json: dict) -> AnimationCanceled:
+        return cls(json["id"])
+
+
+@dataclasses.dataclass
+class AnimationCreated:
+    """Event for each animation that has been created.
+
+    Attributes
+    ----------
+    id: str
+            Id of the animation that was created.
+    """
+
+    id: str
+
+    @classmethod
+    def from_json(cls, json: dict) -> AnimationCreated:
+        return cls(json["id"])
+
+
+@dataclasses.dataclass
+class AnimationStarted:
+    """Event for animation that has been started.
+
+    Attributes
+    ----------
+    animation: Animation
+            Animation that was started.
+    """
+
+    animation: Animation
+
+    @classmethod
+    def from_json(cls, json: dict) -> AnimationStarted:
+        return cls(Animation.from_json(json["animation"]))

@@ -200,3 +200,19 @@ def enable(eventTypes: list[str]) -> dict:
         "method": "PerformanceTimeline.enable",
         "params": {"eventTypes": eventTypes},
     }
+
+
+@dataclasses.dataclass
+class TimelineEventAdded:
+    """Sent when a performance timeline event is added. See reportPerformanceTimeline method.
+
+    Attributes
+    ----------
+    event: TimelineEvent
+    """
+
+    event: TimelineEvent
+
+    @classmethod
+    def from_json(cls, json: dict) -> TimelineEventAdded:
+        return cls(TimelineEvent.from_json(json["event"]))

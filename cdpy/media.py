@@ -124,3 +124,107 @@ def enable() -> dict:
 def disable() -> dict:
     """Disables the Media domain."""
     return {"method": "Media.disable", "params": {}}
+
+
+@dataclasses.dataclass
+class PlayerPropertiesChanged:
+    """This can be called multiple times, and can be used to set / override /
+    remove player properties. A null propValue indicates removal.
+
+    Attributes
+    ----------
+    playerId: PlayerId
+    properties: list[PlayerProperty]
+    """
+
+    playerId: PlayerId
+    properties: list[PlayerProperty]
+
+    @classmethod
+    def from_json(cls, json: dict) -> PlayerPropertiesChanged:
+        return cls(
+            PlayerId(json["playerId"]),
+            [PlayerProperty.from_json(p) for p in json["properties"]],
+        )
+
+
+@dataclasses.dataclass
+class PlayerEventsAdded:
+    """Send events as a list, allowing them to be batched on the browser for less
+    congestion. If batched, events must ALWAYS be in chronological order.
+
+    Attributes
+    ----------
+    playerId: PlayerId
+    events: list[PlayerEvent]
+    """
+
+    playerId: PlayerId
+    events: list[PlayerEvent]
+
+    @classmethod
+    def from_json(cls, json: dict) -> PlayerEventsAdded:
+        return cls(
+            PlayerId(json["playerId"]),
+            [PlayerEvent.from_json(e) for e in json["events"]],
+        )
+
+
+@dataclasses.dataclass
+class PlayerMessagesLogged:
+    """Send a list of any messages that need to be delivered.
+
+    Attributes
+    ----------
+    playerId: PlayerId
+    messages: list[PlayerMessage]
+    """
+
+    playerId: PlayerId
+    messages: list[PlayerMessage]
+
+    @classmethod
+    def from_json(cls, json: dict) -> PlayerMessagesLogged:
+        return cls(
+            PlayerId(json["playerId"]),
+            [PlayerMessage.from_json(m) for m in json["messages"]],
+        )
+
+
+@dataclasses.dataclass
+class PlayerErrorsRaised:
+    """Send a list of any errors that need to be delivered.
+
+    Attributes
+    ----------
+    playerId: PlayerId
+    errors: list[PlayerError]
+    """
+
+    playerId: PlayerId
+    errors: list[PlayerError]
+
+    @classmethod
+    def from_json(cls, json: dict) -> PlayerErrorsRaised:
+        return cls(
+            PlayerId(json["playerId"]),
+            [PlayerError.from_json(e) for e in json["errors"]],
+        )
+
+
+@dataclasses.dataclass
+class PlayersCreated:
+    """Called whenever a player is created, or when a new agent joins and recieves
+    a list of active players. If an agent is restored, it will recieve the full
+    list of player ids and all events again.
+
+    Attributes
+    ----------
+    players: list[PlayerId]
+    """
+
+    players: list[PlayerId]
+
+    @classmethod
+    def from_json(cls, json: dict) -> PlayersCreated:
+        return cls([PlayerId(p) for p in json["players"]])

@@ -80,3 +80,37 @@ def stop_casting(sinkName: str) -> dict:
     sinkName: str
     """
     return {"method": "Cast.stopCasting", "params": {"sinkName": sinkName}}
+
+
+@dataclasses.dataclass
+class SinksUpdated:
+    """This is fired whenever the list of available sinks changes. A sink is a
+    device or a software surface that you can cast to.
+
+    Attributes
+    ----------
+    sinks: list[Sink]
+    """
+
+    sinks: list[Sink]
+
+    @classmethod
+    def from_json(cls, json: dict) -> SinksUpdated:
+        return cls([Sink.from_json(s) for s in json["sinks"]])
+
+
+@dataclasses.dataclass
+class IssueUpdated:
+    """This is fired whenever the outstanding issue/error message changes.
+    |issueMessage| is empty if there is no issue.
+
+    Attributes
+    ----------
+    issueMessage: str
+    """
+
+    issueMessage: str
+
+    @classmethod
+    def from_json(cls, json: dict) -> IssueUpdated:
+        return cls(json["issueMessage"])

@@ -313,3 +313,273 @@ def get_realtime_data(
         "params": {"contextId": contextId},
     }
     return ContextRealtimeData.from_json(response)
+
+
+@dataclasses.dataclass
+class ContextCreated:
+    """Notifies that a new BaseAudioContext has been created.
+
+    Attributes
+    ----------
+    context: BaseAudioContext
+    """
+
+    context: BaseAudioContext
+
+    @classmethod
+    def from_json(cls, json: dict) -> ContextCreated:
+        return cls(BaseAudioContext.from_json(json["context"]))
+
+
+@dataclasses.dataclass
+class ContextWillBeDestroyed:
+    """Notifies that an existing BaseAudioContext will be destroyed.
+
+    Attributes
+    ----------
+    contextId: GraphObjectId
+    """
+
+    contextId: GraphObjectId
+
+    @classmethod
+    def from_json(cls, json: dict) -> ContextWillBeDestroyed:
+        return cls(GraphObjectId(json["contextId"]))
+
+
+@dataclasses.dataclass
+class ContextChanged:
+    """Notifies that existing BaseAudioContext has changed some properties (id stays the same)..
+
+    Attributes
+    ----------
+    context: BaseAudioContext
+    """
+
+    context: BaseAudioContext
+
+    @classmethod
+    def from_json(cls, json: dict) -> ContextChanged:
+        return cls(BaseAudioContext.from_json(json["context"]))
+
+
+@dataclasses.dataclass
+class AudioListenerCreated:
+    """Notifies that the construction of an AudioListener has finished.
+
+    Attributes
+    ----------
+    listener: AudioListener
+    """
+
+    listener: AudioListener
+
+    @classmethod
+    def from_json(cls, json: dict) -> AudioListenerCreated:
+        return cls(AudioListener.from_json(json["listener"]))
+
+
+@dataclasses.dataclass
+class AudioListenerWillBeDestroyed:
+    """Notifies that a new AudioListener has been created.
+
+    Attributes
+    ----------
+    contextId: GraphObjectId
+    listenerId: GraphObjectId
+    """
+
+    contextId: GraphObjectId
+    listenerId: GraphObjectId
+
+    @classmethod
+    def from_json(cls, json: dict) -> AudioListenerWillBeDestroyed:
+        return cls(GraphObjectId(json["contextId"]), GraphObjectId(json["listenerId"]))
+
+
+@dataclasses.dataclass
+class AudioNodeCreated:
+    """Notifies that a new AudioNode has been created.
+
+    Attributes
+    ----------
+    node: AudioNode
+    """
+
+    node: AudioNode
+
+    @classmethod
+    def from_json(cls, json: dict) -> AudioNodeCreated:
+        return cls(AudioNode.from_json(json["node"]))
+
+
+@dataclasses.dataclass
+class AudioNodeWillBeDestroyed:
+    """Notifies that an existing AudioNode has been destroyed.
+
+    Attributes
+    ----------
+    contextId: GraphObjectId
+    nodeId: GraphObjectId
+    """
+
+    contextId: GraphObjectId
+    nodeId: GraphObjectId
+
+    @classmethod
+    def from_json(cls, json: dict) -> AudioNodeWillBeDestroyed:
+        return cls(GraphObjectId(json["contextId"]), GraphObjectId(json["nodeId"]))
+
+
+@dataclasses.dataclass
+class AudioParamCreated:
+    """Notifies that a new AudioParam has been created.
+
+    Attributes
+    ----------
+    param: AudioParam
+    """
+
+    param: AudioParam
+
+    @classmethod
+    def from_json(cls, json: dict) -> AudioParamCreated:
+        return cls(AudioParam.from_json(json["param"]))
+
+
+@dataclasses.dataclass
+class AudioParamWillBeDestroyed:
+    """Notifies that an existing AudioParam has been destroyed.
+
+    Attributes
+    ----------
+    contextId: GraphObjectId
+    nodeId: GraphObjectId
+    paramId: GraphObjectId
+    """
+
+    contextId: GraphObjectId
+    nodeId: GraphObjectId
+    paramId: GraphObjectId
+
+    @classmethod
+    def from_json(cls, json: dict) -> AudioParamWillBeDestroyed:
+        return cls(
+            GraphObjectId(json["contextId"]),
+            GraphObjectId(json["nodeId"]),
+            GraphObjectId(json["paramId"]),
+        )
+
+
+@dataclasses.dataclass
+class NodesConnected:
+    """Notifies that two AudioNodes are connected.
+
+    Attributes
+    ----------
+    contextId: GraphObjectId
+    sourceId: GraphObjectId
+    destinationId: GraphObjectId
+    sourceOutputIndex: Optional[float]
+    destinationInputIndex: Optional[float]
+    """
+
+    contextId: GraphObjectId
+    sourceId: GraphObjectId
+    destinationId: GraphObjectId
+    sourceOutputIndex: Optional[float] = None
+    destinationInputIndex: Optional[float] = None
+
+    @classmethod
+    def from_json(cls, json: dict) -> NodesConnected:
+        return cls(
+            GraphObjectId(json["contextId"]),
+            GraphObjectId(json["sourceId"]),
+            GraphObjectId(json["destinationId"]),
+            json.get("sourceOutputIndex"),
+            json.get("destinationInputIndex"),
+        )
+
+
+@dataclasses.dataclass
+class NodesDisconnected:
+    """Notifies that AudioNodes are disconnected. The destination can be null, and it means all the outgoing connections from the source are disconnected.
+
+    Attributes
+    ----------
+    contextId: GraphObjectId
+    sourceId: GraphObjectId
+    destinationId: GraphObjectId
+    sourceOutputIndex: Optional[float]
+    destinationInputIndex: Optional[float]
+    """
+
+    contextId: GraphObjectId
+    sourceId: GraphObjectId
+    destinationId: GraphObjectId
+    sourceOutputIndex: Optional[float] = None
+    destinationInputIndex: Optional[float] = None
+
+    @classmethod
+    def from_json(cls, json: dict) -> NodesDisconnected:
+        return cls(
+            GraphObjectId(json["contextId"]),
+            GraphObjectId(json["sourceId"]),
+            GraphObjectId(json["destinationId"]),
+            json.get("sourceOutputIndex"),
+            json.get("destinationInputIndex"),
+        )
+
+
+@dataclasses.dataclass
+class NodeParamConnected:
+    """Notifies that an AudioNode is connected to an AudioParam.
+
+    Attributes
+    ----------
+    contextId: GraphObjectId
+    sourceId: GraphObjectId
+    destinationId: GraphObjectId
+    sourceOutputIndex: Optional[float]
+    """
+
+    contextId: GraphObjectId
+    sourceId: GraphObjectId
+    destinationId: GraphObjectId
+    sourceOutputIndex: Optional[float] = None
+
+    @classmethod
+    def from_json(cls, json: dict) -> NodeParamConnected:
+        return cls(
+            GraphObjectId(json["contextId"]),
+            GraphObjectId(json["sourceId"]),
+            GraphObjectId(json["destinationId"]),
+            json.get("sourceOutputIndex"),
+        )
+
+
+@dataclasses.dataclass
+class NodeParamDisconnected:
+    """Notifies that an AudioNode is disconnected to an AudioParam.
+
+    Attributes
+    ----------
+    contextId: GraphObjectId
+    sourceId: GraphObjectId
+    destinationId: GraphObjectId
+    sourceOutputIndex: Optional[float]
+    """
+
+    contextId: GraphObjectId
+    sourceId: GraphObjectId
+    destinationId: GraphObjectId
+    sourceOutputIndex: Optional[float] = None
+
+    @classmethod
+    def from_json(cls, json: dict) -> NodeParamDisconnected:
+        return cls(
+            GraphObjectId(json["contextId"]),
+            GraphObjectId(json["sourceId"]),
+            GraphObjectId(json["destinationId"]),
+            json.get("sourceOutputIndex"),
+        )

@@ -405,3 +405,82 @@ def set_override_certificate_errors(override: bool) -> dict:
         "method": "Security.setOverrideCertificateErrors",
         "params": {"override": override},
     }
+
+
+@dataclasses.dataclass
+class CertificateError:
+    """There is a certificate error. If overriding certificate errors is enabled, then it should be
+    handled with the `handleCertificateError` command. Note: this event does not fire if the
+    certificate error has been allowed internally. Only one client per target should override
+    certificate errors at the same time.
+
+    Attributes
+    ----------
+    eventId: int
+            The ID of the event.
+    errorType: str
+            The type of the error.
+    requestURL: str
+            The url that was requested.
+    """
+
+    eventId: int
+    errorType: str
+    requestURL: str
+
+    @classmethod
+    def from_json(cls, json: dict) -> CertificateError:
+        return cls(json["eventId"], json["errorType"], json["requestURL"])
+
+
+@dataclasses.dataclass
+class VisibleSecurityStateChanged:
+    """The security state of the page changed.
+
+    Attributes
+    ----------
+    visibleSecurityState: VisibleSecurityState
+            Security state information about the page.
+    """
+
+    visibleSecurityState: VisibleSecurityState
+
+    @classmethod
+    def from_json(cls, json: dict) -> VisibleSecurityStateChanged:
+        return cls(VisibleSecurityState.from_json(json["visibleSecurityState"]))
+
+
+@dataclasses.dataclass
+class SecurityStateChanged:
+    """The security state of the page changed.
+
+    Attributes
+    ----------
+    securityState: SecurityState
+            Security state.
+    schemeIsCryptographic: bool
+            True if the page was loaded over cryptographic transport such as HTTPS.
+    explanations: list[SecurityStateExplanation]
+            List of explanations for the security state. If the overall security state is `insecure` or
+            `warning`, at least one corresponding explanation should be included.
+    insecureContentStatus: InsecureContentStatus
+            Information about insecure content on the page.
+    summary: Optional[str]
+            Overrides user-visible description of the state.
+    """
+
+    securityState: SecurityState
+    schemeIsCryptographic: bool
+    explanations: list[SecurityStateExplanation]
+    insecureContentStatus: InsecureContentStatus
+    summary: Optional[str] = None
+
+    @classmethod
+    def from_json(cls, json: dict) -> SecurityStateChanged:
+        return cls(
+            SecurityState(json["securityState"]),
+            json["schemeIsCryptographic"],
+            [SecurityStateExplanation.from_json(e) for e in json["explanations"]],
+            InsecureContentStatus.from_json(json["insecureContentStatus"]),
+            json.get("summary"),
+        )

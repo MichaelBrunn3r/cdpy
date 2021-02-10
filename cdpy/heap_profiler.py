@@ -278,3 +278,85 @@ def take_heap_snapshot(
             },
         }
     )
+
+
+@dataclasses.dataclass
+class AddHeapSnapshotChunk:
+    """
+    Attributes
+    ----------
+    chunk: str
+    """
+
+    chunk: str
+
+    @classmethod
+    def from_json(cls, json: dict) -> AddHeapSnapshotChunk:
+        return cls(json["chunk"])
+
+
+@dataclasses.dataclass
+class HeapStatsUpdate:
+    """If heap objects tracking has been started then backend may send update for one or more fragments
+
+    Attributes
+    ----------
+    statsUpdate: list[int]
+            An array of triplets. Each triplet describes a fragment. The first integer is the fragment
+            index, the second integer is a total count of objects for the fragment, the third integer is
+            a total size of the objects for the fragment.
+    """
+
+    statsUpdate: list[int]
+
+    @classmethod
+    def from_json(cls, json: dict) -> HeapStatsUpdate:
+        return cls(json["statsUpdate"])
+
+
+@dataclasses.dataclass
+class LastSeenObjectId:
+    """If heap objects tracking has been started then backend regularly sends a current value for last
+    seen object id and corresponding timestamp. If the were changes in the heap since last event
+    then one or more heapStatsUpdate events will be sent before a new lastSeenObjectId event.
+
+    Attributes
+    ----------
+    lastSeenObjectId: int
+    timestamp: float
+    """
+
+    lastSeenObjectId: int
+    timestamp: float
+
+    @classmethod
+    def from_json(cls, json: dict) -> LastSeenObjectId:
+        return cls(json["lastSeenObjectId"], json["timestamp"])
+
+
+@dataclasses.dataclass
+class ReportHeapSnapshotProgress:
+    """
+    Attributes
+    ----------
+    done: int
+    total: int
+    finished: Optional[bool]
+    """
+
+    done: int
+    total: int
+    finished: Optional[bool] = None
+
+    @classmethod
+    def from_json(cls, json: dict) -> ReportHeapSnapshotProgress:
+        return cls(json["done"], json["total"], json.get("finished"))
+
+
+@dataclasses.dataclass
+class ResetProfiles:
+    """"""
+
+    @classmethod
+    def from_json(cls, json: dict) -> ResetProfiles:
+        return cls()

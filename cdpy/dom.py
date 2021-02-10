@@ -1484,3 +1484,283 @@ def get_frame_owner(frameId: page.FrameId) -> Generator[dict, dict, dict]:
         "backendNodeId": BackendNodeId(response["backendNodeId"]),
         "nodeId": NodeId(response["nodeId"]) if "nodeId" in response else None,
     }
+
+
+@dataclasses.dataclass
+class AttributeModified:
+    """Fired when `Element`'s attribute is modified.
+
+    Attributes
+    ----------
+    nodeId: NodeId
+            Id of the node that has changed.
+    name: str
+            Attribute name.
+    value: str
+            Attribute value.
+    """
+
+    nodeId: NodeId
+    name: str
+    value: str
+
+    @classmethod
+    def from_json(cls, json: dict) -> AttributeModified:
+        return cls(NodeId(json["nodeId"]), json["name"], json["value"])
+
+
+@dataclasses.dataclass
+class AttributeRemoved:
+    """Fired when `Element`'s attribute is removed.
+
+    Attributes
+    ----------
+    nodeId: NodeId
+            Id of the node that has changed.
+    name: str
+            A ttribute name.
+    """
+
+    nodeId: NodeId
+    name: str
+
+    @classmethod
+    def from_json(cls, json: dict) -> AttributeRemoved:
+        return cls(NodeId(json["nodeId"]), json["name"])
+
+
+@dataclasses.dataclass
+class CharacterDataModified:
+    """Mirrors `DOMCharacterDataModified` event.
+
+    Attributes
+    ----------
+    nodeId: NodeId
+            Id of the node that has changed.
+    characterData: str
+            New text value.
+    """
+
+    nodeId: NodeId
+    characterData: str
+
+    @classmethod
+    def from_json(cls, json: dict) -> CharacterDataModified:
+        return cls(NodeId(json["nodeId"]), json["characterData"])
+
+
+@dataclasses.dataclass
+class ChildNodeCountUpdated:
+    """Fired when `Container`'s child node count has changed.
+
+    Attributes
+    ----------
+    nodeId: NodeId
+            Id of the node that has changed.
+    childNodeCount: int
+            New node count.
+    """
+
+    nodeId: NodeId
+    childNodeCount: int
+
+    @classmethod
+    def from_json(cls, json: dict) -> ChildNodeCountUpdated:
+        return cls(NodeId(json["nodeId"]), json["childNodeCount"])
+
+
+@dataclasses.dataclass
+class ChildNodeInserted:
+    """Mirrors `DOMNodeInserted` event.
+
+    Attributes
+    ----------
+    parentNodeId: NodeId
+            Id of the node that has changed.
+    previousNodeId: NodeId
+            If of the previous siblint.
+    node: Node
+            Inserted node data.
+    """
+
+    parentNodeId: NodeId
+    previousNodeId: NodeId
+    node: Node
+
+    @classmethod
+    def from_json(cls, json: dict) -> ChildNodeInserted:
+        return cls(
+            NodeId(json["parentNodeId"]),
+            NodeId(json["previousNodeId"]),
+            Node.from_json(json["node"]),
+        )
+
+
+@dataclasses.dataclass
+class ChildNodeRemoved:
+    """Mirrors `DOMNodeRemoved` event.
+
+    Attributes
+    ----------
+    parentNodeId: NodeId
+            Parent id.
+    nodeId: NodeId
+            Id of the node that has been removed.
+    """
+
+    parentNodeId: NodeId
+    nodeId: NodeId
+
+    @classmethod
+    def from_json(cls, json: dict) -> ChildNodeRemoved:
+        return cls(NodeId(json["parentNodeId"]), NodeId(json["nodeId"]))
+
+
+@dataclasses.dataclass
+class DistributedNodesUpdated:
+    """Called when distrubution is changed.
+
+    Attributes
+    ----------
+    insertionPointId: NodeId
+            Insertion point where distrubuted nodes were updated.
+    distributedNodes: list[BackendNode]
+            Distributed nodes for given insertion point.
+    """
+
+    insertionPointId: NodeId
+    distributedNodes: list[BackendNode]
+
+    @classmethod
+    def from_json(cls, json: dict) -> DistributedNodesUpdated:
+        return cls(
+            NodeId(json["insertionPointId"]),
+            [BackendNode.from_json(d) for d in json["distributedNodes"]],
+        )
+
+
+@dataclasses.dataclass
+class DocumentUpdated:
+    """Fired when `Document` has been totally updated. Node ids are no longer valid."""
+
+    @classmethod
+    def from_json(cls, json: dict) -> DocumentUpdated:
+        return cls()
+
+
+@dataclasses.dataclass
+class InlineStyleInvalidated:
+    """Fired when `Element`'s inline style is modified via a CSS property modification.
+
+    Attributes
+    ----------
+    nodeIds: list[NodeId]
+            Ids of the nodes for which the inline styles have been invalidated.
+    """
+
+    nodeIds: list[NodeId]
+
+    @classmethod
+    def from_json(cls, json: dict) -> InlineStyleInvalidated:
+        return cls([NodeId(n) for n in json["nodeIds"]])
+
+
+@dataclasses.dataclass
+class PseudoElementAdded:
+    """Called when a pseudo element is added to an element.
+
+    Attributes
+    ----------
+    parentId: NodeId
+            Pseudo element's parent element id.
+    pseudoElement: Node
+            The added pseudo element.
+    """
+
+    parentId: NodeId
+    pseudoElement: Node
+
+    @classmethod
+    def from_json(cls, json: dict) -> PseudoElementAdded:
+        return cls(NodeId(json["parentId"]), Node.from_json(json["pseudoElement"]))
+
+
+@dataclasses.dataclass
+class PseudoElementRemoved:
+    """Called when a pseudo element is removed from an element.
+
+    Attributes
+    ----------
+    parentId: NodeId
+            Pseudo element's parent element id.
+    pseudoElementId: NodeId
+            The removed pseudo element id.
+    """
+
+    parentId: NodeId
+    pseudoElementId: NodeId
+
+    @classmethod
+    def from_json(cls, json: dict) -> PseudoElementRemoved:
+        return cls(NodeId(json["parentId"]), NodeId(json["pseudoElementId"]))
+
+
+@dataclasses.dataclass
+class SetChildNodes:
+    """Fired when backend wants to provide client with the missing DOM structure. This happens upon
+    most of the calls requesting node ids.
+
+    Attributes
+    ----------
+    parentId: NodeId
+            Parent node id to populate with children.
+    nodes: list[Node]
+            Child nodes array.
+    """
+
+    parentId: NodeId
+    nodes: list[Node]
+
+    @classmethod
+    def from_json(cls, json: dict) -> SetChildNodes:
+        return cls(NodeId(json["parentId"]), [Node.from_json(n) for n in json["nodes"]])
+
+
+@dataclasses.dataclass
+class ShadowRootPopped:
+    """Called when shadow root is popped from the element.
+
+    Attributes
+    ----------
+    hostId: NodeId
+            Host element id.
+    rootId: NodeId
+            Shadow root id.
+    """
+
+    hostId: NodeId
+    rootId: NodeId
+
+    @classmethod
+    def from_json(cls, json: dict) -> ShadowRootPopped:
+        return cls(NodeId(json["hostId"]), NodeId(json["rootId"]))
+
+
+@dataclasses.dataclass
+class ShadowRootPushed:
+    """Called when shadow root is pushed into the element.
+
+    Attributes
+    ----------
+    hostId: NodeId
+            Host element id.
+    root: Node
+            Shadow root.
+    """
+
+    hostId: NodeId
+    root: Node
+
+    @classmethod
+    def from_json(cls, json: dict) -> ShadowRootPushed:
+        return cls(NodeId(json["hostId"]), Node.from_json(json["root"]))

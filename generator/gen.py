@@ -734,7 +734,48 @@ class CDPEvent:
         )
 
     def to_ast(self):
-        pass
+        body = [self.create_docstring()]
+
+        for attr in self.attributes:
+            body.append(attr.to_ast())
+
+        body.append(self.create_from_json_function())
+
+        self.context.require("dataclasses", None)
+        return ast_classdef(
+            self.name[0].capitalize() + self.name[1:],
+            body,
+            decorators=["dataclasses.dataclass"],
+        )
+
+    def create_from_json_function(self):
+        cls_args = []
+        for attr in self.attributes:
+            cls_args.append(attr.create_parse_ast(f'json["{attr.name}"]'))
+
+        return ast_function(
+            "from_json",
+            ast_args([ast.arg("cls", None), ast.arg("json", ast.Name("dict"))]),
+            [ast.Return(ast_call("cls", cls_args))],
+            returns=ast.Name(self.name[0].capitalize() + self.name[1:]),
+            decorators=["classmethod"],
+        )
+
+    def create_docstring(self):
+        lines = []
+
+        if self.description:
+            lines += self.description.split("\n")
+
+        if self.attributes:
+            lines.append("")
+            lines.append("Attributes")
+            lines.append("----------")
+
+            for attr in self.attributes:
+                lines += attr.to_docstring()
+
+        return ast_docstring(lines)
 
 
 @dataclass
@@ -783,6 +824,9 @@ class CDPDomain:
 
         for command in self.commands:
             body.append(command.to_ast())
+
+        for event in self.events:
+            body.append(event.to_ast())
 
         # Import dependencies
         for package, names in self.context.required_imports.items():

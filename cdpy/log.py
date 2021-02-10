@@ -140,3 +140,20 @@ def start_violations_report(config: list[ViolationSetting]) -> dict:
 def stop_violations_report() -> dict:
     """Stop violation reporting."""
     return {"method": "Log.stopViolationsReport", "params": {}}
+
+
+@dataclasses.dataclass
+class EntryAdded:
+    """Issued when new message was logged.
+
+    Attributes
+    ----------
+    entry: LogEntry
+            The entry.
+    """
+
+    entry: LogEntry
+
+    @classmethod
+    def from_json(cls, json: dict) -> EntryAdded:
+        return cls(LogEntry.from_json(json["entry"]))
