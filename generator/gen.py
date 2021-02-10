@@ -228,6 +228,70 @@ class CDPProperty:
 
         return self._category
 
+    def create_parse_ast(self, json_val: str):
+        if self.category.does_not_require_parsing:
+            if self.optional:
+                code = f"json.get('{self.name}')"
+            else:
+                code = json_val
+        elif self.is_list_of_references:
+            type_name = self.context.get_type_by_ref(self.items.ref).create_reference(
+                self.context
+            )
+            e = self.name[0]  # reference used for each element
+
+            if self.category.parse_with_constructor:
+                code = f"[{type_name}({e}) for {e} in {json_val}]"
+            elif self.category.parse_with_from_json:
+                code = f"[{type_name}.from_json({e}) for {e} in {json_val}]"
+        else:
+            type_name = self.context.get_type_by_ref(self.ref).create_reference(
+                self.context
+            )
+
+            if self.category.parse_with_constructor:
+                code = f"{type_name}({json_val})"
+            elif self.category.parse_with_from_json:
+                code = f"{type_name}.from_json({json_val})"
+
+        # Wrap argument in 'if ... else None' if the attribute is optional.
+        # Primitives are calling 'dict.get()' instead.
+        if self.optional and not self.category.does_not_require_parsing:
+            code = f"{code} if '{self.name}' in json else None"
+
+        return ast_from_str(code)
+
+    def create_unparse_ast(self, value: str):
+        if self.category.does_not_require_unparsing:
+            json_val = value
+        elif self.is_list_of_references:
+            e = self.name[0]  # reference used for each element
+
+            if self.category.unparse_with_base_type:
+                base_type = JS_TYPE_TO_BUILTIN_MAP.get(
+                    self.context.get_type_by_ref(self.items.ref).type
+                )
+                json_val = f"[{base_type}({e}) for {e} in {value}]"
+            elif self.category.unparse_with_to_json:
+                json_val = f"[{e}.to_json() for {e} in {value}]"
+            elif self.category.unparse_with_attribute_value:
+                json_val = f"[{e}.value for {e} in {value}]"
+        else:
+            if self.category.unparse_with_base_type:
+                base_type = JS_TYPE_TO_BUILTIN_MAP.get(
+                    self.context.get_type_by_ref(self.ref).type
+                )
+                json_val = f"{base_type}({value})"
+            elif self.category.unparse_with_to_json:
+                json_val = f"{value}.to_json()"
+            elif self.category.unparse_with_attribute_value:
+                json_val = f"{value}.value"
+
+        if self.optional and not self.category.does_not_require_unparsing:
+            json_val = f"{json_val} if {value} else None"
+
+        return ast_from_str(json_val)
+
     @property
     def is_list_of_references(self):
         """Checks if the property is a list and its items are references to an type"""
@@ -429,48 +493,7 @@ class CDPType:
     def create_object_from_json_function(self):
         cls_args = []
         for attr in self.attributes:
-            category = attr.category
-            value = f'json["{attr.name}"]'  # The arguments json value
-
-            if category.does_not_require_parsing:
-                if attr.optional:
-                    code = f"json.get('{attr.name}')"
-                else:
-                    code = value
-            elif attr.is_list_of_references:
-                type_name = self.context.get_type_by_ref(
-                    attr.items.ref
-                ).create_reference(self.context)
-                e = attr.name[0]  # reference used for each element
-
-                if category.parse_with_constructor:
-                    code = f"[{type_name}({e}) for {e} in {value}]"
-                elif category.parse_with_from_json:
-                    code = f"[{type_name}.from_json({e}) for {e} in {value}]"
-                else:
-                    raise Exception(
-                        f"Can't parse argument: {self.context.domain_name}.{self.id}.{attr.name}"
-                    )
-            else:
-                type_name = self.context.get_type_by_ref(attr.ref).create_reference(
-                    self.context
-                )
-
-                if category.parse_with_constructor:
-                    code = f"{type_name}({value})"
-                elif category.parse_with_from_json:
-                    code = f"{type_name}.from_json({value})"
-                else:
-                    raise Exception(
-                        f"Can't parse argument: {self.context.domain_name}.{self.id}.{attr.name}"
-                    )
-
-            # Wrap argument in 'if ... else None' if the attribute is optional.
-            # Primitives are calling 'dict.get()' instead.
-            if attr.optional and not category.does_not_require_parsing:
-                code = f"{code} if '{attr.name}' in json else None"
-
-            cls_args.append(ast_from_str(code))
+            cls_args.append(attr.create_parse_ast(f'json["{attr.name}"]'))
 
         return ast_function(
             "from_json",
@@ -481,52 +504,9 @@ class CDPType:
         )
 
     def create_object_to_json_function(self):
-        json_values = []
-        for attr in self.attributes:
-            category = attr.category
-            value = f"self.{attr.name}"  # The value of the attribute
-
-            if category.does_not_require_unparsing:
-                json_val = value
-            elif attr.is_list_of_references:
-                e = attr.name[0]  # reference used for each element
-
-                if category.unparse_with_base_type:
-                    base_type = JS_TYPE_TO_BUILTIN_MAP.get(
-                        self.context.get_type_by_ref(attr.items.ref).type
-                    )
-                    json_val = f"[{base_type}({e}) for {e} in {value}]"
-                elif category.unparse_with_to_json:
-                    json_val = f"[{e}.to_json() for {e} in {value}]"
-                elif category.unparse_with_attribute_value:
-                    json_val = f"[{e}.value for {e} in {value}]"
-                else:
-                    raise Exception(
-                        f"Can't convert attribute to json: {self.context.domain_name}.{self.id}.{attr.name}"
-                    )
-            else:
-                if category.unparse_with_base_type:
-                    base_type = JS_TYPE_TO_BUILTIN_MAP.get(
-                        self.context.get_type_by_ref(attr.ref).type
-                    )
-                    json_val = f"{base_type}({value})"
-                elif category.unparse_with_to_json:
-                    json_val = f"{value}.to_json()"
-                elif category.unparse_with_attribute_value:
-                    json_val = f"{value}.value"
-                else:
-                    raise Exception(
-                        f"Can't convert attribute to json: {self.context.domain_name}.{self.id}.{attr.name}"
-                    )
-
-            if attr.optional and not category.does_not_require_unparsing:
-                json_val = f"{json_val} if {value} else None"
-
-            json_values.append(ast_from_str(json_val))
-
         json = ast.Dict(
             [ast.Constant(a.name) for a in self.attributes],
-            json_values,
+            [a.create_unparse_ast(f"self.{a.name}") for a in self.attributes],
         )
 
         if self.has_optional_attributes:
