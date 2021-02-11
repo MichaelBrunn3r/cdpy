@@ -835,7 +835,7 @@ class CDPDomain:
             else:
                 imports.append(ast_import(package))
 
-        return ast.Module(imports + body, lineno=0, col_offset=0, type_ignores=[])
+        return ast_module(imports + body)
 
 
 def fetch_and_save_protocol(url: str, filename_template: str) -> tuple[int, int]:
@@ -869,6 +869,19 @@ def load_protocol(major: int, minor: int):
     # Combine and return protocols
     browser_protocol["domains"] += js_protocol["domains"]
     return browser_protocol
+
+
+def create_init_module(global_context: GlobalContext):
+    body = [
+        ast_import_from(
+            ".", *[d.context.module_name for d in global_context.domains.values()]
+        )
+    ]
+
+    all = [f'"{d.context.module_name}"' for d in global_context.domains.values()]
+    body.append(ast_from_str(f"__all__ = [{','.join(all)}]"))
+
+    return ast_module(body)
 
 
 @app.command()
@@ -905,6 +918,11 @@ def generate(
         if not dry:
             with output_path.open("w") as f:
                 f.write(code)
+
+    init_module = ast.unparse(create_init_module(global_context))
+    if not dry:
+        with Path(output_dir, "__init__.py").open("w") as f:
+            f.write(init_module)
 
 
 @app.command()

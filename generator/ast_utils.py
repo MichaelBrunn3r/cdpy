@@ -92,3 +92,7 @@ def ast_function(
         returns=returns,
         lineno=0,
     )
+
+
+def ast_module(body: list[ast.AST]):
+    return ast.Module(body, lineno=0, col_offset=0, type_ignores=[])
