@@ -11,11 +11,11 @@ repos:
 
   - repo: local
     hooks:
-      # - id: isort
-      #   name: isort
-      #   entry: poetry run isort --settings-path pyproject.toml
-      #   types: [python]
-      #   language: system
+      - id: isort
+        name: isort
+        entry: poetry run isort --settings-path pyproject.toml
+        types: [python]
+        language: system
       - id: black
         name: black
         entry: poetry run black --config pyproject.toml
