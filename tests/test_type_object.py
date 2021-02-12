@@ -47,14 +47,14 @@ def node(required_node_args):
     return cdpy.dom.Node(**required_node_args)
 
 
-class TestObjectFromJson:
-    def test_builtin_arg(self, required_node_args):
+class TestObject_FromJson_ParseArg:
+    def test_builtin(self, required_node_args):
         node = cdpy.dom.Node.from_json(required_node_args)
 
         assert type(node.nodeType) == int
         assert node.nodeType == 7
 
-    def test_builtin_list_arg(self, required_node_args):
+    def test_builtin_list(self, required_node_args):
         args = required_node_args | {"attributes": ["a", "b", "c"]}
         node = cdpy.dom.Node.from_json(args)
 
@@ -62,20 +62,27 @@ class TestObjectFromJson:
         assert type(node.attributes) == list
         assert node.attributes == ["a", "b", "c"]
 
-    def test_typeless_enum_arg(self):
+    def test_typeless_enum(self):
         args = {"text": "lorem", "source": "mediaRule"}
         media = cdpy.css.CSSMedia.from_json(args)
 
         assert type(media.source) == str
         assert media.source == "mediaRule"
 
-    def test_simple_arg(self, required_node_args):
+    def test_simple(self, required_node_args):
         node = cdpy.dom.Node.from_json(required_node_args)
 
         assert type(node.nodeId) == cdpy.dom.NodeId
         assert node.nodeId == 222
 
-    def test_simple_list_arg(self):
+    def test_simple_from_other_domain(self, required_node_args):
+        args = required_node_args | {"frameId": "deadbeef"}
+        node = cdpy.dom.Node.from_json(args)
+
+        assert node.frameId == "deadbeef"
+        assert type(node.frameId) == cdpy.page.FrameId
+
+    def test_simple_list(self):
         args = {"index": [1, 2], "value": [1, 2]}
         rsd = cdpy.dom_snapshot.RareStringData.from_json(args)
 
@@ -86,14 +93,14 @@ class TestObjectFromJson:
             cdpy.dom_snapshot.StringIndex(2),
         ]
 
-    def test_enum_arg(self, required_node_args):
+    def test_enum(self, required_node_args):
         args = required_node_args | {"pseudoType": "marker"}
         node = cdpy.dom.Node.from_json(args)
 
         assert type(node.pseudoType) == cdpy.dom.PseudoType
         assert node.pseudoType == cdpy.dom.PseudoType.MARKER
 
-    def test_enum_list_arg(self):
+    def test_enum_list(self):
         args = {
             "blockedReasons": ["UserPreferences", "UnknownError"],
             "cookieLine": "lorem",
@@ -107,7 +114,7 @@ class TestObjectFromJson:
             cdpy.network.SetCookieBlockedReason.UNKNOWN_ERROR,
         ]
 
-    def test_object_arg(self, required_node_args, required_node_args2):
+    def test_object(self, required_node_args, required_node_args2):
         args = required_node_args | {"contentDocument": required_node_args2}
         nested_node = cdpy.dom.Node.from_json(required_node_args2)
         node = cdpy.dom.Node.from_json(args)
@@ -115,7 +122,7 @@ class TestObjectFromJson:
         assert type(node.contentDocument) == cdpy.dom.Node
         assert node.contentDocument == nested_node
 
-    def test_object_list_arg(
+    def test_object_list(
         self, required_node_args, required_node_args2, required_node_args3
     ):
         nested_node_1 = cdpy.dom.Node(**required_node_args2)
@@ -128,6 +135,8 @@ class TestObjectFromJson:
         assert type(node.children) == list
         assert node.children == [nested_node_1, nested_node_2]
 
+
+class TestObject_FromJson_Args:
     def test_optional_args_default_to_none(self):
         style = cdpy.css.CSSStyle.from_json(
             {"cssProperties": [], "shorthandEntries": []}
@@ -185,15 +194,8 @@ class TestObjectFromJson:
         assert node.nodeValue == "nval"
         assert node.childNodeCount == 10
 
-    def test_type_from_other_domain(self, required_node_args):
-        args = required_node_args | {"frameId": "deadbeef"}
-        node = cdpy.dom.Node.from_json(args)
 
-        assert node.frameId == "deadbeef"
-        assert type(node.frameId) == cdpy.page.FrameId
-
-
-class TestObjectToJson:
+class TestObject_ToJson:
     def test_builtin_attr(self, node):
         json = node.to_json()
 
@@ -300,7 +302,7 @@ class TestObjectToJson:
         assert json == args
 
 
-class TestObjectListFromJson:
+class TestObjectList_FromJson:
     def test_builtin(self):
         args = [1, 2, 3, 4, 5]
         aos = cdpy.dom_snapshot.ArrayOfStrings.from_json(args)
@@ -309,7 +311,7 @@ class TestObjectListFromJson:
         assert aos == args
 
 
-class TestObjectListToJson:
+class TestObjectList_ToJson:
     def test_builtin(self):
         args = [1, 2, 3, 4, 5]
         json = cdpy.dom_snapshot.ArrayOfStrings.from_json(args).to_json()
