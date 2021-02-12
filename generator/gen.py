@@ -315,16 +315,6 @@ class CDPProperty:
 
 
 @dataclass
-class CDPParameter(CDPProperty):
-    pass
-
-
-@dataclass
-class CDPReturn(CDPProperty):
-    pass
-
-
-@dataclass
 class CDPAttribute(CDPProperty):
     def to_ast(self):
         annotation = create_type_annotation(
@@ -573,8 +563,8 @@ class CDPCommand:
     description: Optional[str]
     experimental: bool
     deprecated: bool
-    parameters: list[CDPParameter]
-    returns: Optional[list[CDPReturn]]
+    parameters: list[CDPProperty]
+    returns: Optional[list[CDPProperty]]
     context: ModuleContext
     has_optional_params: bool
 
@@ -583,7 +573,7 @@ class CDPCommand:
         parameters = []
         has_optional_params = False
         for p in command.get("parameters", []):
-            param = CDPParameter.from_json(p, context)
+            param = CDPProperty.from_json(p, context)
             parameters.append(param)
             if param.optional:
                 has_optional_params = True
@@ -596,7 +586,7 @@ class CDPCommand:
             command.get("experimental", False),
             command.get("deprecated", False),
             parameters,
-            [CDPReturn.from_json(r, context) for r in command["returns"]]
+            [CDPProperty.from_json(r, context) for r in command["returns"]]
             if "returns" in command
             else None,
             context,
