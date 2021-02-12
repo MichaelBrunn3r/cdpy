@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 import enum
-from typing import Generator, Optional
+from typing import Optional
 
 from . import io, network, page
 from .common import filter_none, filter_unset_parameters
@@ -156,7 +156,7 @@ class AuthChallengeResponse:
         )
 
 
-def disable() -> dict:
+def disable():
     """Disables the fetch domain."""
     return {"method": "Fetch.disable", "params": {}}
 
@@ -164,7 +164,7 @@ def disable() -> dict:
 def enable(
     patterns: Optional[list[RequestPattern]] = None,
     handleAuthRequests: Optional[bool] = None,
-) -> dict:
+):
     """Enables issuing of requestPaused events. A request will be paused until client
     calls one of failRequest, fulfillRequest or continueRequest/continueWithAuth.
 
@@ -189,7 +189,7 @@ def enable(
     )
 
 
-def fail_request(requestId: RequestId, errorReason: network.ErrorReason) -> dict:
+def fail_request(requestId: RequestId, errorReason: network.ErrorReason):
     """Causes the request to fail with specified reason.
 
     Parameters
@@ -212,7 +212,7 @@ def fulfill_request(
     binaryResponseHeaders: Optional[str] = None,
     body: Optional[str] = None,
     responsePhrase: Optional[str] = None,
-) -> dict:
+):
     """Provides response to the request.
 
     Parameters
@@ -257,7 +257,7 @@ def continue_request(
     method: Optional[str] = None,
     postData: Optional[str] = None,
     headers: Optional[list[HeaderEntry]] = None,
-) -> dict:
+):
     """Continues the request, optionally modifying some of its parameters.
 
     Parameters
@@ -289,7 +289,7 @@ def continue_request(
 
 def continue_with_auth(
     requestId: RequestId, authChallengeResponse: AuthChallengeResponse
-) -> dict:
+):
     """Continues a request supplying authChallengeResponse following authRequired event.
 
     Parameters
@@ -308,7 +308,7 @@ def continue_with_auth(
     }
 
 
-def get_response_body(requestId: RequestId) -> Generator[dict, dict, dict]:
+def get_response_body(requestId: RequestId):
     """Causes the body of the response to be received from the server and
     returned as a single string. May only be issued for a request that
     is paused in the Response stage and is mutually exclusive with
@@ -328,16 +328,14 @@ def get_response_body(requestId: RequestId) -> Generator[dict, dict, dict]:
     base64Encoded: bool
             True, if content was sent as base64.
     """
-    response = yield {
-        "method": "Fetch.getResponseBody",
-        "params": {"requestId": str(requestId)},
-    }
+    return {"method": "Fetch.getResponseBody", "params": {"requestId": str(requestId)}}
+
+
+def parse_get_response_body_response(response):
     return {"body": response["body"], "base64Encoded": response["base64Encoded"]}
 
 
-def take_response_body_as_stream(
-    requestId: RequestId,
-) -> Generator[dict, dict, io.StreamHandle]:
+def take_response_body_as_stream(requestId: RequestId):
     """Returns a handle to the stream representing the response body.
     The request must be paused in the HeadersReceived stage.
     Note that after this command the request can't be continued
@@ -357,10 +355,13 @@ def take_response_body_as_stream(
     -------
     stream: io.StreamHandle
     """
-    response = yield {
+    return {
         "method": "Fetch.takeResponseBodyAsStream",
         "params": {"requestId": str(requestId)},
     }
+
+
+def parse_take_response_body_as_stream_response(response):
     return io.StreamHandle(response["stream"])
 
 

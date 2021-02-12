@@ -594,6 +594,14 @@ class CDPCommand:
         )
 
     def to_ast(self):
+        functions = [self.create_build_command_function()]
+
+        if self.returns:
+            functions.append(self.create_parse_response_function())
+
+        return functions
+
+    def create_build_command_function(self):
         args = ast_args(
             [p.to_ast() for p in self.parameters],
             [ast.Constant(None) if p.optional else None for p in self.parameters],
@@ -601,47 +609,39 @@ class CDPCommand:
 
         body = [self.create_docstring()]
 
-        if self.returns:
-            body.append(ast_from_str(f"response = yield {self.create_command_json()}"))
-
-            self.context.require("typing", "Generator")
-            if len(self.returns) == 1:
-                ret = self.returns[0]
-                response = ret.create_parse_from_ast("response")
-                return_type = create_type_annotation(
-                    ret.type, ret.ref, ret.items, ret.optional, self.context
-                )
-                function_type = f"Generator[dict,dict,{return_type}]"
-            else:
-                response = ast.Dict(
-                    [ast.Constant(r.name) for r in self.returns],
-                    [r.create_parse_from_ast("response") for r in self.returns],
-                )
-                function_type = "Generator[dict,dict,dict]"
-            body.append(ast.Return(response))
-        else:
-            body.append(ast_from_str(f"return {self.create_command_json()}"))
-            function_type = "dict"
-
-        return ast_function(
-            snake_case(self.name), args, body, returns=ast.Name(function_type)
-        )
-
-    def create_command_json(self):
-        params = ",".join(
+        # Create command builder
+        cmd_params = ",".join(
             [
                 f'"{p.name}": {p.create_unparse_from_ast(p.name)}'
                 for p in self.parameters
             ]
         )
-        command_json = f'{{"method": "{self.context.domain_name}.{self.name}", "params": {{{params}}}}}'
+        cmd = f'{{"method": "{self.context.domain_name}.{self.name}", "params": {{{cmd_params}}}}}'
 
         # Remove unset optional parameters
         if self.has_optional_params:
             self.context.require(".common", "filter_unset_parameters")
-            command_json = f"filter_unset_parameters({command_json})"
+            cmd = f"filter_unset_parameters({cmd})"
 
-        return command_json
+        body.append(ast_from_str(f"return {cmd}"))
+
+        return ast_function(snake_case(self.name), args, body)
+
+    def create_parse_response_function(self):
+        if len(self.returns) == 1:
+            ret = self.returns[0]
+            response = ret.create_parse_from_ast("response")
+        else:
+            response = ast.Dict(
+                [ast.Constant(r.name) for r in self.returns],
+                [r.create_parse_from_ast("response") for r in self.returns],
+            )
+
+        return ast_function(
+            f"parse_{snake_case(self.name)}_response",
+            ast_args([ast.Name("response")]),
+            [ast.Return(response)],
+        )
 
     def create_docstring(self):
         lines = []
@@ -793,7 +793,7 @@ class CDPDomain:
             body.append(type.to_ast())
 
         for command in self.commands:
-            body.append(command.to_ast())
+            body += command.to_ast()
 
         for event in self.events:
             body.append(event.to_ast())

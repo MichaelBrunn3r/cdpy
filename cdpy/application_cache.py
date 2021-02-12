@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Generator
 
 from . import page
 
@@ -106,14 +105,12 @@ class FrameWithManifest:
         }
 
 
-def enable() -> dict:
+def enable():
     """Enables application cache domain notifications."""
     return {"method": "ApplicationCache.enable", "params": {}}
 
 
-def get_application_cache_for_frame(
-    frameId: page.FrameId,
-) -> Generator[dict, dict, ApplicationCache]:
+def get_application_cache_for_frame(frameId: page.FrameId):
     """Returns relevant application cache data for the document in given frame.
 
     Parameters
@@ -126,14 +123,17 @@ def get_application_cache_for_frame(
     applicationCache: ApplicationCache
             Relevant application cache data for the document in given frame.
     """
-    response = yield {
+    return {
         "method": "ApplicationCache.getApplicationCacheForFrame",
         "params": {"frameId": str(frameId)},
     }
+
+
+def parse_get_application_cache_for_frame_response(response):
     return ApplicationCache.from_json(response["applicationCache"])
 
 
-def get_frames_with_manifests() -> Generator[dict, dict, list[FrameWithManifest]]:
+def get_frames_with_manifests():
     """Returns array of frame identifiers with manifest urls for each frame containing a document
     associated with some application cache.
 
@@ -143,11 +143,14 @@ def get_frames_with_manifests() -> Generator[dict, dict, list[FrameWithManifest]
             Array of frame identifiers with manifest urls for each frame containing a document
             associated with some application cache.
     """
-    response = yield {"method": "ApplicationCache.getFramesWithManifests", "params": {}}
+    return {"method": "ApplicationCache.getFramesWithManifests", "params": {}}
+
+
+def parse_get_frames_with_manifests_response(response):
     return [FrameWithManifest.from_json(f) for f in response["frameIds"]]
 
 
-def get_manifest_for_frame(frameId: page.FrameId) -> Generator[dict, dict, str]:
+def get_manifest_for_frame(frameId: page.FrameId):
     """Returns manifest URL for document in the given frame.
 
     Parameters
@@ -160,10 +163,13 @@ def get_manifest_for_frame(frameId: page.FrameId) -> Generator[dict, dict, str]:
     manifestURL: str
             Manifest URL for document in the given frame.
     """
-    response = yield {
+    return {
         "method": "ApplicationCache.getManifestForFrame",
         "params": {"frameId": str(frameId)},
     }
+
+
+def parse_get_manifest_for_frame_response(response):
     return response["manifestURL"]
 
 

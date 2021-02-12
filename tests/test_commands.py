@@ -51,8 +51,6 @@ class TestUnparseTypes:
         }
         r = cdpy.overlay.get_grid_highlight_objects_for_test(**args)
 
-        assert isinstance(r, Generator)
-        r = next(r)
         assert "params" in r
         assert "nodeIds" in r["params"]
         nodeIds = r["params"]["nodeIds"]
@@ -117,8 +115,6 @@ class TestUnparseTypes:
         }
         r = cdpy.css.add_rule(**args)
 
-        assert isinstance(r, Generator)
-        r = next(r)
         assert "params" in r
         assert "location" in r["params"]
         location = r["params"]["location"]

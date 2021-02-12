@@ -3,7 +3,7 @@ from __future__ import annotations
 import dataclasses
 
 
-def bind(port: int) -> dict:
+def bind(port: int):
     """Request browser port binding.
 
     Parameters
@@ -14,7 +14,7 @@ def bind(port: int) -> dict:
     return {"method": "Tethering.bind", "params": {"port": port}}
 
 
-def unbind(port: int) -> dict:
+def unbind(port: int):
     """Request browser port unbinding.
 
     Parameters

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 import enum
-from typing import Generator, Optional
+from typing import Optional
 
 from .common import filter_unset_parameters
 
@@ -154,7 +154,7 @@ class CachedResponse:
         return {"body": self.body}
 
 
-def delete_cache(cacheId: CacheId) -> dict:
+def delete_cache(cacheId: CacheId):
     """Deletes a cache.
 
     Parameters
@@ -165,7 +165,7 @@ def delete_cache(cacheId: CacheId) -> dict:
     return {"method": "CacheStorage.deleteCache", "params": {"cacheId": str(cacheId)}}
 
 
-def delete_entry(cacheId: CacheId, request: str) -> dict:
+def delete_entry(cacheId: CacheId, request: str):
     """Deletes a cache entry.
 
     Parameters
@@ -181,7 +181,7 @@ def delete_entry(cacheId: CacheId, request: str) -> dict:
     }
 
 
-def request_cache_names(securityOrigin: str) -> Generator[dict, dict, list[Cache]]:
+def request_cache_names(securityOrigin: str):
     """Requests cache names.
 
     Parameters
@@ -194,16 +194,19 @@ def request_cache_names(securityOrigin: str) -> Generator[dict, dict, list[Cache
     caches: list[Cache]
             Caches for the security origin.
     """
-    response = yield {
+    return {
         "method": "CacheStorage.requestCacheNames",
         "params": {"securityOrigin": securityOrigin},
     }
+
+
+def parse_request_cache_names_response(response):
     return [Cache.from_json(c) for c in response["caches"]]
 
 
 def request_cached_response(
     cacheId: CacheId, requestURL: str, requestHeaders: list[Header]
-) -> Generator[dict, dict, CachedResponse]:
+):
     """Fetches cache entry.
 
     Parameters
@@ -220,7 +223,7 @@ def request_cached_response(
     response: CachedResponse
             Response read from the cache.
     """
-    response = yield {
+    return {
         "method": "CacheStorage.requestCachedResponse",
         "params": {
             "cacheId": str(cacheId),
@@ -228,6 +231,9 @@ def request_cached_response(
             "requestHeaders": [r.to_json() for r in requestHeaders],
         },
     }
+
+
+def parse_request_cached_response_response(response):
     return CachedResponse.from_json(response["response"])
 
 
@@ -236,7 +242,7 @@ def request_entries(
     skipCount: Optional[int] = None,
     pageSize: Optional[int] = None,
     pathFilter: Optional[str] = None,
-) -> Generator[dict, dict, dict]:
+):
     """Requests data from cache.
 
     Parameters
@@ -258,7 +264,7 @@ def request_entries(
             Count of returned entries from this storage. If pathFilter is empty, it
             is the count of all entries from this storage.
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {
             "method": "CacheStorage.requestEntries",
             "params": {
@@ -269,6 +275,9 @@ def request_entries(
             },
         }
     )
+
+
+def parse_request_entries_response(response):
     return {
         "cacheDataEntries": [
             DataEntry.from_json(c) for c in response["cacheDataEntries"]

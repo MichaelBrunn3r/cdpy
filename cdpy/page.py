@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 import enum
-from typing import Generator, Optional
+from typing import Optional
 
 from . import debugger, dom, emulation, io, network, runtime
 from .common import filter_none, filter_unset_parameters
@@ -764,9 +764,7 @@ class ReferrerPolicy(enum.Enum):
     UNSAFE_URL = "unsafeUrl"
 
 
-def add_script_to_evaluate_on_load(
-    scriptSource: str,
-) -> Generator[dict, dict, ScriptIdentifier]:
+def add_script_to_evaluate_on_load(scriptSource: str):
     """Deprecated, please use addScriptToEvaluateOnNewDocument instead.
 
     **Experimental**
@@ -782,16 +780,19 @@ def add_script_to_evaluate_on_load(
     identifier: ScriptIdentifier
             Identifier of the added script.
     """
-    response = yield {
+    return {
         "method": "Page.addScriptToEvaluateOnLoad",
         "params": {"scriptSource": scriptSource},
     }
+
+
+def parse_add_script_to_evaluate_on_load_response(response):
     return ScriptIdentifier(response["identifier"])
 
 
 def add_script_to_evaluate_on_new_document(
     source: str, worldName: Optional[str] = None
-) -> Generator[dict, dict, ScriptIdentifier]:
+):
     """Evaluates given script in every frame upon creation (before loading frame's scripts).
 
     Parameters
@@ -807,16 +808,19 @@ def add_script_to_evaluate_on_new_document(
     identifier: ScriptIdentifier
             Identifier of the added script.
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {
             "method": "Page.addScriptToEvaluateOnNewDocument",
             "params": {"source": source, "worldName": worldName},
         }
     )
+
+
+def parse_add_script_to_evaluate_on_new_document_response(response):
     return ScriptIdentifier(response["identifier"])
 
 
-def bring_to_front() -> dict:
+def bring_to_front():
     """Brings page to front (activates tab)."""
     return {"method": "Page.bringToFront", "params": {}}
 
@@ -827,7 +831,7 @@ def capture_screenshot(
     clip: Optional[Viewport] = None,
     fromSurface: Optional[bool] = None,
     captureBeyondViewport: Optional[bool] = None,
-) -> Generator[dict, dict, str]:
+):
     """Capture page screenshot.
 
     Parameters
@@ -848,7 +852,7 @@ def capture_screenshot(
     data: str
             Base64-encoded image data. (Encoded as a base64 string when passed over JSON)
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {
             "method": "Page.captureScreenshot",
             "params": {
@@ -860,10 +864,13 @@ def capture_screenshot(
             },
         }
     )
+
+
+def parse_capture_screenshot_response(response):
     return response["data"]
 
 
-def capture_snapshot(format: Optional[str] = None) -> Generator[dict, dict, str]:
+def capture_snapshot(format: Optional[str] = None):
     """Returns a snapshot of the page as a string. For MHTML format, the serialization includes
     iframes, shadow DOM, external resources, and element-inline styles.
 
@@ -879,13 +886,16 @@ def capture_snapshot(format: Optional[str] = None) -> Generator[dict, dict, str]
     data: str
             Serialized page data.
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {"method": "Page.captureSnapshot", "params": {"format": format}}
     )
+
+
+def parse_capture_snapshot_response(response):
     return response["data"]
 
 
-def clear_device_metrics_override() -> dict:
+def clear_device_metrics_override():
     """Clears the overriden device metrics.
 
     **Experimental**
@@ -895,7 +905,7 @@ def clear_device_metrics_override() -> dict:
     return {"method": "Page.clearDeviceMetricsOverride", "params": {}}
 
 
-def clear_device_orientation_override() -> dict:
+def clear_device_orientation_override():
     """Clears the overridden Device Orientation.
 
     **Experimental**
@@ -905,7 +915,7 @@ def clear_device_orientation_override() -> dict:
     return {"method": "Page.clearDeviceOrientationOverride", "params": {}}
 
 
-def clear_geolocation_override() -> dict:
+def clear_geolocation_override():
     """Clears the overriden Geolocation Position and Error.
 
     **Deprectated**
@@ -917,7 +927,7 @@ def create_isolated_world(
     frameId: FrameId,
     worldName: Optional[str] = None,
     grantUniveralAccess: Optional[bool] = None,
-) -> Generator[dict, dict, runtime.ExecutionContextId]:
+):
     """Creates an isolated world for the given frame.
 
     Parameters
@@ -935,7 +945,7 @@ def create_isolated_world(
     executionContextId: runtime.ExecutionContextId
             Execution context of the isolated world.
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {
             "method": "Page.createIsolatedWorld",
             "params": {
@@ -945,10 +955,13 @@ def create_isolated_world(
             },
         }
     )
+
+
+def parse_create_isolated_world_response(response):
     return runtime.ExecutionContextId(response["executionContextId"])
 
 
-def delete_cookie(cookieName: str, url: str) -> dict:
+def delete_cookie(cookieName: str, url: str):
     """Deletes browser cookie with given name, domain and path.
 
     **Experimental**
@@ -968,17 +981,17 @@ def delete_cookie(cookieName: str, url: str) -> dict:
     }
 
 
-def disable() -> dict:
+def disable():
     """Disables page domain notifications."""
     return {"method": "Page.disable", "params": {}}
 
 
-def enable() -> dict:
+def enable():
     """Enables page domain notifications."""
     return {"method": "Page.enable", "params": {}}
 
 
-def get_app_manifest() -> Generator[dict, dict, dict]:
+def get_app_manifest():
     """
     Returns
     -------
@@ -990,7 +1003,10 @@ def get_app_manifest() -> Generator[dict, dict, dict]:
     parsed: Optional[AppManifestParsedProperties]
             Parsed manifest properties
     """
-    response = yield {"method": "Page.getAppManifest", "params": {}}
+    return {"method": "Page.getAppManifest", "params": {}}
+
+
+def parse_get_app_manifest_response(response):
     return {
         "url": response["url"],
         "errors": [AppManifestError.from_json(e) for e in response["errors"]],
@@ -1001,7 +1017,7 @@ def get_app_manifest() -> Generator[dict, dict, dict]:
     }
 
 
-def get_installability_errors() -> Generator[dict, dict, list[InstallabilityError]]:
+def get_installability_errors():
     """
     **Experimental**
 
@@ -1009,11 +1025,14 @@ def get_installability_errors() -> Generator[dict, dict, list[InstallabilityErro
     -------
     installabilityErrors: list[InstallabilityError]
     """
-    response = yield {"method": "Page.getInstallabilityErrors", "params": {}}
+    return {"method": "Page.getInstallabilityErrors", "params": {}}
+
+
+def parse_get_installability_errors_response(response):
     return [InstallabilityError.from_json(i) for i in response["installabilityErrors"]]
 
 
-def get_manifest_icons() -> Generator[dict, dict, Optional[str]]:
+def get_manifest_icons():
     """
     **Experimental**
 
@@ -1021,11 +1040,14 @@ def get_manifest_icons() -> Generator[dict, dict, Optional[str]]:
     -------
     primaryIcon: Optional[str]
     """
-    response = yield {"method": "Page.getManifestIcons", "params": {}}
+    return {"method": "Page.getManifestIcons", "params": {}}
+
+
+def parse_get_manifest_icons_response(response):
     return response.get("primaryIcon")
 
 
-def get_cookies() -> Generator[dict, dict, list[network.Cookie]]:
+def get_cookies():
     """Returns all browser cookies. Depending on the backend support, will return detailed cookie
     information in the `cookies` field.
 
@@ -1038,11 +1060,14 @@ def get_cookies() -> Generator[dict, dict, list[network.Cookie]]:
     cookies: list[network.Cookie]
             Array of cookie objects.
     """
-    response = yield {"method": "Page.getCookies", "params": {}}
+    return {"method": "Page.getCookies", "params": {}}
+
+
+def parse_get_cookies_response(response):
     return [network.Cookie.from_json(c) for c in response["cookies"]]
 
 
-def get_frame_tree() -> Generator[dict, dict, FrameTree]:
+def get_frame_tree():
     """Returns present frame tree structure.
 
     Returns
@@ -1050,11 +1075,14 @@ def get_frame_tree() -> Generator[dict, dict, FrameTree]:
     frameTree: FrameTree
             Present frame tree structure.
     """
-    response = yield {"method": "Page.getFrameTree", "params": {}}
+    return {"method": "Page.getFrameTree", "params": {}}
+
+
+def parse_get_frame_tree_response(response):
     return FrameTree.from_json(response["frameTree"])
 
 
-def get_layout_metrics() -> Generator[dict, dict, dict]:
+def get_layout_metrics():
     """Returns metrics relating to the layouting of the page, such as viewport bounds/scale.
 
     Returns
@@ -1066,7 +1094,10 @@ def get_layout_metrics() -> Generator[dict, dict, dict]:
     contentSize: dom.Rect
             Size of scrollable area.
     """
-    response = yield {"method": "Page.getLayoutMetrics", "params": {}}
+    return {"method": "Page.getLayoutMetrics", "params": {}}
+
+
+def parse_get_layout_metrics_response(response):
     return {
         "layoutViewport": LayoutViewport.from_json(response["layoutViewport"]),
         "visualViewport": VisualViewport.from_json(response["visualViewport"]),
@@ -1074,7 +1105,7 @@ def get_layout_metrics() -> Generator[dict, dict, dict]:
     }
 
 
-def get_navigation_history() -> Generator[dict, dict, dict]:
+def get_navigation_history():
     """Returns navigation history for the current page.
 
     Returns
@@ -1084,19 +1115,22 @@ def get_navigation_history() -> Generator[dict, dict, dict]:
     entries: list[NavigationEntry]
             Array of navigation history entries.
     """
-    response = yield {"method": "Page.getNavigationHistory", "params": {}}
+    return {"method": "Page.getNavigationHistory", "params": {}}
+
+
+def parse_get_navigation_history_response(response):
     return {
         "currentIndex": response["currentIndex"],
         "entries": [NavigationEntry.from_json(e) for e in response["entries"]],
     }
 
 
-def reset_navigation_history() -> dict:
+def reset_navigation_history():
     """Resets navigation history for the current page."""
     return {"method": "Page.resetNavigationHistory", "params": {}}
 
 
-def get_resource_content(frameId: FrameId, url: str) -> Generator[dict, dict, dict]:
+def get_resource_content(frameId: FrameId, url: str):
     """Returns content of the given resource.
 
     **Experimental**
@@ -1115,14 +1149,17 @@ def get_resource_content(frameId: FrameId, url: str) -> Generator[dict, dict, di
     base64Encoded: bool
             True, if content was served as base64.
     """
-    response = yield {
+    return {
         "method": "Page.getResourceContent",
         "params": {"frameId": str(frameId), "url": url},
     }
+
+
+def parse_get_resource_content_response(response):
     return {"content": response["content"], "base64Encoded": response["base64Encoded"]}
 
 
-def get_resource_tree() -> Generator[dict, dict, FrameResourceTree]:
+def get_resource_tree():
     """Returns present frame / resource tree structure.
 
     **Experimental**
@@ -1132,11 +1169,14 @@ def get_resource_tree() -> Generator[dict, dict, FrameResourceTree]:
     frameTree: FrameResourceTree
             Present frame / resource tree structure.
     """
-    response = yield {"method": "Page.getResourceTree", "params": {}}
+    return {"method": "Page.getResourceTree", "params": {}}
+
+
+def parse_get_resource_tree_response(response):
     return FrameResourceTree.from_json(response["frameTree"])
 
 
-def handle_java_script_dialog(accept: bool, promptText: Optional[str] = None) -> dict:
+def handle_java_script_dialog(accept: bool, promptText: Optional[str] = None):
     """Accepts or dismisses a JavaScript initiated dialog (alert, confirm, prompt, or onbeforeunload).
 
     Parameters
@@ -1161,7 +1201,7 @@ def navigate(
     transitionType: Optional[TransitionType] = None,
     frameId: Optional[FrameId] = None,
     referrerPolicy: Optional[ReferrerPolicy] = None,
-) -> Generator[dict, dict, dict]:
+):
     """Navigates current page to the given URL.
 
     Parameters
@@ -1186,7 +1226,7 @@ def navigate(
     errorText: Optional[str]
             User friendly error message, present if and only if navigation has failed.
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {
             "method": "Page.navigate",
             "params": {
@@ -1198,6 +1238,9 @@ def navigate(
             },
         }
     )
+
+
+def parse_navigate_response(response):
     return {
         "frameId": FrameId(response["frameId"]),
         "loaderId": network.LoaderId(response["loaderId"])
@@ -1207,7 +1250,7 @@ def navigate(
     }
 
 
-def navigate_to_history_entry(entryId: int) -> dict:
+def navigate_to_history_entry(entryId: int):
     """Navigates current page to the given history entry.
 
     Parameters
@@ -1235,7 +1278,7 @@ def print_to_pdf(
     footerTemplate: Optional[str] = None,
     preferCSSPageSize: Optional[bool] = None,
     transferMode: Optional[str] = None,
-) -> Generator[dict, dict, dict]:
+):
     """Print page as PDF.
 
     Parameters
@@ -1291,7 +1334,7 @@ def print_to_pdf(
     stream: Optional[io.StreamHandle]
             A handle of the stream that holds resulting PDF data.
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {
             "method": "Page.printToPDF",
             "params": {
@@ -1314,6 +1357,9 @@ def print_to_pdf(
             },
         }
     )
+
+
+def parse_print_to_pdf_response(response):
     return {
         "data": response["data"],
         "stream": io.StreamHandle(response["stream"]) if "stream" in response else None,
@@ -1322,7 +1368,7 @@ def print_to_pdf(
 
 def reload(
     ignoreCache: Optional[bool] = None, scriptToEvaluateOnLoad: Optional[str] = None
-) -> dict:
+):
     """Reloads given page optionally ignoring the cache.
 
     Parameters
@@ -1344,7 +1390,7 @@ def reload(
     )
 
 
-def remove_script_to_evaluate_on_load(identifier: ScriptIdentifier) -> dict:
+def remove_script_to_evaluate_on_load(identifier: ScriptIdentifier):
     """Deprecated, please use removeScriptToEvaluateOnNewDocument instead.
 
     **Experimental**
@@ -1361,7 +1407,7 @@ def remove_script_to_evaluate_on_load(identifier: ScriptIdentifier) -> dict:
     }
 
 
-def remove_script_to_evaluate_on_new_document(identifier: ScriptIdentifier) -> dict:
+def remove_script_to_evaluate_on_new_document(identifier: ScriptIdentifier):
     """Removes given script from the list.
 
     Parameters
@@ -1374,7 +1420,7 @@ def remove_script_to_evaluate_on_new_document(identifier: ScriptIdentifier) -> d
     }
 
 
-def screencast_frame_ack(sessionId: int) -> dict:
+def screencast_frame_ack(sessionId: int):
     """Acknowledges that a screencast frame has been received by the frontend.
 
     **Experimental**
@@ -1393,7 +1439,7 @@ def search_in_resource(
     query: str,
     caseSensitive: Optional[bool] = None,
     isRegex: Optional[bool] = None,
-) -> Generator[dict, dict, list[debugger.SearchMatch]]:
+):
     """Searches for given string in resource content.
 
     **Experimental**
@@ -1416,7 +1462,7 @@ def search_in_resource(
     result: list[debugger.SearchMatch]
             List of search matches.
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {
             "method": "Page.searchInResource",
             "params": {
@@ -1428,10 +1474,13 @@ def search_in_resource(
             },
         }
     )
+
+
+def parse_search_in_resource_response(response):
     return [debugger.SearchMatch.from_json(r) for r in response["result"]]
 
 
-def set_ad_blocking_enabled(enabled: bool) -> dict:
+def set_ad_blocking_enabled(enabled: bool):
     """Enable Chrome's experimental ad filter on all sites.
 
     **Experimental**
@@ -1444,7 +1493,7 @@ def set_ad_blocking_enabled(enabled: bool) -> dict:
     return {"method": "Page.setAdBlockingEnabled", "params": {"enabled": enabled}}
 
 
-def set_bypass_csp(enabled: bool) -> dict:
+def set_bypass_csp(enabled: bool):
     """Enable page Content Security Policy by-passing.
 
     **Experimental**
@@ -1470,7 +1519,7 @@ def set_device_metrics_override(
     dontSetVisibleSize: Optional[bool] = None,
     screenOrientation: Optional[emulation.ScreenOrientation] = None,
     viewport: Optional[Viewport] = None,
-) -> dict:
+):
     """Overrides the values of device screen dimensions (window.screen.width, window.screen.height,
     window.innerWidth, window.innerHeight, and "device-width"/"device-height"-related CSS media
     query results).
@@ -1530,7 +1579,7 @@ def set_device_metrics_override(
     )
 
 
-def set_device_orientation_override(alpha: float, beta: float, gamma: float) -> dict:
+def set_device_orientation_override(alpha: float, beta: float, gamma: float):
     """Overrides the Device Orientation.
 
     **Experimental**
@@ -1552,7 +1601,7 @@ def set_device_orientation_override(alpha: float, beta: float, gamma: float) -> 
     }
 
 
-def set_font_families(fontFamilies: FontFamilies) -> dict:
+def set_font_families(fontFamilies: FontFamilies):
     """Set generic font families.
 
     **Experimental**
@@ -1568,7 +1617,7 @@ def set_font_families(fontFamilies: FontFamilies) -> dict:
     }
 
 
-def set_font_sizes(fontSizes: FontSizes) -> dict:
+def set_font_sizes(fontSizes: FontSizes):
     """Set default font sizes.
 
     **Experimental**
@@ -1581,7 +1630,7 @@ def set_font_sizes(fontSizes: FontSizes) -> dict:
     return {"method": "Page.setFontSizes", "params": {"fontSizes": fontSizes.to_json()}}
 
 
-def set_document_content(frameId: FrameId, html: str) -> dict:
+def set_document_content(frameId: FrameId, html: str):
     """Sets given markup as the document's HTML.
 
     Parameters
@@ -1597,7 +1646,7 @@ def set_document_content(frameId: FrameId, html: str) -> dict:
     }
 
 
-def set_download_behavior(behavior: str, downloadPath: Optional[str] = None) -> dict:
+def set_download_behavior(behavior: str, downloadPath: Optional[str] = None):
     """Set the behavior when downloading a file.
 
     **Experimental**
@@ -1624,7 +1673,7 @@ def set_geolocation_override(
     latitude: Optional[float] = None,
     longitude: Optional[float] = None,
     accuracy: Optional[float] = None,
-) -> dict:
+):
     """Overrides the Geolocation Position or Error. Omitting any of the parameters emulates position
     unavailable.
 
@@ -1651,7 +1700,7 @@ def set_geolocation_override(
     )
 
 
-def set_lifecycle_events_enabled(enabled: bool) -> dict:
+def set_lifecycle_events_enabled(enabled: bool):
     """Controls whether page will emit lifecycle events.
 
     **Experimental**
@@ -1664,9 +1713,7 @@ def set_lifecycle_events_enabled(enabled: bool) -> dict:
     return {"method": "Page.setLifecycleEventsEnabled", "params": {"enabled": enabled}}
 
 
-def set_touch_emulation_enabled(
-    enabled: bool, configuration: Optional[str] = None
-) -> dict:
+def set_touch_emulation_enabled(enabled: bool, configuration: Optional[str] = None):
     """Toggles mouse event-based touch event emulation.
 
     **Experimental**
@@ -1694,7 +1741,7 @@ def start_screencast(
     maxWidth: Optional[int] = None,
     maxHeight: Optional[int] = None,
     everyNthFrame: Optional[int] = None,
-) -> dict:
+):
     """Starts sending each frame using the `screencastFrame` event.
 
     **Experimental**
@@ -1726,12 +1773,12 @@ def start_screencast(
     )
 
 
-def stop_loading() -> dict:
+def stop_loading():
     """Force the page stop all navigations and pending resource fetches."""
     return {"method": "Page.stopLoading", "params": {}}
 
 
-def crash() -> dict:
+def crash():
     """Crashes renderer on the IO thread, generates minidumps.
 
     **Experimental**
@@ -1739,7 +1786,7 @@ def crash() -> dict:
     return {"method": "Page.crash", "params": {}}
 
 
-def close() -> dict:
+def close():
     """Tries to close page, running its beforeunload hooks, if any.
 
     **Experimental**
@@ -1747,7 +1794,7 @@ def close() -> dict:
     return {"method": "Page.close", "params": {}}
 
 
-def set_web_lifecycle_state(state: str) -> dict:
+def set_web_lifecycle_state(state: str):
     """Tries to update the web lifecycle state of the page.
     It will transition the page to the given state according to:
     https://github.com/WICG/web-lifecycle/
@@ -1762,7 +1809,7 @@ def set_web_lifecycle_state(state: str) -> dict:
     return {"method": "Page.setWebLifecycleState", "params": {"state": state}}
 
 
-def stop_screencast() -> dict:
+def stop_screencast():
     """Stops sending each frame in the `screencastFrame`.
 
     **Experimental**
@@ -1770,7 +1817,7 @@ def stop_screencast() -> dict:
     return {"method": "Page.stopScreencast", "params": {}}
 
 
-def set_produce_compilation_cache(enabled: bool) -> dict:
+def set_produce_compilation_cache(enabled: bool):
     """Forces compilation cache to be generated for every subresource script.
 
     **Experimental**
@@ -1782,7 +1829,7 @@ def set_produce_compilation_cache(enabled: bool) -> dict:
     return {"method": "Page.setProduceCompilationCache", "params": {"enabled": enabled}}
 
 
-def add_compilation_cache(url: str, data: str) -> dict:
+def add_compilation_cache(url: str, data: str):
     """Seeds compilation cache for given url. Compilation cache does not survive
     cross-process navigation.
 
@@ -1797,7 +1844,7 @@ def add_compilation_cache(url: str, data: str) -> dict:
     return {"method": "Page.addCompilationCache", "params": {"url": url, "data": data}}
 
 
-def clear_compilation_cache() -> dict:
+def clear_compilation_cache():
     """Clears seeded compilation cache.
 
     **Experimental**
@@ -1805,7 +1852,7 @@ def clear_compilation_cache() -> dict:
     return {"method": "Page.clearCompilationCache", "params": {}}
 
 
-def generate_test_report(message: str, group: Optional[str] = None) -> dict:
+def generate_test_report(message: str, group: Optional[str] = None):
     """Generates a report for testing.
 
     **Experimental**
@@ -1825,7 +1872,7 @@ def generate_test_report(message: str, group: Optional[str] = None) -> dict:
     )
 
 
-def wait_for_debugger() -> dict:
+def wait_for_debugger():
     """Pauses page execution. Can be resumed using generic Runtime.runIfWaitingForDebugger.
 
     **Experimental**
@@ -1833,7 +1880,7 @@ def wait_for_debugger() -> dict:
     return {"method": "Page.waitForDebugger", "params": {}}
 
 
-def set_intercept_file_chooser_dialog(enabled: bool) -> dict:
+def set_intercept_file_chooser_dialog(enabled: bool):
     """Intercept file chooser requests and transfer control to protocol clients.
     When file chooser interception is enabled, native file chooser dialog is not shown.
     Instead, a protocol event `Page.fileChooserOpened` is emitted.

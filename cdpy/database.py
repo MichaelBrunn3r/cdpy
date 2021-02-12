@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Generator, Optional
+from typing import Optional
 
 
 class DatabaseId(str):
@@ -70,17 +70,17 @@ class Error:
         return {"message": self.message, "code": self.code}
 
 
-def disable() -> dict:
+def disable():
     """Disables database tracking, prevents database events from being sent to the client."""
     return {"method": "Database.disable", "params": {}}
 
 
-def enable() -> dict:
+def enable():
     """Enables database tracking, database events will now be delivered to the client."""
     return {"method": "Database.enable", "params": {}}
 
 
-def execute_sql(databaseId: DatabaseId, query: str) -> Generator[dict, dict, dict]:
+def execute_sql(databaseId: DatabaseId, query: str):
     """
     Parameters
     ----------
@@ -93,10 +93,13 @@ def execute_sql(databaseId: DatabaseId, query: str) -> Generator[dict, dict, dic
     values: Optional[list[any]]
     sqlError: Optional[Error]
     """
-    response = yield {
+    return {
         "method": "Database.executeSQL",
         "params": {"databaseId": str(databaseId), "query": query},
     }
+
+
+def parse_execute_sql_response(response):
     return {
         "columnNames": response.get("columnNames"),
         "values": response.get("values"),
@@ -106,9 +109,7 @@ def execute_sql(databaseId: DatabaseId, query: str) -> Generator[dict, dict, dic
     }
 
 
-def get_database_table_names(
-    databaseId: DatabaseId,
-) -> Generator[dict, dict, list[str]]:
+def get_database_table_names(databaseId: DatabaseId):
     """
     Parameters
     ----------
@@ -118,10 +119,13 @@ def get_database_table_names(
     -------
     tableNames: list[str]
     """
-    response = yield {
+    return {
         "method": "Database.getDatabaseTableNames",
         "params": {"databaseId": str(databaseId)},
     }
+
+
+def parse_get_database_table_names_response(response):
     return response["tableNames"]
 
 

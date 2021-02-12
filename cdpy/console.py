@@ -57,17 +57,17 @@ class ConsoleMessage:
         )
 
 
-def clear_messages() -> dict:
+def clear_messages():
     """Does nothing."""
     return {"method": "Console.clearMessages", "params": {}}
 
 
-def disable() -> dict:
+def disable():
     """Disables console domain, prevents further console messages from being reported to the client."""
     return {"method": "Console.disable", "params": {}}
 
 
-def enable() -> dict:
+def enable():
     """Enables console domain, sends the messages collected so far to the client by means of the
     `messageAdded` notification.
     """

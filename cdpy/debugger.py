@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 import enum
-from typing import Generator, Optional
+from typing import Optional
 
 from . import runtime
 from .common import filter_none, filter_unset_parameters
@@ -320,9 +320,7 @@ class DebugSymbols:
         return filter_none({"type": self.type, "externalURL": self.externalURL})
 
 
-def continue_to_location(
-    location: Location, targetCallFrames: Optional[str] = None
-) -> dict:
+def continue_to_location(location: Location, targetCallFrames: Optional[str] = None):
     """Continues execution until specific location is reached.
 
     Parameters
@@ -342,14 +340,12 @@ def continue_to_location(
     )
 
 
-def disable() -> dict:
+def disable():
     """Disables debugger for given page."""
     return {"method": "Debugger.disable", "params": {}}
 
 
-def enable(
-    maxScriptsCacheSize: Optional[float] = None,
-) -> Generator[dict, dict, runtime.UniqueDebuggerId]:
+def enable(maxScriptsCacheSize: Optional[float] = None):
     """Enables debugger for the given page. Clients should not assume that the debugging has been
     enabled until the result for this command is received.
 
@@ -364,12 +360,15 @@ def enable(
     debuggerId: runtime.UniqueDebuggerId
             Unique identifier of the debugger.
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {
             "method": "Debugger.enable",
             "params": {"maxScriptsCacheSize": maxScriptsCacheSize},
         }
     )
+
+
+def parse_enable_response(response):
     return runtime.UniqueDebuggerId(response["debuggerId"])
 
 
@@ -383,7 +382,7 @@ def evaluate_on_call_frame(
     generatePreview: Optional[bool] = None,
     throwOnSideEffect: Optional[bool] = None,
     timeout: Optional[runtime.TimeDelta] = None,
-) -> Generator[dict, dict, dict]:
+):
     """Evaluates expression on a given call frame.
 
     Parameters
@@ -417,7 +416,7 @@ def evaluate_on_call_frame(
     exceptionDetails: Optional[runtime.ExceptionDetails]
             Exception details.
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {
             "method": "Debugger.evaluateOnCallFrame",
             "params": {
@@ -433,6 +432,9 @@ def evaluate_on_call_frame(
             },
         }
     )
+
+
+def parse_evaluate_on_call_frame_response(response):
     return {
         "result": runtime.RemoteObject.from_json(response["result"]),
         "exceptionDetails": runtime.ExceptionDetails.from_json(
@@ -447,7 +449,7 @@ def execute_wasm_evaluator(
     callFrameId: CallFrameId,
     evaluator: str,
     timeout: Optional[runtime.TimeDelta] = None,
-) -> Generator[dict, dict, dict]:
+):
     """Execute a Wasm Evaluator module on a given call frame.
 
     **Experimental**
@@ -468,7 +470,7 @@ def execute_wasm_evaluator(
     exceptionDetails: Optional[runtime.ExceptionDetails]
             Exception details.
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {
             "method": "Debugger.executeWasmEvaluator",
             "params": {
@@ -478,6 +480,9 @@ def execute_wasm_evaluator(
             },
         }
     )
+
+
+def parse_execute_wasm_evaluator_response(response):
     return {
         "result": runtime.RemoteObject.from_json(response["result"]),
         "exceptionDetails": runtime.ExceptionDetails.from_json(
@@ -492,7 +497,7 @@ def get_possible_breakpoints(
     start: Location,
     end: Optional[Location] = None,
     restrictToFunction: Optional[bool] = None,
-) -> Generator[dict, dict, list[BreakLocation]]:
+):
     """Returns possible locations for breakpoint. scriptId in start and end range locations should be
     the same.
 
@@ -511,7 +516,7 @@ def get_possible_breakpoints(
     locations: list[BreakLocation]
             List of the possible breakpoint locations.
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {
             "method": "Debugger.getPossibleBreakpoints",
             "params": {
@@ -521,10 +526,13 @@ def get_possible_breakpoints(
             },
         }
     )
+
+
+def parse_get_possible_breakpoints_response(response):
     return [BreakLocation.from_json(l) for l in response["locations"]]
 
 
-def get_script_source(scriptId: runtime.ScriptId) -> Generator[dict, dict, dict]:
+def get_script_source(scriptId: runtime.ScriptId):
     """Returns source for the script with given id.
 
     Parameters
@@ -539,17 +547,17 @@ def get_script_source(scriptId: runtime.ScriptId) -> Generator[dict, dict, dict]
     bytecode: Optional[str]
             Wasm bytecode. (Encoded as a base64 string when passed over JSON)
     """
-    response = yield {
-        "method": "Debugger.getScriptSource",
-        "params": {"scriptId": str(scriptId)},
-    }
+    return {"method": "Debugger.getScriptSource", "params": {"scriptId": str(scriptId)}}
+
+
+def parse_get_script_source_response(response):
     return {
         "scriptSource": response["scriptSource"],
         "bytecode": response.get("bytecode"),
     }
 
 
-def get_wasm_bytecode(scriptId: runtime.ScriptId) -> Generator[dict, dict, str]:
+def get_wasm_bytecode(scriptId: runtime.ScriptId):
     """This command is deprecated. Use getScriptSource instead.
 
     **Deprectated**
@@ -564,16 +572,14 @@ def get_wasm_bytecode(scriptId: runtime.ScriptId) -> Generator[dict, dict, str]:
     bytecode: str
             Script source. (Encoded as a base64 string when passed over JSON)
     """
-    response = yield {
-        "method": "Debugger.getWasmBytecode",
-        "params": {"scriptId": str(scriptId)},
-    }
+    return {"method": "Debugger.getWasmBytecode", "params": {"scriptId": str(scriptId)}}
+
+
+def parse_get_wasm_bytecode_response(response):
     return response["bytecode"]
 
 
-def get_stack_trace(
-    stackTraceId: runtime.StackTraceId,
-) -> Generator[dict, dict, runtime.StackTrace]:
+def get_stack_trace(stackTraceId: runtime.StackTraceId):
     """Returns stack trace with given `stackTraceId`.
 
     **Experimental**
@@ -586,19 +592,22 @@ def get_stack_trace(
     -------
     stackTrace: runtime.StackTrace
     """
-    response = yield {
+    return {
         "method": "Debugger.getStackTrace",
         "params": {"stackTraceId": stackTraceId.to_json()},
     }
+
+
+def parse_get_stack_trace_response(response):
     return runtime.StackTrace.from_json(response["stackTrace"])
 
 
-def pause() -> dict:
+def pause():
     """Stops on the next JavaScript statement."""
     return {"method": "Debugger.pause", "params": {}}
 
 
-def pause_on_async_call(parentStackTraceId: runtime.StackTraceId) -> dict:
+def pause_on_async_call(parentStackTraceId: runtime.StackTraceId):
     """
     **Experimental**
 
@@ -615,7 +624,7 @@ def pause_on_async_call(parentStackTraceId: runtime.StackTraceId) -> dict:
     }
 
 
-def remove_breakpoint(breakpointId: BreakpointId) -> dict:
+def remove_breakpoint(breakpointId: BreakpointId):
     """Removes JavaScript breakpoint.
 
     Parameters
@@ -628,7 +637,7 @@ def remove_breakpoint(breakpointId: BreakpointId) -> dict:
     }
 
 
-def restart_frame(callFrameId: CallFrameId) -> Generator[dict, dict, dict]:
+def restart_frame(callFrameId: CallFrameId):
     """Restarts particular call frame from the beginning.
 
     Parameters
@@ -645,10 +654,13 @@ def restart_frame(callFrameId: CallFrameId) -> Generator[dict, dict, dict]:
     asyncStackTraceId: Optional[runtime.StackTraceId]
             Async stack trace, if any.
     """
-    response = yield {
+    return {
         "method": "Debugger.restartFrame",
         "params": {"callFrameId": str(callFrameId)},
     }
+
+
+def parse_restart_frame_response(response):
     return {
         "callFrames": [CallFrame.from_json(c) for c in response["callFrames"]],
         "asyncStackTrace": runtime.StackTrace.from_json(response["asyncStackTrace"])
@@ -662,7 +674,7 @@ def restart_frame(callFrameId: CallFrameId) -> Generator[dict, dict, dict]:
     }
 
 
-def resume(terminateOnResume: Optional[bool] = None) -> dict:
+def resume(terminateOnResume: Optional[bool] = None):
     """Resumes JavaScript execution.
 
     Parameters
@@ -687,7 +699,7 @@ def search_in_content(
     query: str,
     caseSensitive: Optional[bool] = None,
     isRegex: Optional[bool] = None,
-) -> Generator[dict, dict, list[SearchMatch]]:
+):
     """Searches for given string in script content.
 
     Parameters
@@ -706,7 +718,7 @@ def search_in_content(
     result: list[SearchMatch]
             List of search matches.
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {
             "method": "Debugger.searchInContent",
             "params": {
@@ -717,10 +729,13 @@ def search_in_content(
             },
         }
     )
+
+
+def parse_search_in_content_response(response):
     return [SearchMatch.from_json(r) for r in response["result"]]
 
 
-def set_async_call_stack_depth(maxDepth: int) -> dict:
+def set_async_call_stack_depth(maxDepth: int):
     """Enables or disables async call stacks tracking.
 
     Parameters
@@ -735,7 +750,7 @@ def set_async_call_stack_depth(maxDepth: int) -> dict:
     }
 
 
-def set_blackbox_patterns(patterns: list[str]) -> dict:
+def set_blackbox_patterns(patterns: list[str]):
     """Replace previous blackbox patterns with passed ones. Forces backend to skip stepping/pausing in
     scripts with url matching one of the patterns. VM will try to leave blackboxed script by
     performing 'step in' several times, finally resorting to 'step out' if unsuccessful.
@@ -750,9 +765,7 @@ def set_blackbox_patterns(patterns: list[str]) -> dict:
     return {"method": "Debugger.setBlackboxPatterns", "params": {"patterns": patterns}}
 
 
-def set_blackboxed_ranges(
-    scriptId: runtime.ScriptId, positions: list[ScriptPosition]
-) -> dict:
+def set_blackboxed_ranges(scriptId: runtime.ScriptId, positions: list[ScriptPosition]):
     """Makes backend skip steps in the script in blackboxed ranges. VM will try leave blacklisted
     scripts by performing 'step in' several times, finally resorting to 'step out' if unsuccessful.
     Positions array contains positions where blackbox state is changed. First interval isn't
@@ -775,9 +788,7 @@ def set_blackboxed_ranges(
     }
 
 
-def set_breakpoint(
-    location: Location, condition: Optional[str] = None
-) -> Generator[dict, dict, dict]:
+def set_breakpoint(location: Location, condition: Optional[str] = None):
     """Sets JavaScript breakpoint at a given location.
 
     Parameters
@@ -795,21 +806,22 @@ def set_breakpoint(
     actualLocation: Location
             Location this breakpoint resolved into.
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {
             "method": "Debugger.setBreakpoint",
             "params": {"location": location.to_json(), "condition": condition},
         }
     )
+
+
+def parse_set_breakpoint_response(response):
     return {
         "breakpointId": BreakpointId(response["breakpointId"]),
         "actualLocation": Location.from_json(response["actualLocation"]),
     }
 
 
-def set_instrumentation_breakpoint(
-    instrumentation: str,
-) -> Generator[dict, dict, BreakpointId]:
+def set_instrumentation_breakpoint(instrumentation: str):
     """Sets instrumentation breakpoint.
 
     Parameters
@@ -822,10 +834,13 @@ def set_instrumentation_breakpoint(
     breakpointId: BreakpointId
             Id of the created breakpoint for further reference.
     """
-    response = yield {
+    return {
         "method": "Debugger.setInstrumentationBreakpoint",
         "params": {"instrumentation": instrumentation},
     }
+
+
+def parse_set_instrumentation_breakpoint_response(response):
     return BreakpointId(response["breakpointId"])
 
 
@@ -836,7 +851,7 @@ def set_breakpoint_by_url(
     scriptHash: Optional[str] = None,
     columnNumber: Optional[int] = None,
     condition: Optional[str] = None,
-) -> Generator[dict, dict, dict]:
+):
     """Sets JavaScript breakpoint at given location specified either by URL or URL regex. Once this
     command is issued, all existing parsed scripts will have breakpoints resolved and returned in
     `locations` property. Further matching script parsing will result in subsequent
@@ -866,7 +881,7 @@ def set_breakpoint_by_url(
     locations: list[Location]
             List of the locations this breakpoint resolved into upon addition.
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {
             "method": "Debugger.setBreakpointByUrl",
             "params": {
@@ -879,6 +894,9 @@ def set_breakpoint_by_url(
             },
         }
     )
+
+
+def parse_set_breakpoint_by_url_response(response):
     return {
         "breakpointId": BreakpointId(response["breakpointId"]),
         "locations": [Location.from_json(l) for l in response["locations"]],
@@ -887,7 +905,7 @@ def set_breakpoint_by_url(
 
 def set_breakpoint_on_function_call(
     objectId: runtime.RemoteObjectId, condition: Optional[str] = None
-) -> Generator[dict, dict, BreakpointId]:
+):
     """Sets JavaScript breakpoint before each call to the given function.
     If another function was created from the same source as a given one,
     calling it will also trigger the breakpoint.
@@ -907,16 +925,19 @@ def set_breakpoint_on_function_call(
     breakpointId: BreakpointId
             Id of the created breakpoint for further reference.
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {
             "method": "Debugger.setBreakpointOnFunctionCall",
             "params": {"objectId": str(objectId), "condition": condition},
         }
     )
+
+
+def parse_set_breakpoint_on_function_call_response(response):
     return BreakpointId(response["breakpointId"])
 
 
-def set_breakpoints_active(active: bool) -> dict:
+def set_breakpoints_active(active: bool):
     """Activates / deactivates all breakpoints on the page.
 
     Parameters
@@ -927,7 +948,7 @@ def set_breakpoints_active(active: bool) -> dict:
     return {"method": "Debugger.setBreakpointsActive", "params": {"active": active}}
 
 
-def set_pause_on_exceptions(state: str) -> dict:
+def set_pause_on_exceptions(state: str):
     """Defines pause on exceptions state. Can be set to stop on all exceptions, uncaught exceptions or
     no exceptions. Initial pause on exceptions state is `none`.
 
@@ -939,7 +960,7 @@ def set_pause_on_exceptions(state: str) -> dict:
     return {"method": "Debugger.setPauseOnExceptions", "params": {"state": state}}
 
 
-def set_return_value(newValue: runtime.CallArgument) -> dict:
+def set_return_value(newValue: runtime.CallArgument):
     """Changes return value in top frame. Available only at return break position.
 
     **Experimental**
@@ -957,7 +978,7 @@ def set_return_value(newValue: runtime.CallArgument) -> dict:
 
 def set_script_source(
     scriptId: runtime.ScriptId, scriptSource: str, dryRun: Optional[bool] = None
-) -> Generator[dict, dict, dict]:
+):
     """Edits JavaScript source live.
 
     Parameters
@@ -983,7 +1004,7 @@ def set_script_source(
     exceptionDetails: Optional[runtime.ExceptionDetails]
             Exception details if any.
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {
             "method": "Debugger.setScriptSource",
             "params": {
@@ -993,6 +1014,9 @@ def set_script_source(
             },
         }
     )
+
+
+def parse_set_script_source_response(response):
     return {
         "callFrames": [CallFrame.from_json(c) for c in response["callFrames"]]
         if "callFrames" in response
@@ -1014,7 +1038,7 @@ def set_script_source(
     }
 
 
-def set_skip_all_pauses(skip: bool) -> dict:
+def set_skip_all_pauses(skip: bool):
     """Makes page not interrupt on any pauses (breakpoint, exception, dom exception etc).
 
     Parameters
@@ -1030,7 +1054,7 @@ def set_variable_value(
     variableName: str,
     newValue: runtime.CallArgument,
     callFrameId: CallFrameId,
-) -> dict:
+):
     """Changes value of variable in a callframe. Object-based scopes are not supported and must be
     mutated manually.
 
@@ -1060,7 +1084,7 @@ def set_variable_value(
 def step_into(
     breakOnAsyncCall: Optional[bool] = None,
     skipList: Optional[list[LocationRange]] = None,
-) -> dict:
+):
     """Steps into the function call.
 
     Parameters
@@ -1082,12 +1106,12 @@ def step_into(
     )
 
 
-def step_out() -> dict:
+def step_out():
     """Steps out of the function call."""
     return {"method": "Debugger.stepOut", "params": {}}
 
 
-def step_over(skipList: Optional[list[LocationRange]] = None) -> dict:
+def step_over(skipList: Optional[list[LocationRange]] = None):
     """Steps over the statement.
 
     Parameters

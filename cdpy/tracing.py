@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 import enum
-from typing import Generator, Optional
+from typing import Optional
 
 from . import io
 from .common import filter_none, filter_unset_parameters
@@ -106,12 +106,12 @@ class MemoryDumpLevelOfDetail(enum.Enum):
     DETAILED = "detailed"
 
 
-def end() -> dict:
+def end():
     """Stop trace events collection."""
     return {"method": "Tracing.end", "params": {}}
 
 
-def get_categories() -> Generator[dict, dict, list[str]]:
+def get_categories():
     """Gets supported tracing categories.
 
     Returns
@@ -119,11 +119,14 @@ def get_categories() -> Generator[dict, dict, list[str]]:
     categories: list[str]
             A list of supported tracing categories.
     """
-    response = yield {"method": "Tracing.getCategories", "params": {}}
+    return {"method": "Tracing.getCategories", "params": {}}
+
+
+def parse_get_categories_response(response):
     return response["categories"]
 
 
-def record_clock_sync_marker(syncId: str) -> dict:
+def record_clock_sync_marker(syncId: str):
     """Record a clock sync marker in the trace.
 
     Parameters
@@ -137,7 +140,7 @@ def record_clock_sync_marker(syncId: str) -> dict:
 def request_memory_dump(
     deterministic: Optional[bool] = None,
     levelOfDetail: Optional[MemoryDumpLevelOfDetail] = None,
-) -> Generator[dict, dict, dict]:
+):
     """Request a global memory dump.
 
     Parameters
@@ -154,7 +157,7 @@ def request_memory_dump(
     success: bool
             True iff the global memory dump succeeded.
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {
             "method": "Tracing.requestMemoryDump",
             "params": {
@@ -163,6 +166,9 @@ def request_memory_dump(
             },
         }
     )
+
+
+def parse_request_memory_dump_response(response):
     return {"dumpGuid": response["dumpGuid"], "success": response["success"]}
 
 
@@ -175,7 +181,7 @@ def start(
     streamCompression: Optional[StreamCompression] = None,
     traceConfig: Optional[TraceConfig] = None,
     perfettoConfig: Optional[str] = None,
-) -> dict:
+):
     """Start trace events collection.
 
     Parameters

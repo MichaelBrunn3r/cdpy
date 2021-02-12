@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 import enum
-from typing import Generator, Optional
+from typing import Optional
 
 from .common import filter_unset_parameters
 
@@ -102,7 +102,7 @@ class Module:
         }
 
 
-def get_dom_counters() -> Generator[dict, dict, dict]:
+def get_dom_counters():
     """
     Returns
     -------
@@ -110,7 +110,10 @@ def get_dom_counters() -> Generator[dict, dict, dict]:
     nodes: int
     jsEventListeners: int
     """
-    response = yield {"method": "Memory.getDOMCounters", "params": {}}
+    return {"method": "Memory.getDOMCounters", "params": {}}
+
+
+def parse_get_dom_counters_response(response):
     return {
         "documents": response["documents"],
         "nodes": response["nodes"],
@@ -118,17 +121,17 @@ def get_dom_counters() -> Generator[dict, dict, dict]:
     }
 
 
-def prepare_for_leak_detection() -> dict:
+def prepare_for_leak_detection():
     """"""
     return {"method": "Memory.prepareForLeakDetection", "params": {}}
 
 
-def forcibly_purge_java_script_memory() -> dict:
+def forcibly_purge_java_script_memory():
     """Simulate OomIntervention by purging V8 memory."""
     return {"method": "Memory.forciblyPurgeJavaScriptMemory", "params": {}}
 
 
-def set_pressure_notifications_suppressed(suppressed: bool) -> dict:
+def set_pressure_notifications_suppressed(suppressed: bool):
     """Enable/disable suppressing memory pressure notifications in all processes.
 
     Parameters
@@ -142,7 +145,7 @@ def set_pressure_notifications_suppressed(suppressed: bool) -> dict:
     }
 
 
-def simulate_pressure_notification(level: PressureLevel) -> dict:
+def simulate_pressure_notification(level: PressureLevel):
     """Simulate a memory pressure notification in all processes.
 
     Parameters
@@ -158,7 +161,7 @@ def simulate_pressure_notification(level: PressureLevel) -> dict:
 
 def start_sampling(
     samplingInterval: Optional[int] = None, suppressRandomness: Optional[bool] = None
-) -> dict:
+):
     """Start collecting native memory profile.
 
     Parameters
@@ -179,12 +182,12 @@ def start_sampling(
     )
 
 
-def stop_sampling() -> dict:
+def stop_sampling():
     """Stop collecting native memory profile."""
     return {"method": "Memory.stopSampling", "params": {}}
 
 
-def get_all_time_sampling_profile() -> Generator[dict, dict, SamplingProfile]:
+def get_all_time_sampling_profile():
     """Retrieve native memory allocations profile
     collected since renderer process startup.
 
@@ -192,11 +195,14 @@ def get_all_time_sampling_profile() -> Generator[dict, dict, SamplingProfile]:
     -------
     profile: SamplingProfile
     """
-    response = yield {"method": "Memory.getAllTimeSamplingProfile", "params": {}}
+    return {"method": "Memory.getAllTimeSamplingProfile", "params": {}}
+
+
+def parse_get_all_time_sampling_profile_response(response):
     return SamplingProfile.from_json(response["profile"])
 
 
-def get_browser_sampling_profile() -> Generator[dict, dict, SamplingProfile]:
+def get_browser_sampling_profile():
     """Retrieve native memory allocations profile
     collected since browser process startup.
 
@@ -204,11 +210,14 @@ def get_browser_sampling_profile() -> Generator[dict, dict, SamplingProfile]:
     -------
     profile: SamplingProfile
     """
-    response = yield {"method": "Memory.getBrowserSamplingProfile", "params": {}}
+    return {"method": "Memory.getBrowserSamplingProfile", "params": {}}
+
+
+def parse_get_browser_sampling_profile_response(response):
     return SamplingProfile.from_json(response["profile"])
 
 
-def get_sampling_profile() -> Generator[dict, dict, SamplingProfile]:
+def get_sampling_profile():
     """Retrieve native memory allocations profile collected since last
     `startSampling` call.
 
@@ -216,5 +225,8 @@ def get_sampling_profile() -> Generator[dict, dict, SamplingProfile]:
     -------
     profile: SamplingProfile
     """
-    response = yield {"method": "Memory.getSamplingProfile", "params": {}}
+    return {"method": "Memory.getSamplingProfile", "params": {}}
+
+
+def parse_get_sampling_profile_response(response):
     return SamplingProfile.from_json(response["profile"])

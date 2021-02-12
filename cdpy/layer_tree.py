@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Generator, Optional
+from typing import Optional
 
 from . import dom
 from .common import filter_none, filter_unset_parameters
@@ -244,7 +244,7 @@ class PaintProfile(list[float]):
         return f"PaintProfile({super().__repr__()})"
 
 
-def compositing_reasons(layerId: LayerId) -> Generator[dict, dict, dict]:
+def compositing_reasons(layerId: LayerId):
     """Provides the reasons why the given layer was composited.
 
     Parameters
@@ -259,27 +259,30 @@ def compositing_reasons(layerId: LayerId) -> Generator[dict, dict, dict]:
     compositingReasonIds: list[str]
             A list of strings specifying reason IDs for the given layer to become composited.
     """
-    response = yield {
+    return {
         "method": "LayerTree.compositingReasons",
         "params": {"layerId": str(layerId)},
     }
+
+
+def parse_compositing_reasons_response(response):
     return {
         "compositingReasons": response["compositingReasons"],
         "compositingReasonIds": response["compositingReasonIds"],
     }
 
 
-def disable() -> dict:
+def disable():
     """Disables compositing tree inspection."""
     return {"method": "LayerTree.disable", "params": {}}
 
 
-def enable() -> dict:
+def enable():
     """Enables compositing tree inspection."""
     return {"method": "LayerTree.enable", "params": {}}
 
 
-def load_snapshot(tiles: list[PictureTile]) -> Generator[dict, dict, SnapshotId]:
+def load_snapshot(tiles: list[PictureTile]):
     """Returns the snapshot identifier.
 
     Parameters
@@ -292,14 +295,17 @@ def load_snapshot(tiles: list[PictureTile]) -> Generator[dict, dict, SnapshotId]
     snapshotId: SnapshotId
             The id of the snapshot.
     """
-    response = yield {
+    return {
         "method": "LayerTree.loadSnapshot",
         "params": {"tiles": [t.to_json() for t in tiles]},
     }
+
+
+def parse_load_snapshot_response(response):
     return SnapshotId(response["snapshotId"])
 
 
-def make_snapshot(layerId: LayerId) -> Generator[dict, dict, SnapshotId]:
+def make_snapshot(layerId: LayerId):
     """Returns the layer snapshot identifier.
 
     Parameters
@@ -312,10 +318,10 @@ def make_snapshot(layerId: LayerId) -> Generator[dict, dict, SnapshotId]:
     snapshotId: SnapshotId
             The id of the layer snapshot.
     """
-    response = yield {
-        "method": "LayerTree.makeSnapshot",
-        "params": {"layerId": str(layerId)},
-    }
+    return {"method": "LayerTree.makeSnapshot", "params": {"layerId": str(layerId)}}
+
+
+def parse_make_snapshot_response(response):
     return SnapshotId(response["snapshotId"])
 
 
@@ -324,7 +330,7 @@ def profile_snapshot(
     minRepeatCount: Optional[int] = None,
     minDuration: Optional[float] = None,
     clipRect: Optional[dom.Rect] = None,
-) -> Generator[dict, dict, list[PaintProfile]]:
+):
     """
     Parameters
     ----------
@@ -342,7 +348,7 @@ def profile_snapshot(
     timings: list[PaintProfile]
             The array of paint profiles, one per run.
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {
             "method": "LayerTree.profileSnapshot",
             "params": {
@@ -353,10 +359,13 @@ def profile_snapshot(
             },
         }
     )
+
+
+def parse_profile_snapshot_response(response):
     return [PaintProfile(t) for t in response["timings"]]
 
 
-def release_snapshot(snapshotId: SnapshotId) -> dict:
+def release_snapshot(snapshotId: SnapshotId):
     """Releases layer snapshot captured by the back-end.
 
     Parameters
@@ -375,7 +384,7 @@ def replay_snapshot(
     fromStep: Optional[int] = None,
     toStep: Optional[int] = None,
     scale: Optional[float] = None,
-) -> Generator[dict, dict, str]:
+):
     """Replays the layer snapshot and returns the resulting bitmap.
 
     Parameters
@@ -394,7 +403,7 @@ def replay_snapshot(
     dataURL: str
             A data: URL for resulting image.
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {
             "method": "LayerTree.replaySnapshot",
             "params": {
@@ -405,10 +414,13 @@ def replay_snapshot(
             },
         }
     )
+
+
+def parse_replay_snapshot_response(response):
     return response["dataURL"]
 
 
-def snapshot_command_log(snapshotId: SnapshotId) -> Generator[dict, dict, list[dict]]:
+def snapshot_command_log(snapshotId: SnapshotId):
     """Replays the layer snapshot and returns canvas log.
 
     Parameters
@@ -421,10 +433,13 @@ def snapshot_command_log(snapshotId: SnapshotId) -> Generator[dict, dict, list[d
     commandLog: list[dict]
             The array of canvas function calls.
     """
-    response = yield {
+    return {
         "method": "LayerTree.snapshotCommandLog",
         "params": {"snapshotId": str(snapshotId)},
     }
+
+
+def parse_snapshot_command_log_response(response):
     return response["commandLog"]
 
 

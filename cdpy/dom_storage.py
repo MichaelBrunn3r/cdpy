@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Generator
 
 
 @dataclasses.dataclass
@@ -37,7 +36,7 @@ class Item(list[str]):
         return f"Item({super().__repr__()})"
 
 
-def clear(storageId: StorageId) -> dict:
+def clear(storageId: StorageId):
     """
     Parameters
     ----------
@@ -46,17 +45,17 @@ def clear(storageId: StorageId) -> dict:
     return {"method": "DOMStorage.clear", "params": {"storageId": storageId.to_json()}}
 
 
-def disable() -> dict:
+def disable():
     """Disables storage tracking, prevents storage events from being sent to the client."""
     return {"method": "DOMStorage.disable", "params": {}}
 
 
-def enable() -> dict:
+def enable():
     """Enables storage tracking, storage events will now be delivered to the client."""
     return {"method": "DOMStorage.enable", "params": {}}
 
 
-def get_dom_storage_items(storageId: StorageId) -> Generator[dict, dict, list[Item]]:
+def get_dom_storage_items(storageId: StorageId):
     """
     Parameters
     ----------
@@ -66,14 +65,17 @@ def get_dom_storage_items(storageId: StorageId) -> Generator[dict, dict, list[It
     -------
     entries: list[Item]
     """
-    response = yield {
+    return {
         "method": "DOMStorage.getDOMStorageItems",
         "params": {"storageId": storageId.to_json()},
     }
+
+
+def parse_get_dom_storage_items_response(response):
     return [Item(e) for e in response["entries"]]
 
 
-def remove_dom_storage_item(storageId: StorageId, key: str) -> dict:
+def remove_dom_storage_item(storageId: StorageId, key: str):
     """
     Parameters
     ----------
@@ -86,7 +88,7 @@ def remove_dom_storage_item(storageId: StorageId, key: str) -> dict:
     }
 
 
-def set_dom_storage_item(storageId: StorageId, key: str, value: str) -> dict:
+def set_dom_storage_item(storageId: StorageId, key: str, value: str):
     """
     Parameters
     ----------

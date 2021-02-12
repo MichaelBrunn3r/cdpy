@@ -171,9 +171,7 @@ class ServiceWorkerErrorMessage:
         }
 
 
-def deliver_push_message(
-    origin: str, registrationId: RegistrationID, data: str
-) -> dict:
+def deliver_push_message(origin: str, registrationId: RegistrationID, data: str):
     """
     Parameters
     ----------
@@ -191,14 +189,14 @@ def deliver_push_message(
     }
 
 
-def disable() -> dict:
+def disable():
     """"""
     return {"method": "ServiceWorker.disable", "params": {}}
 
 
 def dispatch_sync_event(
     origin: str, registrationId: RegistrationID, tag: str, lastChance: bool
-) -> dict:
+):
     """
     Parameters
     ----------
@@ -218,9 +216,7 @@ def dispatch_sync_event(
     }
 
 
-def dispatch_periodic_sync_event(
-    origin: str, registrationId: RegistrationID, tag: str
-) -> dict:
+def dispatch_periodic_sync_event(origin: str, registrationId: RegistrationID, tag: str):
     """
     Parameters
     ----------
@@ -234,12 +230,12 @@ def dispatch_periodic_sync_event(
     }
 
 
-def enable() -> dict:
+def enable():
     """"""
     return {"method": "ServiceWorker.enable", "params": {}}
 
 
-def inspect_worker(versionId: str) -> dict:
+def inspect_worker(versionId: str):
     """
     Parameters
     ----------
@@ -248,7 +244,7 @@ def inspect_worker(versionId: str) -> dict:
     return {"method": "ServiceWorker.inspectWorker", "params": {"versionId": versionId}}
 
 
-def set_force_update_on_page_load(forceUpdateOnPageLoad: bool) -> dict:
+def set_force_update_on_page_load(forceUpdateOnPageLoad: bool):
     """
     Parameters
     ----------
@@ -260,7 +256,7 @@ def set_force_update_on_page_load(forceUpdateOnPageLoad: bool) -> dict:
     }
 
 
-def skip_waiting(scopeURL: str) -> dict:
+def skip_waiting(scopeURL: str):
     """
     Parameters
     ----------
@@ -269,7 +265,7 @@ def skip_waiting(scopeURL: str) -> dict:
     return {"method": "ServiceWorker.skipWaiting", "params": {"scopeURL": scopeURL}}
 
 
-def start_worker(scopeURL: str) -> dict:
+def start_worker(scopeURL: str):
     """
     Parameters
     ----------
@@ -278,12 +274,12 @@ def start_worker(scopeURL: str) -> dict:
     return {"method": "ServiceWorker.startWorker", "params": {"scopeURL": scopeURL}}
 
 
-def stop_all_workers() -> dict:
+def stop_all_workers():
     """"""
     return {"method": "ServiceWorker.stopAllWorkers", "params": {}}
 
 
-def stop_worker(versionId: str) -> dict:
+def stop_worker(versionId: str):
     """
     Parameters
     ----------
@@ -292,7 +288,7 @@ def stop_worker(versionId: str) -> dict:
     return {"method": "ServiceWorker.stopWorker", "params": {"versionId": versionId}}
 
 
-def unregister(scopeURL: str) -> dict:
+def unregister(scopeURL: str):
     """
     Parameters
     ----------
@@ -301,7 +297,7 @@ def unregister(scopeURL: str) -> dict:
     return {"method": "ServiceWorker.unregister", "params": {"scopeURL": scopeURL}}
 
 
-def update_registration(scopeURL: str) -> dict:
+def update_registration(scopeURL: str):
     """
     Parameters
     ----------

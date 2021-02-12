@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 import enum
-from typing import Generator, Optional
+from typing import Optional
 
 from . import target
 from .common import filter_none, filter_unset_parameters
@@ -239,7 +239,7 @@ def set_permission(
     setting: PermissionSetting,
     origin: Optional[str] = None,
     browserContextId: Optional[BrowserContextID] = None,
-) -> dict:
+):
     """Set permission settings for given origin.
 
     **Experimental**
@@ -272,7 +272,7 @@ def grant_permissions(
     permissions: list[PermissionType],
     origin: Optional[str] = None,
     browserContextId: Optional[BrowserContextID] = None,
-) -> dict:
+):
     """Grant specific permissions to the given origin and reject all others.
 
     **Experimental**
@@ -297,7 +297,7 @@ def grant_permissions(
     )
 
 
-def reset_permissions(browserContextId: Optional[BrowserContextID] = None) -> dict:
+def reset_permissions(browserContextId: Optional[BrowserContextID] = None):
     """Reset all permission management for all origins.
 
     **Experimental**
@@ -321,7 +321,7 @@ def set_download_behavior(
     behavior: str,
     browserContextId: Optional[BrowserContextID] = None,
     downloadPath: Optional[str] = None,
-) -> dict:
+):
     """Set the behavior when downloading a file.
 
     **Experimental**
@@ -350,12 +350,12 @@ def set_download_behavior(
     )
 
 
-def close() -> dict:
+def close():
     """Close browser gracefully."""
     return {"method": "Browser.close", "params": {}}
 
 
-def crash() -> dict:
+def crash():
     """Crashes browser on the main thread.
 
     **Experimental**
@@ -363,7 +363,7 @@ def crash() -> dict:
     return {"method": "Browser.crash", "params": {}}
 
 
-def crash_gpu_process() -> dict:
+def crash_gpu_process():
     """Crashes GPU process.
 
     **Experimental**
@@ -371,7 +371,7 @@ def crash_gpu_process() -> dict:
     return {"method": "Browser.crashGpuProcess", "params": {}}
 
 
-def get_version() -> Generator[dict, dict, dict]:
+def get_version():
     """Returns version information.
 
     Returns
@@ -387,7 +387,10 @@ def get_version() -> Generator[dict, dict, dict]:
     jsVersion: str
             V8 version.
     """
-    response = yield {"method": "Browser.getVersion", "params": {}}
+    return {"method": "Browser.getVersion", "params": {}}
+
+
+def parse_get_version_response(response):
     return {
         "protocolVersion": response["protocolVersion"],
         "product": response["product"],
@@ -397,7 +400,7 @@ def get_version() -> Generator[dict, dict, dict]:
     }
 
 
-def get_browser_command_line() -> Generator[dict, dict, list[str]]:
+def get_browser_command_line():
     """Returns the command line switches for the browser process if, and only if
     --enable-automation is on the commandline.
 
@@ -408,13 +411,14 @@ def get_browser_command_line() -> Generator[dict, dict, list[str]]:
     arguments: list[str]
             Commandline parameters
     """
-    response = yield {"method": "Browser.getBrowserCommandLine", "params": {}}
+    return {"method": "Browser.getBrowserCommandLine", "params": {}}
+
+
+def parse_get_browser_command_line_response(response):
     return response["arguments"]
 
 
-def get_histograms(
-    query: Optional[str] = None, delta: Optional[bool] = None
-) -> Generator[dict, dict, list[Histogram]]:
+def get_histograms(query: Optional[str] = None, delta: Optional[bool] = None):
     """Get Chrome histograms.
 
     **Experimental**
@@ -433,15 +437,16 @@ def get_histograms(
     histograms: list[Histogram]
             Histograms.
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {"method": "Browser.getHistograms", "params": {"query": query, "delta": delta}}
     )
+
+
+def parse_get_histograms_response(response):
     return [Histogram.from_json(h) for h in response["histograms"]]
 
 
-def get_histogram(
-    name: str, delta: Optional[bool] = None
-) -> Generator[dict, dict, Histogram]:
+def get_histogram(name: str, delta: Optional[bool] = None):
     """Get a Chrome histogram by name.
 
     **Experimental**
@@ -458,13 +463,16 @@ def get_histogram(
     histogram: Histogram
             Histogram.
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {"method": "Browser.getHistogram", "params": {"name": name, "delta": delta}}
     )
+
+
+def parse_get_histogram_response(response):
     return Histogram.from_json(response["histogram"])
 
 
-def get_window_bounds(windowId: WindowID) -> Generator[dict, dict, Bounds]:
+def get_window_bounds(windowId: WindowID):
     """Get position and size of the browser window.
 
     **Experimental**
@@ -480,16 +488,14 @@ def get_window_bounds(windowId: WindowID) -> Generator[dict, dict, Bounds]:
             Bounds information of the window. When window state is 'minimized', the restored window
             position and size are returned.
     """
-    response = yield {
-        "method": "Browser.getWindowBounds",
-        "params": {"windowId": int(windowId)},
-    }
+    return {"method": "Browser.getWindowBounds", "params": {"windowId": int(windowId)}}
+
+
+def parse_get_window_bounds_response(response):
     return Bounds.from_json(response["bounds"])
 
 
-def get_window_for_target(
-    targetId: Optional[target.TargetID] = None,
-) -> Generator[dict, dict, dict]:
+def get_window_for_target(targetId: Optional[target.TargetID] = None):
     """Get the browser window that contains the devtools target.
 
     **Experimental**
@@ -507,19 +513,22 @@ def get_window_for_target(
             Bounds information of the window. When window state is 'minimized', the restored window
             position and size are returned.
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {
             "method": "Browser.getWindowForTarget",
             "params": {"targetId": str(targetId) if targetId else None},
         }
     )
+
+
+def parse_get_window_for_target_response(response):
     return {
         "windowId": WindowID(response["windowId"]),
         "bounds": Bounds.from_json(response["bounds"]),
     }
 
 
-def set_window_bounds(windowId: WindowID, bounds: Bounds) -> dict:
+def set_window_bounds(windowId: WindowID, bounds: Bounds):
     """Set position and/or size of the browser window.
 
     **Experimental**
@@ -538,9 +547,7 @@ def set_window_bounds(windowId: WindowID, bounds: Bounds) -> dict:
     }
 
 
-def set_dock_tile(
-    badgeLabel: Optional[str] = None, image: Optional[str] = None
-) -> dict:
+def set_dock_tile(badgeLabel: Optional[str] = None, image: Optional[str] = None):
     """Set dock tile details, platform-specific.
 
     **Experimental**
@@ -559,7 +566,7 @@ def set_dock_tile(
     )
 
 
-def execute_browser_command(commandId: BrowserCommandId) -> dict:
+def execute_browser_command(commandId: BrowserCommandId):
     """Invoke custom browser commands used by telemetry.
 
     **Experimental**

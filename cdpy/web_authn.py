@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 import enum
-from typing import Generator, Optional
+from typing import Optional
 
 from .common import filter_none
 
@@ -158,21 +158,19 @@ class Credential:
         )
 
 
-def enable() -> dict:
+def enable():
     """Enable the WebAuthn domain and start intercepting credential storage and
     retrieval with a virtual authenticator.
     """
     return {"method": "WebAuthn.enable", "params": {}}
 
 
-def disable() -> dict:
+def disable():
     """Disable the WebAuthn domain."""
     return {"method": "WebAuthn.disable", "params": {}}
 
 
-def add_virtual_authenticator(
-    options: VirtualAuthenticatorOptions,
-) -> Generator[dict, dict, AuthenticatorId]:
+def add_virtual_authenticator(options: VirtualAuthenticatorOptions):
     """Creates and adds a virtual authenticator.
 
     Parameters
@@ -183,14 +181,17 @@ def add_virtual_authenticator(
     -------
     authenticatorId: AuthenticatorId
     """
-    response = yield {
+    return {
         "method": "WebAuthn.addVirtualAuthenticator",
         "params": {"options": options.to_json()},
     }
+
+
+def parse_add_virtual_authenticator_response(response):
     return AuthenticatorId(response["authenticatorId"])
 
 
-def remove_virtual_authenticator(authenticatorId: AuthenticatorId) -> dict:
+def remove_virtual_authenticator(authenticatorId: AuthenticatorId):
     """Removes the given authenticator.
 
     Parameters
@@ -203,7 +204,7 @@ def remove_virtual_authenticator(authenticatorId: AuthenticatorId) -> dict:
     }
 
 
-def add_credential(authenticatorId: AuthenticatorId, credential: Credential) -> dict:
+def add_credential(authenticatorId: AuthenticatorId, credential: Credential):
     """Adds the credential to the specified authenticator.
 
     Parameters
@@ -220,9 +221,7 @@ def add_credential(authenticatorId: AuthenticatorId, credential: Credential) -> 
     }
 
 
-def get_credential(
-    authenticatorId: AuthenticatorId, credentialId: str
-) -> Generator[dict, dict, Credential]:
+def get_credential(authenticatorId: AuthenticatorId, credentialId: str):
     """Returns a single credential stored in the given virtual authenticator that
     matches the credential ID.
 
@@ -235,19 +234,20 @@ def get_credential(
     -------
     credential: Credential
     """
-    response = yield {
+    return {
         "method": "WebAuthn.getCredential",
         "params": {
             "authenticatorId": str(authenticatorId),
             "credentialId": credentialId,
         },
     }
+
+
+def parse_get_credential_response(response):
     return Credential.from_json(response["credential"])
 
 
-def get_credentials(
-    authenticatorId: AuthenticatorId,
-) -> Generator[dict, dict, list[Credential]]:
+def get_credentials(authenticatorId: AuthenticatorId):
     """Returns all the credentials stored in the given virtual authenticator.
 
     Parameters
@@ -258,14 +258,17 @@ def get_credentials(
     -------
     credentials: list[Credential]
     """
-    response = yield {
+    return {
         "method": "WebAuthn.getCredentials",
         "params": {"authenticatorId": str(authenticatorId)},
     }
+
+
+def parse_get_credentials_response(response):
     return [Credential.from_json(c) for c in response["credentials"]]
 
 
-def remove_credential(authenticatorId: AuthenticatorId, credentialId: str) -> dict:
+def remove_credential(authenticatorId: AuthenticatorId, credentialId: str):
     """Removes a credential from the authenticator.
 
     Parameters
@@ -282,7 +285,7 @@ def remove_credential(authenticatorId: AuthenticatorId, credentialId: str) -> di
     }
 
 
-def clear_credentials(authenticatorId: AuthenticatorId) -> dict:
+def clear_credentials(authenticatorId: AuthenticatorId):
     """Clears all the credentials from the specified device.
 
     Parameters
@@ -295,7 +298,7 @@ def clear_credentials(authenticatorId: AuthenticatorId) -> dict:
     }
 
 
-def set_user_verified(authenticatorId: AuthenticatorId, isUserVerified: bool) -> dict:
+def set_user_verified(authenticatorId: AuthenticatorId, isUserVerified: bool):
     """Sets whether User Verification succeeds or fails for an authenticator.
     The default is true.
 
@@ -313,9 +316,7 @@ def set_user_verified(authenticatorId: AuthenticatorId, isUserVerified: bool) ->
     }
 
 
-def set_automatic_presence_simulation(
-    authenticatorId: AuthenticatorId, enabled: bool
-) -> dict:
+def set_automatic_presence_simulation(authenticatorId: AuthenticatorId, enabled: bool):
     """Sets whether tests of user presence will succeed immediately (if true) or fail to resolve (if false) for an authenticator.
     The default is true.
 

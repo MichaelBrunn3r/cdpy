@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 import enum
-from typing import Generator, Optional
+from typing import Optional
 
 from . import browser, network
 from .common import filter_unset_parameters
@@ -69,7 +69,7 @@ class TrustTokens:
         return {"issuerOrigin": self.issuerOrigin, "count": self.count}
 
 
-def clear_data_for_origin(origin: str, storageTypes: str) -> dict:
+def clear_data_for_origin(origin: str, storageTypes: str):
     """Clears storage for origin.
 
     Parameters
@@ -85,9 +85,7 @@ def clear_data_for_origin(origin: str, storageTypes: str) -> dict:
     }
 
 
-def get_cookies(
-    browserContextId: Optional[browser.BrowserContextID] = None,
-) -> Generator[dict, dict, list[network.Cookie]]:
+def get_cookies(browserContextId: Optional[browser.BrowserContextID] = None):
     """Returns all browser cookies.
 
     Parameters
@@ -100,7 +98,7 @@ def get_cookies(
     cookies: list[network.Cookie]
             Array of cookie objects.
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {
             "method": "Storage.getCookies",
             "params": {
@@ -108,13 +106,16 @@ def get_cookies(
             },
         }
     )
+
+
+def parse_get_cookies_response(response):
     return [network.Cookie.from_json(c) for c in response["cookies"]]
 
 
 def set_cookies(
     cookies: list[network.CookieParam],
     browserContextId: Optional[browser.BrowserContextID] = None,
-) -> dict:
+):
     """Sets given cookies.
 
     Parameters
@@ -135,7 +136,7 @@ def set_cookies(
     )
 
 
-def clear_cookies(browserContextId: Optional[browser.BrowserContextID] = None) -> dict:
+def clear_cookies(browserContextId: Optional[browser.BrowserContextID] = None):
     """Clears cookies.
 
     Parameters
@@ -153,7 +154,7 @@ def clear_cookies(browserContextId: Optional[browser.BrowserContextID] = None) -
     )
 
 
-def get_usage_and_quota(origin: str) -> Generator[dict, dict, dict]:
+def get_usage_and_quota(origin: str):
     """Returns usage and quota in bytes.
 
     Parameters
@@ -172,10 +173,10 @@ def get_usage_and_quota(origin: str) -> Generator[dict, dict, dict]:
     usageBreakdown: list[UsageForType]
             Storage usage per type (bytes).
     """
-    response = yield {
-        "method": "Storage.getUsageAndQuota",
-        "params": {"origin": origin},
-    }
+    return {"method": "Storage.getUsageAndQuota", "params": {"origin": origin}}
+
+
+def parse_get_usage_and_quota_response(response):
     return {
         "usage": response["usage"],
         "quota": response["quota"],
@@ -186,7 +187,7 @@ def get_usage_and_quota(origin: str) -> Generator[dict, dict, dict]:
     }
 
 
-def override_quota_for_origin(origin: str, quotaSize: Optional[float] = None) -> dict:
+def override_quota_for_origin(origin: str, quotaSize: Optional[float] = None):
     """Override quota for the specified origin
 
     **Experimental**
@@ -212,7 +213,7 @@ def override_quota_for_origin(origin: str, quotaSize: Optional[float] = None) ->
     )
 
 
-def track_cache_storage_for_origin(origin: str) -> dict:
+def track_cache_storage_for_origin(origin: str):
     """Registers origin to be notified when an update occurs to its cache storage list.
 
     Parameters
@@ -226,7 +227,7 @@ def track_cache_storage_for_origin(origin: str) -> dict:
     }
 
 
-def track_indexed_db_for_origin(origin: str) -> dict:
+def track_indexed_db_for_origin(origin: str):
     """Registers origin to be notified when an update occurs to its IndexedDB.
 
     Parameters
@@ -237,7 +238,7 @@ def track_indexed_db_for_origin(origin: str) -> dict:
     return {"method": "Storage.trackIndexedDBForOrigin", "params": {"origin": origin}}
 
 
-def untrack_cache_storage_for_origin(origin: str) -> dict:
+def untrack_cache_storage_for_origin(origin: str):
     """Unregisters origin from receiving notifications for cache storage.
 
     Parameters
@@ -251,7 +252,7 @@ def untrack_cache_storage_for_origin(origin: str) -> dict:
     }
 
 
-def untrack_indexed_db_for_origin(origin: str) -> dict:
+def untrack_indexed_db_for_origin(origin: str):
     """Unregisters origin from receiving notifications for IndexedDB.
 
     Parameters
@@ -262,7 +263,7 @@ def untrack_indexed_db_for_origin(origin: str) -> dict:
     return {"method": "Storage.untrackIndexedDBForOrigin", "params": {"origin": origin}}
 
 
-def get_trust_tokens() -> Generator[dict, dict, list[TrustTokens]]:
+def get_trust_tokens():
     """Returns the number of stored Trust Tokens per issuer for the
     current browsing context.
 
@@ -272,7 +273,10 @@ def get_trust_tokens() -> Generator[dict, dict, list[TrustTokens]]:
     -------
     tokens: list[TrustTokens]
     """
-    response = yield {"method": "Storage.getTrustTokens", "params": {}}
+    return {"method": "Storage.getTrustTokens", "params": {}}
+
+
+def parse_get_trust_tokens_response(response):
     return [TrustTokens.from_json(t) for t in response["tokens"]]
 
 

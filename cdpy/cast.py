@@ -30,7 +30,7 @@ class Sink:
         return filter_none({"name": self.name, "id": self.id, "session": self.session})
 
 
-def enable(presentationUrl: Optional[str] = None) -> dict:
+def enable(presentationUrl: Optional[str] = None):
     """Starts observing for sinks that can be used for tab mirroring, and if set,
     sinks compatible with |presentationUrl| as well. When sinks are found, a
     |sinksUpdated| event is fired.
@@ -46,12 +46,12 @@ def enable(presentationUrl: Optional[str] = None) -> dict:
     )
 
 
-def disable() -> dict:
+def disable():
     """Stops observing for sinks and issues."""
     return {"method": "Cast.disable", "params": {}}
 
 
-def set_sink_to_use(sinkName: str) -> dict:
+def set_sink_to_use(sinkName: str):
     """Sets a sink to be used when the web page requests the browser to choose a
     sink via Presentation API, Remote Playback API, or Cast SDK.
 
@@ -62,7 +62,7 @@ def set_sink_to_use(sinkName: str) -> dict:
     return {"method": "Cast.setSinkToUse", "params": {"sinkName": sinkName}}
 
 
-def start_tab_mirroring(sinkName: str) -> dict:
+def start_tab_mirroring(sinkName: str):
     """Starts mirroring the tab to the sink.
 
     Parameters
@@ -72,7 +72,7 @@ def start_tab_mirroring(sinkName: str) -> dict:
     return {"method": "Cast.startTabMirroring", "params": {"sinkName": sinkName}}
 
 
-def stop_casting(sinkName: str) -> dict:
+def stop_casting(sinkName: str):
     """Stops the active Cast session on the sink.
 
     Parameters

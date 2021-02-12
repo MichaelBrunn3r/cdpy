@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Generator, Optional
+from typing import Optional
 
 from .common import filter_none, filter_unset_parameters
 
@@ -718,7 +718,7 @@ def await_promise(
     promiseObjectId: RemoteObjectId,
     returnByValue: Optional[bool] = None,
     generatePreview: Optional[bool] = None,
-) -> Generator[dict, dict, dict]:
+):
     """Add handler to promise with given promise object id.
 
     Parameters
@@ -737,7 +737,7 @@ def await_promise(
     exceptionDetails: Optional[ExceptionDetails]
             Exception details if stack strace is available.
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {
             "method": "Runtime.awaitPromise",
             "params": {
@@ -747,6 +747,9 @@ def await_promise(
             },
         }
     )
+
+
+def parse_await_promise_response(response):
     return {
         "result": RemoteObject.from_json(response["result"]),
         "exceptionDetails": ExceptionDetails.from_json(response["exceptionDetails"])
@@ -766,7 +769,7 @@ def call_function_on(
     awaitPromise: Optional[bool] = None,
     executionContextId: Optional[ExecutionContextId] = None,
     objectGroup: Optional[str] = None,
-) -> Generator[dict, dict, dict]:
+):
     """Calls function with given declaration on the given object. Object group of the result is
     inherited from the target object.
 
@@ -806,7 +809,7 @@ def call_function_on(
     exceptionDetails: Optional[ExceptionDetails]
             Exception details.
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {
             "method": "Runtime.callFunctionOn",
             "params": {
@@ -825,6 +828,9 @@ def call_function_on(
             },
         }
     )
+
+
+def parse_call_function_on_response(response):
     return {
         "result": RemoteObject.from_json(response["result"]),
         "exceptionDetails": ExceptionDetails.from_json(response["exceptionDetails"])
@@ -838,7 +844,7 @@ def compile_script(
     sourceURL: str,
     persistScript: bool,
     executionContextId: Optional[ExecutionContextId] = None,
-) -> Generator[dict, dict, dict]:
+):
     """Compiles expression.
 
     Parameters
@@ -860,7 +866,7 @@ def compile_script(
     exceptionDetails: Optional[ExceptionDetails]
             Exception details.
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {
             "method": "Runtime.compileScript",
             "params": {
@@ -873,6 +879,9 @@ def compile_script(
             },
         }
     )
+
+
+def parse_compile_script_response(response):
     return {
         "scriptId": ScriptId(response["scriptId"]) if "scriptId" in response else None,
         "exceptionDetails": ExceptionDetails.from_json(response["exceptionDetails"])
@@ -881,17 +890,17 @@ def compile_script(
     }
 
 
-def disable() -> dict:
+def disable():
     """Disables reporting of execution contexts creation."""
     return {"method": "Runtime.disable", "params": {}}
 
 
-def discard_console_entries() -> dict:
+def discard_console_entries():
     """Discards collected exceptions and console API calls."""
     return {"method": "Runtime.discardConsoleEntries", "params": {}}
 
 
-def enable() -> dict:
+def enable():
     """Enables reporting of execution contexts creation by means of `executionContextCreated` event.
     When the reporting gets enabled the event will be sent immediately for each existing execution
     context.
@@ -914,7 +923,7 @@ def evaluate(
     disableBreaks: Optional[bool] = None,
     replMode: Optional[bool] = None,
     allowUnsafeEvalBlockedByCSP: Optional[bool] = None,
-) -> Generator[dict, dict, dict]:
+):
     """Evaluates expression on global object.
 
     Parameters
@@ -964,7 +973,7 @@ def evaluate(
     exceptionDetails: Optional[ExceptionDetails]
             Exception details.
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {
             "method": "Runtime.evaluate",
             "params": {
@@ -985,6 +994,9 @@ def evaluate(
             },
         }
     )
+
+
+def parse_evaluate_response(response):
     return {
         "result": RemoteObject.from_json(response["result"]),
         "exceptionDetails": ExceptionDetails.from_json(response["exceptionDetails"])
@@ -993,7 +1005,7 @@ def evaluate(
     }
 
 
-def get_isolate_id() -> Generator[dict, dict, str]:
+def get_isolate_id():
     """Returns the isolate id.
 
     **Experimental**
@@ -1003,11 +1015,14 @@ def get_isolate_id() -> Generator[dict, dict, str]:
     id: str
             The isolate id.
     """
-    response = yield {"method": "Runtime.getIsolateId", "params": {}}
+    return {"method": "Runtime.getIsolateId", "params": {}}
+
+
+def parse_get_isolate_id_response(response):
     return response["id"]
 
 
-def get_heap_usage() -> Generator[dict, dict, dict]:
+def get_heap_usage():
     """Returns the JavaScript heap usage.
     It is the total usage of the corresponding isolate not scoped to a particular Runtime.
 
@@ -1020,7 +1035,10 @@ def get_heap_usage() -> Generator[dict, dict, dict]:
     totalSize: float
             Allocated heap size in bytes.
     """
-    response = yield {"method": "Runtime.getHeapUsage", "params": {}}
+    return {"method": "Runtime.getHeapUsage", "params": {}}
+
+
+def parse_get_heap_usage_response(response):
     return {"usedSize": response["usedSize"], "totalSize": response["totalSize"]}
 
 
@@ -1029,7 +1047,7 @@ def get_properties(
     ownProperties: Optional[bool] = None,
     accessorPropertiesOnly: Optional[bool] = None,
     generatePreview: Optional[bool] = None,
-) -> Generator[dict, dict, dict]:
+):
     """Returns properties of a given object. Object group of the result is inherited from the target
     object.
 
@@ -1057,7 +1075,7 @@ def get_properties(
     exceptionDetails: Optional[ExceptionDetails]
             Exception details.
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {
             "method": "Runtime.getProperties",
             "params": {
@@ -1068,6 +1086,9 @@ def get_properties(
             },
         }
     )
+
+
+def parse_get_properties_response(response):
     return {
         "result": [PropertyDescriptor.from_json(r) for r in response["result"]],
         "internalProperties": [
@@ -1088,9 +1109,7 @@ def get_properties(
     }
 
 
-def global_lexical_scope_names(
-    executionContextId: Optional[ExecutionContextId] = None,
-) -> Generator[dict, dict, list[str]]:
+def global_lexical_scope_names(executionContextId: Optional[ExecutionContextId] = None):
     """Returns all let, const and class variables from global scope.
 
     Parameters
@@ -1102,7 +1121,7 @@ def global_lexical_scope_names(
     -------
     names: list[str]
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {
             "method": "Runtime.globalLexicalScopeNames",
             "params": {
@@ -1112,12 +1131,13 @@ def global_lexical_scope_names(
             },
         }
     )
+
+
+def parse_global_lexical_scope_names_response(response):
     return response["names"]
 
 
-def query_objects(
-    prototypeObjectId: RemoteObjectId, objectGroup: Optional[str] = None
-) -> Generator[dict, dict, RemoteObject]:
+def query_objects(prototypeObjectId: RemoteObjectId, objectGroup: Optional[str] = None):
     """
     Parameters
     ----------
@@ -1131,7 +1151,7 @@ def query_objects(
     objects: RemoteObject
             Array with objects.
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {
             "method": "Runtime.queryObjects",
             "params": {
@@ -1140,10 +1160,13 @@ def query_objects(
             },
         }
     )
+
+
+def parse_query_objects_response(response):
     return RemoteObject.from_json(response["objects"])
 
 
-def release_object(objectId: RemoteObjectId) -> dict:
+def release_object(objectId: RemoteObjectId):
     """Releases remote object with given id.
 
     Parameters
@@ -1154,7 +1177,7 @@ def release_object(objectId: RemoteObjectId) -> dict:
     return {"method": "Runtime.releaseObject", "params": {"objectId": str(objectId)}}
 
 
-def release_object_group(objectGroup: str) -> dict:
+def release_object_group(objectGroup: str):
     """Releases all remote objects that belong to a given group.
 
     Parameters
@@ -1168,7 +1191,7 @@ def release_object_group(objectGroup: str) -> dict:
     }
 
 
-def run_if_waiting_for_debugger() -> dict:
+def run_if_waiting_for_debugger():
     """Tells inspected instance to run if it was waiting for debugger to attach."""
     return {"method": "Runtime.runIfWaitingForDebugger", "params": {}}
 
@@ -1182,7 +1205,7 @@ def run_script(
     returnByValue: Optional[bool] = None,
     generatePreview: Optional[bool] = None,
     awaitPromise: Optional[bool] = None,
-) -> Generator[dict, dict, dict]:
+):
     """Runs script with given id in a given context.
 
     Parameters
@@ -1214,7 +1237,7 @@ def run_script(
     exceptionDetails: Optional[ExceptionDetails]
             Exception details.
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {
             "method": "Runtime.runScript",
             "params": {
@@ -1231,6 +1254,9 @@ def run_script(
             },
         }
     )
+
+
+def parse_run_script_response(response):
     return {
         "result": RemoteObject.from_json(response["result"]),
         "exceptionDetails": ExceptionDetails.from_json(response["exceptionDetails"])
@@ -1239,7 +1265,7 @@ def run_script(
     }
 
 
-def set_async_call_stack_depth(maxDepth: int) -> dict:
+def set_async_call_stack_depth(maxDepth: int):
     """Enables or disables async call stacks tracking.
 
     Parameters
@@ -1254,7 +1280,7 @@ def set_async_call_stack_depth(maxDepth: int) -> dict:
     }
 
 
-def set_custom_object_formatter_enabled(enabled: bool) -> dict:
+def set_custom_object_formatter_enabled(enabled: bool):
     """
     **Experimental**
 
@@ -1268,7 +1294,7 @@ def set_custom_object_formatter_enabled(enabled: bool) -> dict:
     }
 
 
-def set_max_call_stack_size_to_capture(size: int) -> dict:
+def set_max_call_stack_size_to_capture(size: int):
     """
     **Experimental**
 
@@ -1279,7 +1305,7 @@ def set_max_call_stack_size_to_capture(size: int) -> dict:
     return {"method": "Runtime.setMaxCallStackSizeToCapture", "params": {"size": size}}
 
 
-def terminate_execution() -> dict:
+def terminate_execution():
     """Terminate current or next JavaScript execution.
     Will cancel the termination when the outer-most script execution ends.
 
@@ -1288,9 +1314,7 @@ def terminate_execution() -> dict:
     return {"method": "Runtime.terminateExecution", "params": {}}
 
 
-def add_binding(
-    name: str, executionContextId: Optional[ExecutionContextId] = None
-) -> dict:
+def add_binding(name: str, executionContextId: Optional[ExecutionContextId] = None):
     """If executionContextId is empty, adds binding with the given name on the
     global objects of all inspected contexts, including those created later,
     bindings survive reloads.
@@ -1320,7 +1344,7 @@ def add_binding(
     )
 
 
-def remove_binding(name: str) -> dict:
+def remove_binding(name: str):
     """This method does not remove binding function from global object but
     unsubscribes current runtime agent from Runtime.bindingCalled notifications.
 

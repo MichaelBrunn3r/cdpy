@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Generator, Optional
+from typing import Optional
 
 from . import runtime
 from .common import filter_none, filter_unset_parameters
@@ -269,9 +269,7 @@ class KeyPath:
         )
 
 
-def clear_object_store(
-    securityOrigin: str, databaseName: str, objectStoreName: str
-) -> dict:
+def clear_object_store(securityOrigin: str, databaseName: str, objectStoreName: str):
     """Clears all entries from an object store.
 
     Parameters
@@ -293,7 +291,7 @@ def clear_object_store(
     }
 
 
-def delete_database(securityOrigin: str, databaseName: str) -> dict:
+def delete_database(securityOrigin: str, databaseName: str):
     """Deletes a database.
 
     Parameters
@@ -311,7 +309,7 @@ def delete_database(securityOrigin: str, databaseName: str) -> dict:
 
 def delete_object_store_entries(
     securityOrigin: str, databaseName: str, objectStoreName: str, keyRange: KeyRange
-) -> dict:
+):
     """Delete a range of entries from an object store
 
     Parameters
@@ -333,12 +331,12 @@ def delete_object_store_entries(
     }
 
 
-def disable() -> dict:
+def disable():
     """Disables events from backend."""
     return {"method": "IndexedDB.disable", "params": {}}
 
 
-def enable() -> dict:
+def enable():
     """Enables events from backend."""
     return {"method": "IndexedDB.enable", "params": {}}
 
@@ -351,7 +349,7 @@ def request_data(
     skipCount: int,
     pageSize: int,
     keyRange: Optional[KeyRange] = None,
-) -> Generator[dict, dict, dict]:
+):
     """Requests data from object store or index.
 
     Parameters
@@ -378,7 +376,7 @@ def request_data(
     hasMore: bool
             If true, there are more entries to fetch in the given range.
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {
             "method": "IndexedDB.requestData",
             "params": {
@@ -392,6 +390,9 @@ def request_data(
             },
         }
     )
+
+
+def parse_request_data_response(response):
     return {
         "objectStoreDataEntries": [
             DataEntry.from_json(o) for o in response["objectStoreDataEntries"]
@@ -400,9 +401,7 @@ def request_data(
     }
 
 
-def get_metadata(
-    securityOrigin: str, databaseName: str, objectStoreName: str
-) -> Generator[dict, dict, dict]:
+def get_metadata(securityOrigin: str, databaseName: str, objectStoreName: str):
     """Gets metadata of an object store
 
     Parameters
@@ -423,7 +422,7 @@ def get_metadata(
             key into the object store. Valid if objectStore.autoIncrement
             is true.
     """
-    response = yield {
+    return {
         "method": "IndexedDB.getMetadata",
         "params": {
             "securityOrigin": securityOrigin,
@@ -431,15 +430,16 @@ def get_metadata(
             "objectStoreName": objectStoreName,
         },
     }
+
+
+def parse_get_metadata_response(response):
     return {
         "entriesCount": response["entriesCount"],
         "keyGeneratorValue": response["keyGeneratorValue"],
     }
 
 
-def request_database(
-    securityOrigin: str, databaseName: str
-) -> Generator[dict, dict, DatabaseWithObjectStores]:
+def request_database(securityOrigin: str, databaseName: str):
     """Requests database with given name in given frame.
 
     Parameters
@@ -454,14 +454,17 @@ def request_database(
     databaseWithObjectStores: DatabaseWithObjectStores
             Database with an array of object stores.
     """
-    response = yield {
+    return {
         "method": "IndexedDB.requestDatabase",
         "params": {"securityOrigin": securityOrigin, "databaseName": databaseName},
     }
+
+
+def parse_request_database_response(response):
     return DatabaseWithObjectStores.from_json(response["databaseWithObjectStores"])
 
 
-def request_database_names(securityOrigin: str) -> Generator[dict, dict, list[str]]:
+def request_database_names(securityOrigin: str):
     """Requests database names for given security origin.
 
     Parameters
@@ -474,8 +477,11 @@ def request_database_names(securityOrigin: str) -> Generator[dict, dict, list[st
     databaseNames: list[str]
             Database names for origin.
     """
-    response = yield {
+    return {
         "method": "IndexedDB.requestDatabaseNames",
         "params": {"securityOrigin": securityOrigin},
     }
+
+
+def parse_request_database_names_response(response):
     return response["databaseNames"]

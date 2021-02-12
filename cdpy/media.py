@@ -116,12 +116,12 @@ class PlayerError:
         return {"type": self.type, "errorCode": self.errorCode}
 
 
-def enable() -> dict:
+def enable():
     """Enables the Media domain"""
     return {"method": "Media.enable", "params": {}}
 
 
-def disable() -> dict:
+def disable():
     """Disables the Media domain."""
     return {"method": "Media.disable", "params": {}}
 

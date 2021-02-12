@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Generator, Optional
+from typing import Optional
 
 from . import browser, page
 from .common import filter_none, filter_unset_parameters
@@ -107,7 +107,7 @@ class RemoteLocation:
         return {"host": self.host, "port": self.port}
 
 
-def activate_target(targetId: TargetID) -> dict:
+def activate_target(targetId: TargetID):
     """Activates (focuses) the target.
 
     Parameters
@@ -117,9 +117,7 @@ def activate_target(targetId: TargetID) -> dict:
     return {"method": "Target.activateTarget", "params": {"targetId": str(targetId)}}
 
 
-def attach_to_target(
-    targetId: TargetID, flatten: Optional[bool] = None
-) -> Generator[dict, dict, SessionID]:
+def attach_to_target(targetId: TargetID, flatten: Optional[bool] = None):
     """Attaches to the target with given id.
 
     Parameters
@@ -135,16 +133,19 @@ def attach_to_target(
     sessionId: SessionID
             Id assigned to the session.
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {
             "method": "Target.attachToTarget",
             "params": {"targetId": str(targetId), "flatten": flatten},
         }
     )
+
+
+def parse_attach_to_target_response(response):
     return SessionID(response["sessionId"])
 
 
-def attach_to_browser_target() -> Generator[dict, dict, SessionID]:
+def attach_to_browser_target():
     """Attaches to the browser target, only uses flat sessionId mode.
 
     **Experimental**
@@ -154,11 +155,14 @@ def attach_to_browser_target() -> Generator[dict, dict, SessionID]:
     sessionId: SessionID
             Id assigned to the session.
     """
-    response = yield {"method": "Target.attachToBrowserTarget", "params": {}}
+    return {"method": "Target.attachToBrowserTarget", "params": {}}
+
+
+def parse_attach_to_browser_target_response(response):
     return SessionID(response["sessionId"])
 
 
-def close_target(targetId: TargetID) -> Generator[dict, dict, bool]:
+def close_target(targetId: TargetID):
     """Closes the target. If the target is a page that gets closed too.
 
     Parameters
@@ -170,16 +174,14 @@ def close_target(targetId: TargetID) -> Generator[dict, dict, bool]:
     success: bool
             Always set to true. If an error occurs, the response indicates protocol error.
     """
-    response = yield {
-        "method": "Target.closeTarget",
-        "params": {"targetId": str(targetId)},
-    }
+    return {"method": "Target.closeTarget", "params": {"targetId": str(targetId)}}
+
+
+def parse_close_target_response(response):
     return response["success"]
 
 
-def expose_dev_tools_protocol(
-    targetId: TargetID, bindingName: Optional[str] = None
-) -> dict:
+def expose_dev_tools_protocol(targetId: TargetID, bindingName: Optional[str] = None):
     """Inject object to the target's main frame that provides a communication
     channel with browser target.
 
@@ -209,7 +211,7 @@ def create_browser_context(
     disposeOnDetach: Optional[bool] = None,
     proxyServer: Optional[str] = None,
     proxyBypassList: Optional[str] = None,
-) -> Generator[dict, dict, browser.BrowserContextID]:
+):
     """Creates a new empty BrowserContext. Similar to an incognito profile but you can have more than
     one.
 
@@ -229,7 +231,7 @@ def create_browser_context(
     browserContextId: browser.BrowserContextID
             The id of the context created.
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {
             "method": "Target.createBrowserContext",
             "params": {
@@ -239,10 +241,13 @@ def create_browser_context(
             },
         }
     )
+
+
+def parse_create_browser_context_response(response):
     return browser.BrowserContextID(response["browserContextId"])
 
 
-def get_browser_contexts() -> Generator[dict, dict, list[browser.BrowserContextID]]:
+def get_browser_contexts():
     """Returns all browser contexts created with `Target.createBrowserContext` method.
 
     **Experimental**
@@ -252,7 +257,10 @@ def get_browser_contexts() -> Generator[dict, dict, list[browser.BrowserContextI
     browserContextIds: list[browser.BrowserContextID]
             An array of browser context ids.
     """
-    response = yield {"method": "Target.getBrowserContexts", "params": {}}
+    return {"method": "Target.getBrowserContexts", "params": {}}
+
+
+def parse_get_browser_contexts_response(response):
     return [browser.BrowserContextID(b) for b in response["browserContextIds"]]
 
 
@@ -264,7 +272,7 @@ def create_target(
     enableBeginFrameControl: Optional[bool] = None,
     newWindow: Optional[bool] = None,
     background: Optional[bool] = None,
-) -> Generator[dict, dict, TargetID]:
+):
     """Creates a new page.
 
     Parameters
@@ -291,7 +299,7 @@ def create_target(
     targetId: TargetID
             The id of the page opened.
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {
             "method": "Target.createTarget",
             "params": {
@@ -305,12 +313,15 @@ def create_target(
             },
         }
     )
+
+
+def parse_create_target_response(response):
     return TargetID(response["targetId"])
 
 
 def detach_from_target(
     sessionId: Optional[SessionID] = None, targetId: Optional[TargetID] = None
-) -> dict:
+):
     """Detaches session with given id.
 
     Parameters
@@ -331,7 +342,7 @@ def detach_from_target(
     )
 
 
-def dispose_browser_context(browserContextId: browser.BrowserContextID) -> dict:
+def dispose_browser_context(browserContextId: browser.BrowserContextID):
     """Deletes a BrowserContext. All the belonging pages will be closed without calling their
     beforeunload hooks.
 
@@ -347,9 +358,7 @@ def dispose_browser_context(browserContextId: browser.BrowserContextID) -> dict:
     }
 
 
-def get_target_info(
-    targetId: Optional[TargetID] = None,
-) -> Generator[dict, dict, TargetInfo]:
+def get_target_info(targetId: Optional[TargetID] = None):
     """Returns information about a target.
 
     **Experimental**
@@ -362,16 +371,19 @@ def get_target_info(
     -------
     targetInfo: TargetInfo
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {
             "method": "Target.getTargetInfo",
             "params": {"targetId": str(targetId) if targetId else None},
         }
     )
+
+
+def parse_get_target_info_response(response):
     return TargetInfo.from_json(response["targetInfo"])
 
 
-def get_targets() -> Generator[dict, dict, list[TargetInfo]]:
+def get_targets():
     """Retrieves a list of available targets.
 
     Returns
@@ -379,7 +391,10 @@ def get_targets() -> Generator[dict, dict, list[TargetInfo]]:
     targetInfos: list[TargetInfo]
             The list of targets.
     """
-    response = yield {"method": "Target.getTargets", "params": {}}
+    return {"method": "Target.getTargets", "params": {}}
+
+
+def parse_get_targets_response(response):
     return [TargetInfo.from_json(t) for t in response["targetInfos"]]
 
 
@@ -387,7 +402,7 @@ def send_message_to_target(
     message: str,
     sessionId: Optional[SessionID] = None,
     targetId: Optional[TargetID] = None,
-) -> dict:
+):
     """Sends protocol message over session with given id.
     Consider using flat mode instead; see commands attachToTarget, setAutoAttach,
     and crbug.com/991325.
@@ -416,7 +431,7 @@ def send_message_to_target(
 
 def set_auto_attach(
     autoAttach: bool, waitForDebuggerOnStart: bool, flatten: Optional[bool] = None
-) -> dict:
+):
     """Controls whether to automatically attach to new targets which are considered to be related to
     this one. When turned on, attaches to all existing related targets as well. When turned off,
     automatically detaches from all currently attached targets.
@@ -447,7 +462,7 @@ def set_auto_attach(
     )
 
 
-def set_discover_targets(discover: bool) -> dict:
+def set_discover_targets(discover: bool):
     """Controls whether to discover available targets and notify via
     `targetCreated/targetInfoChanged/targetDestroyed` events.
 
@@ -459,7 +474,7 @@ def set_discover_targets(discover: bool) -> dict:
     return {"method": "Target.setDiscoverTargets", "params": {"discover": discover}}
 
 
-def set_remote_locations(locations: list[RemoteLocation]) -> dict:
+def set_remote_locations(locations: list[RemoteLocation]):
     """Enables target discovery for the specified locations, when `setDiscoverTargets` was set to
     `true`.
 

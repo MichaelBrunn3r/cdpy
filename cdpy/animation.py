@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Generator, Optional
+from typing import Optional
 
 from . import dom, runtime
 from .common import filter_none
@@ -208,17 +208,17 @@ class KeyframeStyle:
         return {"offset": self.offset, "easing": self.easing}
 
 
-def disable() -> dict:
+def disable():
     """Disables animation domain notifications."""
     return {"method": "Animation.disable", "params": {}}
 
 
-def enable() -> dict:
+def enable():
     """Enables animation domain notifications."""
     return {"method": "Animation.enable", "params": {}}
 
 
-def get_current_time(id: str) -> Generator[dict, dict, float]:
+def get_current_time(id: str):
     """Returns the current time of the an animation.
 
     Parameters
@@ -231,11 +231,14 @@ def get_current_time(id: str) -> Generator[dict, dict, float]:
     currentTime: float
             Current time of the page.
     """
-    response = yield {"method": "Animation.getCurrentTime", "params": {"id": id}}
+    return {"method": "Animation.getCurrentTime", "params": {"id": id}}
+
+
+def parse_get_current_time_response(response):
     return response["currentTime"]
 
 
-def get_playback_rate() -> Generator[dict, dict, float]:
+def get_playback_rate():
     """Gets the playback rate of the document timeline.
 
     Returns
@@ -243,11 +246,14 @@ def get_playback_rate() -> Generator[dict, dict, float]:
     playbackRate: float
             Playback rate for animations on page.
     """
-    response = yield {"method": "Animation.getPlaybackRate", "params": {}}
+    return {"method": "Animation.getPlaybackRate", "params": {}}
+
+
+def parse_get_playback_rate_response(response):
     return response["playbackRate"]
 
 
-def release_animations(animations: list[str]) -> dict:
+def release_animations(animations: list[str]):
     """Releases a set of animations to no longer be manipulated.
 
     Parameters
@@ -261,7 +267,7 @@ def release_animations(animations: list[str]) -> dict:
     }
 
 
-def resolve_animation(animationId: str) -> Generator[dict, dict, runtime.RemoteObject]:
+def resolve_animation(animationId: str):
     """Gets the remote object of the Animation.
 
     Parameters
@@ -274,14 +280,17 @@ def resolve_animation(animationId: str) -> Generator[dict, dict, runtime.RemoteO
     remoteObject: runtime.RemoteObject
             Corresponding remote object.
     """
-    response = yield {
+    return {
         "method": "Animation.resolveAnimation",
         "params": {"animationId": animationId},
     }
+
+
+def parse_resolve_animation_response(response):
     return runtime.RemoteObject.from_json(response["remoteObject"])
 
 
-def seek_animations(animations: list[str], currentTime: float) -> dict:
+def seek_animations(animations: list[str], currentTime: float):
     """Seek a set of animations to a particular time within each animation.
 
     Parameters
@@ -297,7 +306,7 @@ def seek_animations(animations: list[str], currentTime: float) -> dict:
     }
 
 
-def set_paused(animations: list[str], paused: bool) -> dict:
+def set_paused(animations: list[str], paused: bool):
     """Sets the paused state of a set of animations.
 
     Parameters
@@ -313,7 +322,7 @@ def set_paused(animations: list[str], paused: bool) -> dict:
     }
 
 
-def set_playback_rate(playbackRate: float) -> dict:
+def set_playback_rate(playbackRate: float):
     """Sets the playback rate of the document timeline.
 
     Parameters
@@ -327,7 +336,7 @@ def set_playback_rate(playbackRate: float) -> dict:
     }
 
 
-def set_timing(animationId: str, duration: float, delay: float) -> dict:
+def set_timing(animationId: str, duration: float, delay: float):
     """Sets the timing of an animation node.
 
     Parameters

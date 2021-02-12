@@ -94,7 +94,7 @@ class BackgroundServiceEvent:
         }
 
 
-def start_observing(service: ServiceName) -> dict:
+def start_observing(service: ServiceName):
     """Enables event updates for the service.
 
     Parameters
@@ -107,7 +107,7 @@ def start_observing(service: ServiceName) -> dict:
     }
 
 
-def stop_observing(service: ServiceName) -> dict:
+def stop_observing(service: ServiceName):
     """Disables event updates for the service.
 
     Parameters
@@ -120,7 +120,7 @@ def stop_observing(service: ServiceName) -> dict:
     }
 
 
-def set_recording(shouldRecord: bool, service: ServiceName) -> dict:
+def set_recording(shouldRecord: bool, service: ServiceName):
     """Set the recording state for the service.
 
     Parameters
@@ -134,7 +134,7 @@ def set_recording(shouldRecord: bool, service: ServiceName) -> dict:
     }
 
 
-def clear_events(service: ServiceName) -> dict:
+def clear_events(service: ServiceName):
     """Clears all stored data for the service.
 
     Parameters

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 import enum
-from typing import Generator, Optional
+from typing import Optional
 
 from .common import filter_none
 
@@ -285,19 +285,17 @@ class AudioParam:
         }
 
 
-def enable() -> dict:
+def enable():
     """Enables the WebAudio domain and starts sending context lifetime events."""
     return {"method": "WebAudio.enable", "params": {}}
 
 
-def disable() -> dict:
+def disable():
     """Disables the WebAudio domain."""
     return {"method": "WebAudio.disable", "params": {}}
 
 
-def get_realtime_data(
-    contextId: GraphObjectId,
-) -> Generator[dict, dict, ContextRealtimeData]:
+def get_realtime_data(contextId: GraphObjectId):
     """Fetch the realtime data from the registered contexts.
 
     Parameters
@@ -308,10 +306,13 @@ def get_realtime_data(
     -------
     realtimeData: ContextRealtimeData
     """
-    response = yield {
+    return {
         "method": "WebAudio.getRealtimeData",
         "params": {"contextId": str(contextId)},
     }
+
+
+def parse_get_realtime_data_response(response):
     return ContextRealtimeData.from_json(response["realtimeData"])
 
 

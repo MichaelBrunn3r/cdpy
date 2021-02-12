@@ -125,7 +125,7 @@ def dispatch_key_event(
     isSystemKey: Optional[bool] = None,
     location: Optional[int] = None,
     commands: Optional[list[str]] = None,
-) -> dict:
+):
     """Dispatches a key event to the page.
 
     Parameters
@@ -192,7 +192,7 @@ def dispatch_key_event(
     )
 
 
-def insert_text(text: str) -> dict:
+def insert_text(text: str):
     """This method emulates inserting text that doesn't come from a key press,
     for example an emoji keyboard or an IME.
 
@@ -223,7 +223,7 @@ def dispatch_mouse_event(
     deltaX: Optional[float] = None,
     deltaY: Optional[float] = None,
     pointerType: Optional[str] = None,
-) -> dict:
+):
     """Dispatches a mouse event to the page.
 
     Parameters
@@ -294,7 +294,7 @@ def dispatch_touch_event(
     touchPoints: list[TouchPoint],
     modifiers: Optional[int] = None,
     timestamp: Optional[TimeSinceEpoch] = None,
-) -> dict:
+):
     """Dispatches a touch event to the page.
 
     Parameters
@@ -335,7 +335,7 @@ def emulate_touch_from_mouse_event(
     deltaY: Optional[float] = None,
     modifiers: Optional[int] = None,
     clickCount: Optional[int] = None,
-) -> dict:
+):
     """Emulates touch event from the mouse event parameters.
 
     **Experimental**
@@ -380,7 +380,7 @@ def emulate_touch_from_mouse_event(
     )
 
 
-def set_ignore_input_events(ignore: bool) -> dict:
+def set_ignore_input_events(ignore: bool):
     """Ignores input events (useful while auditing page).
 
     Parameters
@@ -397,7 +397,7 @@ def synthesize_pinch_gesture(
     scaleFactor: float,
     relativeSpeed: Optional[int] = None,
     gestureSourceType: Optional[GestureSourceType] = None,
-) -> dict:
+):
     """Synthesizes a pinch gesture over a time period by issuing appropriate touch events.
 
     **Experimental**
@@ -445,7 +445,7 @@ def synthesize_scroll_gesture(
     repeatCount: Optional[int] = None,
     repeatDelayMs: Optional[int] = None,
     interactionMarkerName: Optional[str] = None,
-) -> dict:
+):
     """Synthesizes a scroll gesture over a time period by issuing appropriate touch events.
 
     **Experimental**
@@ -509,7 +509,7 @@ def synthesize_tap_gesture(
     duration: Optional[int] = None,
     tapCount: Optional[int] = None,
     gestureSourceType: Optional[GestureSourceType] = None,
-) -> dict:
+):
     """Synthesizes a tap gesture over a time period by issuing appropriate touch events.
 
     **Experimental**

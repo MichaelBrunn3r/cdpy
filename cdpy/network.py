@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 import enum
-from typing import Generator, Optional
+from typing import Optional
 
 from . import debugger, emulation, io, page, runtime, security
 from .common import filter_none, filter_unset_parameters
@@ -1830,7 +1830,7 @@ class LoadNetworkResourceOptions:
         }
 
 
-def can_clear_browser_cache() -> Generator[dict, dict, bool]:
+def can_clear_browser_cache():
     """Tells whether clearing browser cache is supported.
 
     **Deprectated**
@@ -1840,11 +1840,14 @@ def can_clear_browser_cache() -> Generator[dict, dict, bool]:
     result: bool
             True if browser cache can be cleared.
     """
-    response = yield {"method": "Network.canClearBrowserCache", "params": {}}
+    return {"method": "Network.canClearBrowserCache", "params": {}}
+
+
+def parse_can_clear_browser_cache_response(response):
     return response["result"]
 
 
-def can_clear_browser_cookies() -> Generator[dict, dict, bool]:
+def can_clear_browser_cookies():
     """Tells whether clearing browser cookies is supported.
 
     **Deprectated**
@@ -1854,11 +1857,14 @@ def can_clear_browser_cookies() -> Generator[dict, dict, bool]:
     result: bool
             True if browser cookies can be cleared.
     """
-    response = yield {"method": "Network.canClearBrowserCookies", "params": {}}
+    return {"method": "Network.canClearBrowserCookies", "params": {}}
+
+
+def parse_can_clear_browser_cookies_response(response):
     return response["result"]
 
 
-def can_emulate_network_conditions() -> Generator[dict, dict, bool]:
+def can_emulate_network_conditions():
     """Tells whether emulation of network conditions is supported.
 
     **Deprectated**
@@ -1868,16 +1874,19 @@ def can_emulate_network_conditions() -> Generator[dict, dict, bool]:
     result: bool
             True if emulation of network conditions is supported.
     """
-    response = yield {"method": "Network.canEmulateNetworkConditions", "params": {}}
+    return {"method": "Network.canEmulateNetworkConditions", "params": {}}
+
+
+def parse_can_emulate_network_conditions_response(response):
     return response["result"]
 
 
-def clear_browser_cache() -> dict:
+def clear_browser_cache():
     """Clears browser cache."""
     return {"method": "Network.clearBrowserCache", "params": {}}
 
 
-def clear_browser_cookies() -> dict:
+def clear_browser_cookies():
     """Clears browser cookies."""
     return {"method": "Network.clearBrowserCookies", "params": {}}
 
@@ -1891,7 +1900,7 @@ def continue_intercepted_request(
     postData: Optional[str] = None,
     headers: Optional[Headers] = None,
     authChallengeResponse: Optional[AuthChallengeResponse] = None,
-) -> dict:
+):
     """Response to Network.requestIntercepted which either modifies the request to continue with any
     modifications, or blocks it, or completes it with the provided response bytes. If a network
     fetch occurs as a result which encounters a redirect an additional Network.requestIntercepted
@@ -1950,7 +1959,7 @@ def delete_cookies(
     url: Optional[str] = None,
     domain: Optional[str] = None,
     path: Optional[str] = None,
-) -> dict:
+):
     """Deletes browser cookies with matching name and url or domain/path pair.
 
     Parameters
@@ -1973,7 +1982,7 @@ def delete_cookies(
     )
 
 
-def disable() -> dict:
+def disable():
     """Disables network tracking, prevents network events from being sent to the client."""
     return {"method": "Network.disable", "params": {}}
 
@@ -1984,7 +1993,7 @@ def emulate_network_conditions(
     downloadThroughput: float,
     uploadThroughput: float,
     connectionType: Optional[ConnectionType] = None,
-) -> dict:
+):
     """Activates emulation of network conditions.
 
     Parameters
@@ -2018,7 +2027,7 @@ def enable(
     maxTotalBufferSize: Optional[int] = None,
     maxResourceBufferSize: Optional[int] = None,
     maxPostDataSize: Optional[int] = None,
-) -> dict:
+):
     """Enables network tracking, network events will now be delivered to the client.
 
     Parameters
@@ -2042,7 +2051,7 @@ def enable(
     )
 
 
-def get_all_cookies() -> Generator[dict, dict, list[Cookie]]:
+def get_all_cookies():
     """Returns all browser cookies. Depending on the backend support, will return detailed cookie
     information in the `cookies` field.
 
@@ -2051,11 +2060,14 @@ def get_all_cookies() -> Generator[dict, dict, list[Cookie]]:
     cookies: list[Cookie]
             Array of cookie objects.
     """
-    response = yield {"method": "Network.getAllCookies", "params": {}}
+    return {"method": "Network.getAllCookies", "params": {}}
+
+
+def parse_get_all_cookies_response(response):
     return [Cookie.from_json(c) for c in response["cookies"]]
 
 
-def get_certificate(origin: str) -> Generator[dict, dict, list[str]]:
+def get_certificate(origin: str):
     """Returns the DER-encoded certificate.
 
     **Experimental**
@@ -2069,13 +2081,14 @@ def get_certificate(origin: str) -> Generator[dict, dict, list[str]]:
     -------
     tableNames: list[str]
     """
-    response = yield {"method": "Network.getCertificate", "params": {"origin": origin}}
+    return {"method": "Network.getCertificate", "params": {"origin": origin}}
+
+
+def parse_get_certificate_response(response):
     return response["tableNames"]
 
 
-def get_cookies(
-    urls: Optional[list[str]] = None,
-) -> Generator[dict, dict, list[Cookie]]:
+def get_cookies(urls: Optional[list[str]] = None):
     """Returns all browser cookies for the current URL. Depending on the backend support, will return
     detailed cookie information in the `cookies` field.
 
@@ -2091,13 +2104,16 @@ def get_cookies(
     cookies: list[Cookie]
             Array of cookie objects.
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {"method": "Network.getCookies", "params": {"urls": urls}}
     )
+
+
+def parse_get_cookies_response(response):
     return [Cookie.from_json(c) for c in response["cookies"]]
 
 
-def get_response_body(requestId: RequestId) -> Generator[dict, dict, dict]:
+def get_response_body(requestId: RequestId):
     """Returns content served for the given request.
 
     Parameters
@@ -2112,14 +2128,17 @@ def get_response_body(requestId: RequestId) -> Generator[dict, dict, dict]:
     base64Encoded: bool
             True, if content was sent as base64.
     """
-    response = yield {
+    return {
         "method": "Network.getResponseBody",
         "params": {"requestId": str(requestId)},
     }
+
+
+def parse_get_response_body_response(response):
     return {"body": response["body"], "base64Encoded": response["base64Encoded"]}
 
 
-def get_request_post_data(requestId: RequestId) -> Generator[dict, dict, str]:
+def get_request_post_data(requestId: RequestId):
     """Returns post data sent with the request. Returns an error when no data was sent with the request.
 
     Parameters
@@ -2132,16 +2151,17 @@ def get_request_post_data(requestId: RequestId) -> Generator[dict, dict, str]:
     postData: str
             Request body string, omitting files from multipart requests
     """
-    response = yield {
+    return {
         "method": "Network.getRequestPostData",
         "params": {"requestId": str(requestId)},
     }
+
+
+def parse_get_request_post_data_response(response):
     return response["postData"]
 
 
-def get_response_body_for_interception(
-    interceptionId: InterceptionId,
-) -> Generator[dict, dict, dict]:
+def get_response_body_for_interception(interceptionId: InterceptionId):
     """Returns content served for the given currently intercepted request.
 
     **Experimental**
@@ -2158,16 +2178,17 @@ def get_response_body_for_interception(
     base64Encoded: bool
             True, if content was sent as base64.
     """
-    response = yield {
+    return {
         "method": "Network.getResponseBodyForInterception",
         "params": {"interceptionId": str(interceptionId)},
     }
+
+
+def parse_get_response_body_for_interception_response(response):
     return {"body": response["body"], "base64Encoded": response["base64Encoded"]}
 
 
-def take_response_body_for_interception_as_stream(
-    interceptionId: InterceptionId,
-) -> Generator[dict, dict, io.StreamHandle]:
+def take_response_body_for_interception_as_stream(interceptionId: InterceptionId):
     """Returns a handle to the stream representing the response body. Note that after this command,
     the intercepted request can't be continued as is -- you either need to cancel it or to provide
     the response body. The stream only supports sequential read, IO.read will fail if the position
@@ -2183,14 +2204,17 @@ def take_response_body_for_interception_as_stream(
     -------
     stream: io.StreamHandle
     """
-    response = yield {
+    return {
         "method": "Network.takeResponseBodyForInterceptionAsStream",
         "params": {"interceptionId": str(interceptionId)},
     }
+
+
+def parse_take_response_body_for_interception_as_stream_response(response):
     return io.StreamHandle(response["stream"])
 
 
-def replay_xhr(requestId: RequestId) -> dict:
+def replay_xhr(requestId: RequestId):
     """This method sends a new XMLHttpRequest which is identical to the original one. The following
     parameters should be identical: method, url, async, request body, extra headers, withCredentials
     attribute, user, password.
@@ -2210,7 +2234,7 @@ def search_in_response_body(
     query: str,
     caseSensitive: Optional[bool] = None,
     isRegex: Optional[bool] = None,
-) -> Generator[dict, dict, list[debugger.SearchMatch]]:
+):
     """Searches for given string in response content.
 
     **Experimental**
@@ -2231,7 +2255,7 @@ def search_in_response_body(
     result: list[debugger.SearchMatch]
             List of search matches.
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {
             "method": "Network.searchInResponseBody",
             "params": {
@@ -2242,10 +2266,13 @@ def search_in_response_body(
             },
         }
     )
+
+
+def parse_search_in_response_body_response(response):
     return [debugger.SearchMatch.from_json(r) for r in response["result"]]
 
 
-def set_blocked_ur_ls(urls: list[str]) -> dict:
+def set_blocked_ur_ls(urls: list[str]):
     """Blocks URLs from loading.
 
     **Experimental**
@@ -2258,7 +2285,7 @@ def set_blocked_ur_ls(urls: list[str]) -> dict:
     return {"method": "Network.setBlockedURLs", "params": {"urls": urls}}
 
 
-def set_bypass_service_worker(bypass: bool) -> dict:
+def set_bypass_service_worker(bypass: bool):
     """Toggles ignoring of service worker for each request.
 
     **Experimental**
@@ -2271,7 +2298,7 @@ def set_bypass_service_worker(bypass: bool) -> dict:
     return {"method": "Network.setBypassServiceWorker", "params": {"bypass": bypass}}
 
 
-def set_cache_disabled(cacheDisabled: bool) -> dict:
+def set_cache_disabled(cacheDisabled: bool):
     """Toggles ignoring cache for each request. If `true`, cache will not be used.
 
     Parameters
@@ -2296,7 +2323,7 @@ def set_cookie(
     sameSite: Optional[CookieSameSite] = None,
     expires: Optional[TimeSinceEpoch] = None,
     priority: Optional[CookiePriority] = None,
-) -> Generator[dict, dict, bool]:
+):
     """Sets a cookie with the given cookie data; may overwrite equivalent cookies if they exist.
 
     Parameters
@@ -2328,7 +2355,7 @@ def set_cookie(
     success: bool
             Always set to true. If an error occurs, the response indicates protocol error.
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {
             "method": "Network.setCookie",
             "params": {
@@ -2345,10 +2372,13 @@ def set_cookie(
             },
         }
     )
+
+
+def parse_set_cookie_response(response):
     return response["success"]
 
 
-def set_cookies(cookies: list[CookieParam]) -> dict:
+def set_cookies(cookies: list[CookieParam]):
     """Sets given cookies.
 
     Parameters
@@ -2362,7 +2392,7 @@ def set_cookies(cookies: list[CookieParam]) -> dict:
     }
 
 
-def set_data_size_limits_for_test(maxTotalSize: int, maxResourceSize: int) -> dict:
+def set_data_size_limits_for_test(maxTotalSize: int, maxResourceSize: int):
     """For testing.
 
     **Experimental**
@@ -2380,7 +2410,7 @@ def set_data_size_limits_for_test(maxTotalSize: int, maxResourceSize: int) -> di
     }
 
 
-def set_extra_http_headers(headers: Headers) -> dict:
+def set_extra_http_headers(headers: Headers):
     """Specifies whether to always send extra HTTP headers with the requests from this page.
 
     Parameters
@@ -2394,7 +2424,7 @@ def set_extra_http_headers(headers: Headers) -> dict:
     }
 
 
-def set_attach_debug_stack(enabled: bool) -> dict:
+def set_attach_debug_stack(enabled: bool):
     """Specifies whether to attach a page script stack id in requests
 
     **Experimental**
@@ -2407,7 +2437,7 @@ def set_attach_debug_stack(enabled: bool) -> dict:
     return {"method": "Network.setAttachDebugStack", "params": {"enabled": enabled}}
 
 
-def set_request_interception(patterns: list[RequestPattern]) -> dict:
+def set_request_interception(patterns: list[RequestPattern]):
     """Sets the requests to intercept that match the provided patterns and optionally resource types.
     Deprecated, please use Fetch.enable instead.
 
@@ -2432,7 +2462,7 @@ def set_user_agent_override(
     acceptLanguage: Optional[str] = None,
     platform: Optional[str] = None,
     userAgentMetadata: Optional[emulation.UserAgentMetadata] = None,
-) -> dict:
+):
     """Allows overriding user agent with the given string.
 
     Parameters
@@ -2461,9 +2491,7 @@ def set_user_agent_override(
     )
 
 
-def get_security_isolation_status(
-    frameId: Optional[page.FrameId] = None,
-) -> Generator[dict, dict, SecurityIsolationStatus]:
+def get_security_isolation_status(frameId: Optional[page.FrameId] = None):
     """Returns information about the COEP/COOP isolation status.
 
     **Experimental**
@@ -2477,18 +2505,21 @@ def get_security_isolation_status(
     -------
     status: SecurityIsolationStatus
     """
-    response = yield filter_unset_parameters(
+    return filter_unset_parameters(
         {
             "method": "Network.getSecurityIsolationStatus",
             "params": {"frameId": str(frameId) if frameId else None},
         }
     )
+
+
+def parse_get_security_isolation_status_response(response):
     return SecurityIsolationStatus.from_json(response["status"])
 
 
 def load_network_resource(
     frameId: page.FrameId, url: str, options: LoadNetworkResourceOptions
-) -> Generator[dict, dict, LoadNetworkResourcePageResult]:
+):
     """Fetches the resource and returns the content.
 
     **Experimental**
@@ -2506,10 +2537,13 @@ def load_network_resource(
     -------
     resource: LoadNetworkResourcePageResult
     """
-    response = yield {
+    return {
         "method": "Network.loadNetworkResource",
         "params": {"frameId": str(frameId), "url": url, "options": options.to_json()},
     }
+
+
+def parse_load_network_resource_response(response):
     return LoadNetworkResourcePageResult.from_json(response["resource"])
 
 
