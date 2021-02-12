@@ -157,7 +157,10 @@ def request_memory_dump(
     response = yield filter_unset_parameters(
         {
             "method": "Tracing.requestMemoryDump",
-            "params": {"deterministic": deterministic, "levelOfDetail": levelOfDetail},
+            "params": {
+                "deterministic": deterministic,
+                "levelOfDetail": levelOfDetail.value if levelOfDetail else None,
+            },
         }
     )
     return {"dumpGuid": response["dumpGuid"], "success": response["success"]}
@@ -206,9 +209,11 @@ def start(
                 "options": options,
                 "bufferUsageReportingInterval": bufferUsageReportingInterval,
                 "transferMode": transferMode,
-                "streamFormat": streamFormat,
-                "streamCompression": streamCompression,
-                "traceConfig": traceConfig,
+                "streamFormat": streamFormat.value if streamFormat else None,
+                "streamCompression": streamCompression.value
+                if streamCompression
+                else None,
+                "traceConfig": traceConfig.to_json() if traceConfig else None,
                 "perfettoConfig": perfettoConfig,
             },
         }

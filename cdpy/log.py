@@ -134,7 +134,10 @@ def start_violations_report(config: list[ViolationSetting]) -> dict:
     config: list[ViolationSetting]
             Configuration for violations.
     """
-    return {"method": "Log.startViolationsReport", "params": {"config": config}}
+    return {
+        "method": "Log.startViolationsReport",
+        "params": {"config": [c.to_json() for c in config]},
+    }
 
 
 def stop_violations_report() -> dict:

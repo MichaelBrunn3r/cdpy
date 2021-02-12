@@ -247,7 +247,7 @@ def set_default_background_color_override(color: Optional[dom.RGBA] = None) -> d
     return filter_unset_parameters(
         {
             "method": "Emulation.setDefaultBackgroundColorOverride",
-            "params": {"color": color},
+            "params": {"color": color.to_json() if color else None},
         }
     )
 
@@ -317,9 +317,11 @@ def set_device_metrics_override(
                 "positionX": positionX,
                 "positionY": positionY,
                 "dontSetVisibleSize": dontSetVisibleSize,
-                "screenOrientation": screenOrientation,
-                "viewport": viewport,
-                "displayFeature": displayFeature,
+                "screenOrientation": screenOrientation.to_json()
+                if screenOrientation
+                else None,
+                "viewport": viewport.to_json() if viewport else None,
+                "displayFeature": displayFeature.to_json() if displayFeature else None,
             },
         }
     )
@@ -388,7 +390,10 @@ def set_emulated_media(
     return filter_unset_parameters(
         {
             "method": "Emulation.setEmulatedMedia",
-            "params": {"media": media, "features": features},
+            "params": {
+                "media": media,
+                "features": [f.to_json() for f in features] if features else None,
+            },
         }
     )
 
@@ -565,11 +570,13 @@ def set_virtual_time_policy(
         {
             "method": "Emulation.setVirtualTimePolicy",
             "params": {
-                "policy": policy,
+                "policy": policy.value,
                 "budget": budget,
                 "maxVirtualTimeTaskStarvationCount": maxVirtualTimeTaskStarvationCount,
                 "waitForNavigation": waitForNavigation,
-                "initialVirtualTime": initialVirtualTime,
+                "initialVirtualTime": float(initialVirtualTime)
+                if initialVirtualTime
+                else None,
             },
         }
     )
@@ -642,7 +649,7 @@ def set_disabled_image_types(imageTypes: list[DisabledImageType]) -> dict:
     """
     return {
         "method": "Emulation.setDisabledImageTypes",
-        "params": {"imageTypes": imageTypes},
+        "params": {"imageTypes": [i.value for i in imageTypes]},
     }
 
 
@@ -672,7 +679,9 @@ def set_user_agent_override(
                 "userAgent": userAgent,
                 "acceptLanguage": acceptLanguage,
                 "platform": platform,
-                "userAgentMetadata": userAgentMetadata,
+                "userAgentMetadata": userAgentMetadata.to_json()
+                if userAgentMetadata
+                else None,
             },
         }
     )

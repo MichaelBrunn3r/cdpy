@@ -162,7 +162,7 @@ def delete_cache(cacheId: CacheId) -> dict:
     cacheId: CacheId
             Id of cache for deletion.
     """
-    return {"method": "CacheStorage.deleteCache", "params": {"cacheId": cacheId}}
+    return {"method": "CacheStorage.deleteCache", "params": {"cacheId": str(cacheId)}}
 
 
 def delete_entry(cacheId: CacheId, request: str) -> dict:
@@ -177,7 +177,7 @@ def delete_entry(cacheId: CacheId, request: str) -> dict:
     """
     return {
         "method": "CacheStorage.deleteEntry",
-        "params": {"cacheId": cacheId, "request": request},
+        "params": {"cacheId": str(cacheId), "request": request},
     }
 
 
@@ -223,9 +223,9 @@ def request_cached_response(
     response = yield {
         "method": "CacheStorage.requestCachedResponse",
         "params": {
-            "cacheId": cacheId,
+            "cacheId": str(cacheId),
             "requestURL": requestURL,
-            "requestHeaders": requestHeaders,
+            "requestHeaders": [r.to_json() for r in requestHeaders],
         },
     }
     return CachedResponse.from_json(response)
@@ -262,7 +262,7 @@ def request_entries(
         {
             "method": "CacheStorage.requestEntries",
             "params": {
-                "cacheId": cacheId,
+                "cacheId": str(cacheId),
                 "skipCount": skipCount,
                 "pageSize": pageSize,
                 "pathFilter": pathFilter,

@@ -326,7 +326,7 @@ class CDPProperty:
         if self.optional and not self.category.does_not_require_unparsing:
             json_val = f"{json_val} if {value} else None"
 
-        return ast_from_str(json_val)
+        return json_val
 
     def to_docstring(self):
         annotation = create_type_annotation(
@@ -507,7 +507,10 @@ class CDPType:
     def create_object_to_json_function(self):
         json = ast.Dict(
             [ast.Constant(a.name) for a in self.attributes],
-            [a.create_unparse_ast(f"self.{a.name}") for a in self.attributes],
+            [
+                ast_from_str(a.create_unparse_ast(f"self.{a.name}"))
+                for a in self.attributes
+            ],
         )
 
         if self.has_optional_attributes:
@@ -663,7 +666,9 @@ class CDPCommand:
         )
 
     def create_command_json(self):
-        params = ",".join([f'"{p.name}": {p.name}' for p in self.parameters])
+        params = ",".join(
+            [f'"{p.name}": {p.create_unparse_ast(p.name)}' for p in self.parameters]
+        )
         command_json = f'{{"method": "{self.context.domain_name}.{self.name}", "params": {{{params}}}}}'
 
         # Remove unset optional parameters

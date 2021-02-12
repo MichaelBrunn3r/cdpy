@@ -741,7 +741,7 @@ def await_promise(
         {
             "method": "Runtime.awaitPromise",
             "params": {
-                "promiseObjectId": promiseObjectId,
+                "promiseObjectId": str(promiseObjectId),
                 "returnByValue": returnByValue,
                 "generatePreview": generatePreview,
             },
@@ -811,14 +811,16 @@ def call_function_on(
             "method": "Runtime.callFunctionOn",
             "params": {
                 "functionDeclaration": functionDeclaration,
-                "objectId": objectId,
-                "arguments": arguments,
+                "objectId": str(objectId) if objectId else None,
+                "arguments": [a.to_json() for a in arguments] if arguments else None,
                 "silent": silent,
                 "returnByValue": returnByValue,
                 "generatePreview": generatePreview,
                 "userGesture": userGesture,
                 "awaitPromise": awaitPromise,
-                "executionContextId": executionContextId,
+                "executionContextId": int(executionContextId)
+                if executionContextId
+                else None,
                 "objectGroup": objectGroup,
             },
         }
@@ -865,7 +867,9 @@ def compile_script(
                 "expression": expression,
                 "sourceURL": sourceURL,
                 "persistScript": persistScript,
-                "executionContextId": executionContextId,
+                "executionContextId": int(executionContextId)
+                if executionContextId
+                else None,
             },
         }
     )
@@ -968,13 +972,13 @@ def evaluate(
                 "objectGroup": objectGroup,
                 "includeCommandLineAPI": includeCommandLineAPI,
                 "silent": silent,
-                "contextId": contextId,
+                "contextId": int(contextId) if contextId else None,
                 "returnByValue": returnByValue,
                 "generatePreview": generatePreview,
                 "userGesture": userGesture,
                 "awaitPromise": awaitPromise,
                 "throwOnSideEffect": throwOnSideEffect,
-                "timeout": timeout,
+                "timeout": float(timeout) if timeout else None,
                 "disableBreaks": disableBreaks,
                 "replMode": replMode,
                 "allowUnsafeEvalBlockedByCSP": allowUnsafeEvalBlockedByCSP,
@@ -1057,7 +1061,7 @@ def get_properties(
         {
             "method": "Runtime.getProperties",
             "params": {
-                "objectId": objectId,
+                "objectId": str(objectId),
                 "ownProperties": ownProperties,
                 "accessorPropertiesOnly": accessorPropertiesOnly,
                 "generatePreview": generatePreview,
@@ -1101,7 +1105,11 @@ def global_lexical_scope_names(
     response = yield filter_unset_parameters(
         {
             "method": "Runtime.globalLexicalScopeNames",
-            "params": {"executionContextId": executionContextId},
+            "params": {
+                "executionContextId": int(executionContextId)
+                if executionContextId
+                else None
+            },
         }
     )
     return response
@@ -1127,7 +1135,7 @@ def query_objects(
         {
             "method": "Runtime.queryObjects",
             "params": {
-                "prototypeObjectId": prototypeObjectId,
+                "prototypeObjectId": str(prototypeObjectId),
                 "objectGroup": objectGroup,
             },
         }
@@ -1143,7 +1151,7 @@ def release_object(objectId: RemoteObjectId) -> dict:
     objectId: RemoteObjectId
             Identifier of the object to release.
     """
-    return {"method": "Runtime.releaseObject", "params": {"objectId": objectId}}
+    return {"method": "Runtime.releaseObject", "params": {"objectId": str(objectId)}}
 
 
 def release_object_group(objectGroup: str) -> dict:
@@ -1210,8 +1218,10 @@ def run_script(
         {
             "method": "Runtime.runScript",
             "params": {
-                "scriptId": scriptId,
-                "executionContextId": executionContextId,
+                "scriptId": str(scriptId),
+                "executionContextId": int(executionContextId)
+                if executionContextId
+                else None,
                 "objectGroup": objectGroup,
                 "silent": silent,
                 "includeCommandLineAPI": includeCommandLineAPI,
@@ -1300,7 +1310,12 @@ def add_binding(
     return filter_unset_parameters(
         {
             "method": "Runtime.addBinding",
-            "params": {"name": name, "executionContextId": executionContextId},
+            "params": {
+                "name": name,
+                "executionContextId": int(executionContextId)
+                if executionContextId
+                else None,
+            },
         }
     )
 

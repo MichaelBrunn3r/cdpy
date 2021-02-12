@@ -310,7 +310,7 @@ def get_realtime_data(
     """
     response = yield {
         "method": "WebAudio.getRealtimeData",
-        "params": {"contextId": contextId},
+        "params": {"contextId": str(contextId)},
     }
     return ContextRealtimeData.from_json(response)
 

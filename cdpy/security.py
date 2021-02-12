@@ -386,7 +386,7 @@ def handle_certificate_error(eventId: int, action: CertificateErrorAction) -> di
     """
     return {
         "method": "Security.handleCertificateError",
-        "params": {"eventId": eventId, "action": action},
+        "params": {"eventId": eventId, "action": action.value},
     }
 
 

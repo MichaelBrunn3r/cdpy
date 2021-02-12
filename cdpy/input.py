@@ -174,7 +174,7 @@ def dispatch_key_event(
             "params": {
                 "type": type,
                 "modifiers": modifiers,
-                "timestamp": timestamp,
+                "timestamp": float(timestamp) if timestamp else None,
                 "text": text,
                 "unmodifiedText": unmodifiedText,
                 "keyIdentifier": keyIdentifier,
@@ -272,8 +272,8 @@ def dispatch_mouse_event(
                 "x": x,
                 "y": y,
                 "modifiers": modifiers,
-                "timestamp": timestamp,
-                "button": button,
+                "timestamp": float(timestamp) if timestamp else None,
+                "button": button.value if button else None,
                 "buttons": buttons,
                 "clickCount": clickCount,
                 "force": force,
@@ -317,9 +317,9 @@ def dispatch_touch_event(
             "method": "Input.dispatchTouchEvent",
             "params": {
                 "type": type,
-                "touchPoints": touchPoints,
+                "touchPoints": [t.to_json() for t in touchPoints],
                 "modifiers": modifiers,
-                "timestamp": timestamp,
+                "timestamp": float(timestamp) if timestamp else None,
             },
         }
     )
@@ -369,8 +369,8 @@ def emulate_touch_from_mouse_event(
                 "type": type,
                 "x": x,
                 "y": y,
-                "button": button,
-                "timestamp": timestamp,
+                "button": button.value,
+                "timestamp": float(timestamp) if timestamp else None,
                 "deltaX": deltaX,
                 "deltaY": deltaY,
                 "modifiers": modifiers,
@@ -424,7 +424,9 @@ def synthesize_pinch_gesture(
                 "y": y,
                 "scaleFactor": scaleFactor,
                 "relativeSpeed": relativeSpeed,
-                "gestureSourceType": gestureSourceType,
+                "gestureSourceType": gestureSourceType.value
+                if gestureSourceType
+                else None,
             },
         }
     )
@@ -490,7 +492,9 @@ def synthesize_scroll_gesture(
                 "yOverscroll": yOverscroll,
                 "preventFling": preventFling,
                 "speed": speed,
-                "gestureSourceType": gestureSourceType,
+                "gestureSourceType": gestureSourceType.value
+                if gestureSourceType
+                else None,
                 "repeatCount": repeatCount,
                 "repeatDelayMs": repeatDelayMs,
                 "interactionMarkerName": interactionMarkerName,
@@ -532,7 +536,9 @@ def synthesize_tap_gesture(
                 "y": y,
                 "duration": duration,
                 "tapCount": tapCount,
-                "gestureSourceType": gestureSourceType,
+                "gestureSourceType": gestureSourceType.value
+                if gestureSourceType
+                else None,
             },
         }
     )

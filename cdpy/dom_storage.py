@@ -43,7 +43,7 @@ def clear(storageId: StorageId) -> dict:
     ----------
     storageId: StorageId
     """
-    return {"method": "DOMStorage.clear", "params": {"storageId": storageId}}
+    return {"method": "DOMStorage.clear", "params": {"storageId": storageId.to_json()}}
 
 
 def disable() -> dict:
@@ -68,7 +68,7 @@ def get_dom_storage_items(storageId: StorageId) -> Generator[dict, dict, list[It
     """
     response = yield {
         "method": "DOMStorage.getDOMStorageItems",
-        "params": {"storageId": storageId},
+        "params": {"storageId": storageId.to_json()},
     }
     return [Item(e) for e in response]
 
@@ -82,7 +82,7 @@ def remove_dom_storage_item(storageId: StorageId, key: str) -> dict:
     """
     return {
         "method": "DOMStorage.removeDOMStorageItem",
-        "params": {"storageId": storageId, "key": key},
+        "params": {"storageId": storageId.to_json(), "key": key},
     }
 
 
@@ -96,7 +96,7 @@ def set_dom_storage_item(storageId: StorageId, key: str, value: str) -> dict:
     """
     return {
         "method": "DOMStorage.setDOMStorageItem",
-        "params": {"storageId": storageId, "key": key, "value": value},
+        "params": {"storageId": storageId.to_json(), "key": key, "value": value},
     }
 
 

@@ -130,7 +130,7 @@ def get_event_listeners(
     response = yield filter_unset_parameters(
         {
             "method": "DOMDebugger.getEventListeners",
-            "params": {"objectId": objectId, "depth": depth, "pierce": pierce},
+            "params": {"objectId": str(objectId), "depth": depth, "pierce": pierce},
         }
     )
     return [EventListener.from_json(l) for l in response]
@@ -148,7 +148,7 @@ def remove_dom_breakpoint(nodeId: dom.NodeId, type: DOMBreakpointType) -> dict:
     """
     return {
         "method": "DOMDebugger.removeDOMBreakpoint",
-        "params": {"nodeId": nodeId, "type": type},
+        "params": {"nodeId": int(nodeId), "type": type.value},
     }
 
 
@@ -211,7 +211,7 @@ def set_break_on_csp_violation(violationTypes: list[CSPViolationType]) -> dict:
     """
     return {
         "method": "DOMDebugger.setBreakOnCSPViolation",
-        "params": {"violationTypes": violationTypes},
+        "params": {"violationTypes": [v.value for v in violationTypes]},
     }
 
 
@@ -227,7 +227,7 @@ def set_dom_breakpoint(nodeId: dom.NodeId, type: DOMBreakpointType) -> dict:
     """
     return {
         "method": "DOMDebugger.setDOMBreakpoint",
-        "params": {"nodeId": nodeId, "type": type},
+        "params": {"nodeId": int(nodeId), "type": type.value},
     }
 
 

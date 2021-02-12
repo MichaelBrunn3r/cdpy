@@ -118,7 +118,7 @@ def add_inspected_heap_object(heapObjectId: HeapSnapshotObjectId) -> dict:
     """
     return {
         "method": "HeapProfiler.addInspectedHeapObject",
-        "params": {"heapObjectId": heapObjectId},
+        "params": {"heapObjectId": str(heapObjectId)},
     }
 
 
@@ -153,7 +153,7 @@ def get_heap_object_id(
     """
     response = yield {
         "method": "HeapProfiler.getHeapObjectId",
-        "params": {"objectId": objectId},
+        "params": {"objectId": str(objectId)},
     }
     return HeapSnapshotObjectId(response)
 
@@ -176,7 +176,7 @@ def get_object_by_heap_object_id(
     response = yield filter_unset_parameters(
         {
             "method": "HeapProfiler.getObjectByHeapObjectId",
-            "params": {"objectId": objectId, "objectGroup": objectGroup},
+            "params": {"objectId": str(objectId), "objectGroup": objectGroup},
         }
     )
     return runtime.RemoteObject.from_json(response)

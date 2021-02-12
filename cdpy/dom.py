@@ -479,7 +479,7 @@ def collect_class_names_from_subtree(
     """
     response = yield {
         "method": "DOM.collectClassNamesFromSubtree",
-        "params": {"nodeId": nodeId},
+        "params": {"nodeId": int(nodeId)},
     }
     return response
 
@@ -511,9 +511,11 @@ def copy_to(
         {
             "method": "DOM.copyTo",
             "params": {
-                "nodeId": nodeId,
-                "targetNodeId": targetNodeId,
-                "insertBeforeNodeId": insertBeforeNodeId,
+                "nodeId": int(nodeId),
+                "targetNodeId": int(targetNodeId),
+                "insertBeforeNodeId": int(insertBeforeNodeId)
+                if insertBeforeNodeId
+                else None,
             },
         }
     )
@@ -554,9 +556,9 @@ def describe_node(
         {
             "method": "DOM.describeNode",
             "params": {
-                "nodeId": nodeId,
-                "backendNodeId": backendNodeId,
-                "objectId": objectId,
+                "nodeId": int(nodeId) if nodeId else None,
+                "backendNodeId": int(backendNodeId) if backendNodeId else None,
+                "objectId": str(objectId) if objectId else None,
                 "depth": depth,
                 "pierce": pierce,
             },
@@ -593,10 +595,10 @@ def scroll_into_view_if_needed(
         {
             "method": "DOM.scrollIntoViewIfNeeded",
             "params": {
-                "nodeId": nodeId,
-                "backendNodeId": backendNodeId,
-                "objectId": objectId,
-                "rect": rect,
+                "nodeId": int(nodeId) if nodeId else None,
+                "backendNodeId": int(backendNodeId) if backendNodeId else None,
+                "objectId": str(objectId) if objectId else None,
+                "rect": rect.to_json() if rect else None,
             },
         }
     )
@@ -646,9 +648,9 @@ def focus(
         {
             "method": "DOM.focus",
             "params": {
-                "nodeId": nodeId,
-                "backendNodeId": backendNodeId,
-                "objectId": objectId,
+                "nodeId": int(nodeId) if nodeId else None,
+                "backendNodeId": int(backendNodeId) if backendNodeId else None,
+                "objectId": str(objectId) if objectId else None,
             },
         }
     )
@@ -667,7 +669,7 @@ def get_attributes(nodeId: NodeId) -> Generator[dict, dict, list[str]]:
     attributes: list[str]
             An interleaved array of node attribute names and values.
     """
-    response = yield {"method": "DOM.getAttributes", "params": {"nodeId": nodeId}}
+    response = yield {"method": "DOM.getAttributes", "params": {"nodeId": int(nodeId)}}
     return response
 
 
@@ -696,9 +698,9 @@ def get_box_model(
         {
             "method": "DOM.getBoxModel",
             "params": {
-                "nodeId": nodeId,
-                "backendNodeId": backendNodeId,
-                "objectId": objectId,
+                "nodeId": int(nodeId) if nodeId else None,
+                "backendNodeId": int(backendNodeId) if backendNodeId else None,
+                "objectId": str(objectId) if objectId else None,
             },
         }
     )
@@ -733,9 +735,9 @@ def get_content_quads(
         {
             "method": "DOM.getContentQuads",
             "params": {
-                "nodeId": nodeId,
-                "backendNodeId": backendNodeId,
-                "objectId": objectId,
+                "nodeId": int(nodeId) if nodeId else None,
+                "backendNodeId": int(backendNodeId) if backendNodeId else None,
+                "objectId": str(objectId) if objectId else None,
             },
         }
     )
@@ -827,8 +829,8 @@ def get_nodes_for_subtree_by_style(
         {
             "method": "DOM.getNodesForSubtreeByStyle",
             "params": {
-                "nodeId": nodeId,
-                "computedStyles": computedStyles,
+                "nodeId": int(nodeId),
+                "computedStyles": [c.to_json() for c in computedStyles],
                 "pierce": pierce,
             },
         }
@@ -908,9 +910,9 @@ def get_outer_html(
         {
             "method": "DOM.getOuterHTML",
             "params": {
-                "nodeId": nodeId,
-                "backendNodeId": backendNodeId,
-                "objectId": objectId,
+                "nodeId": int(nodeId) if nodeId else None,
+                "backendNodeId": int(backendNodeId) if backendNodeId else None,
+                "objectId": str(objectId) if objectId else None,
             },
         }
     )
@@ -932,7 +934,10 @@ def get_relayout_boundary(nodeId: NodeId) -> Generator[dict, dict, NodeId]:
     nodeId: NodeId
             Relayout boundary node id for the given node.
     """
-    response = yield {"method": "DOM.getRelayoutBoundary", "params": {"nodeId": nodeId}}
+    response = yield {
+        "method": "DOM.getRelayoutBoundary",
+        "params": {"nodeId": int(nodeId)},
+    }
     return NodeId(response)
 
 
@@ -1012,9 +1017,11 @@ def move_to(
         {
             "method": "DOM.moveTo",
             "params": {
-                "nodeId": nodeId,
-                "targetNodeId": targetNodeId,
-                "insertBeforeNodeId": insertBeforeNodeId,
+                "nodeId": int(nodeId),
+                "targetNodeId": int(targetNodeId),
+                "insertBeforeNodeId": int(insertBeforeNodeId)
+                if insertBeforeNodeId
+                else None,
             },
         }
     )
@@ -1097,7 +1104,7 @@ def push_nodes_by_backend_ids_to_frontend(
     """
     response = yield {
         "method": "DOM.pushNodesByBackendIdsToFrontend",
-        "params": {"backendNodeIds": backendNodeIds},
+        "params": {"backendNodeIds": [int(b) for b in backendNodeIds]},
     }
     return [NodeId(n) for n in response]
 
@@ -1119,7 +1126,7 @@ def query_selector(nodeId: NodeId, selector: str) -> Generator[dict, dict, NodeI
     """
     response = yield {
         "method": "DOM.querySelector",
-        "params": {"nodeId": nodeId, "selector": selector},
+        "params": {"nodeId": int(nodeId), "selector": selector},
     }
     return NodeId(response)
 
@@ -1143,7 +1150,7 @@ def query_selector_all(
     """
     response = yield {
         "method": "DOM.querySelectorAll",
-        "params": {"nodeId": nodeId, "selector": selector},
+        "params": {"nodeId": int(nodeId), "selector": selector},
     }
     return [NodeId(n) for n in response]
 
@@ -1166,7 +1173,10 @@ def remove_attribute(nodeId: NodeId, name: str) -> dict:
     name: str
             Name of the attribute to remove.
     """
-    return {"method": "DOM.removeAttribute", "params": {"nodeId": nodeId, "name": name}}
+    return {
+        "method": "DOM.removeAttribute",
+        "params": {"nodeId": int(nodeId), "name": name},
+    }
 
 
 def remove_node(nodeId: NodeId) -> dict:
@@ -1177,7 +1187,7 @@ def remove_node(nodeId: NodeId) -> dict:
     nodeId: NodeId
             Id of the node to remove.
     """
-    return {"method": "DOM.removeNode", "params": {"nodeId": nodeId}}
+    return {"method": "DOM.removeNode", "params": {"nodeId": int(nodeId)}}
 
 
 def request_child_nodes(
@@ -1201,7 +1211,7 @@ def request_child_nodes(
     return filter_unset_parameters(
         {
             "method": "DOM.requestChildNodes",
-            "params": {"nodeId": nodeId, "depth": depth, "pierce": pierce},
+            "params": {"nodeId": int(nodeId), "depth": depth, "pierce": pierce},
         }
     )
 
@@ -1221,7 +1231,10 @@ def request_node(objectId: runtime.RemoteObjectId) -> Generator[dict, dict, Node
     nodeId: NodeId
             Node id for given object.
     """
-    response = yield {"method": "DOM.requestNode", "params": {"objectId": objectId}}
+    response = yield {
+        "method": "DOM.requestNode",
+        "params": {"objectId": str(objectId)},
+    }
     return NodeId(response)
 
 
@@ -1253,10 +1266,12 @@ def resolve_node(
         {
             "method": "DOM.resolveNode",
             "params": {
-                "nodeId": nodeId,
-                "backendNodeId": backendNodeId,
+                "nodeId": int(nodeId) if nodeId else None,
+                "backendNodeId": int(backendNodeId) if backendNodeId else None,
                 "objectGroup": objectGroup,
-                "executionContextId": executionContextId,
+                "executionContextId": int(executionContextId)
+                if executionContextId
+                else None,
             },
         }
     )
@@ -1277,7 +1292,7 @@ def set_attribute_value(nodeId: NodeId, name: str, value: str) -> dict:
     """
     return {
         "method": "DOM.setAttributeValue",
-        "params": {"nodeId": nodeId, "name": name, "value": value},
+        "params": {"nodeId": int(nodeId), "name": name, "value": value},
     }
 
 
@@ -1300,7 +1315,7 @@ def set_attributes_as_text(
     return filter_unset_parameters(
         {
             "method": "DOM.setAttributesAsText",
-            "params": {"nodeId": nodeId, "text": text, "name": name},
+            "params": {"nodeId": int(nodeId), "text": text, "name": name},
         }
     )
 
@@ -1329,9 +1344,9 @@ def set_file_input_files(
             "method": "DOM.setFileInputFiles",
             "params": {
                 "files": files,
-                "nodeId": nodeId,
-                "backendNodeId": backendNodeId,
-                "objectId": objectId,
+                "nodeId": int(nodeId) if nodeId else None,
+                "backendNodeId": int(backendNodeId) if backendNodeId else None,
+                "objectId": str(objectId) if objectId else None,
             },
         }
     )
@@ -1367,7 +1382,10 @@ def get_node_stack_traces(
     creation: Optional[runtime.StackTrace]
             Creation stack trace, if available.
     """
-    response = yield {"method": "DOM.getNodeStackTraces", "params": {"nodeId": nodeId}}
+    response = yield {
+        "method": "DOM.getNodeStackTraces",
+        "params": {"nodeId": int(nodeId)},
+    }
     return runtime.StackTrace.from_json(response) if "creation" in json else None
 
 
@@ -1386,7 +1404,10 @@ def get_file_info(objectId: runtime.RemoteObjectId) -> Generator[dict, dict, str
     -------
     path: str
     """
-    response = yield {"method": "DOM.getFileInfo", "params": {"objectId": objectId}}
+    response = yield {
+        "method": "DOM.getFileInfo",
+        "params": {"objectId": str(objectId)},
+    }
     return response
 
 
@@ -1401,7 +1422,7 @@ def set_inspected_node(nodeId: NodeId) -> dict:
     nodeId: NodeId
             DOM node id to be accessible by means of $x command line API.
     """
-    return {"method": "DOM.setInspectedNode", "params": {"nodeId": nodeId}}
+    return {"method": "DOM.setInspectedNode", "params": {"nodeId": int(nodeId)}}
 
 
 def set_node_name(nodeId: NodeId, name: str) -> Generator[dict, dict, NodeId]:
@@ -1421,7 +1442,7 @@ def set_node_name(nodeId: NodeId, name: str) -> Generator[dict, dict, NodeId]:
     """
     response = yield {
         "method": "DOM.setNodeName",
-        "params": {"nodeId": nodeId, "name": name},
+        "params": {"nodeId": int(nodeId), "name": name},
     }
     return NodeId(response)
 
@@ -1436,7 +1457,10 @@ def set_node_value(nodeId: NodeId, value: str) -> dict:
     value: str
             New node's value.
     """
-    return {"method": "DOM.setNodeValue", "params": {"nodeId": nodeId, "value": value}}
+    return {
+        "method": "DOM.setNodeValue",
+        "params": {"nodeId": int(nodeId), "value": value},
+    }
 
 
 def set_outer_html(nodeId: NodeId, outerHTML: str) -> dict:
@@ -1451,7 +1475,7 @@ def set_outer_html(nodeId: NodeId, outerHTML: str) -> dict:
     """
     return {
         "method": "DOM.setOuterHTML",
-        "params": {"nodeId": nodeId, "outerHTML": outerHTML},
+        "params": {"nodeId": int(nodeId), "outerHTML": outerHTML},
     }
 
 
@@ -1479,7 +1503,10 @@ def get_frame_owner(frameId: page.FrameId) -> Generator[dict, dict, dict]:
     nodeId: Optional[NodeId]
             Id of the node at given coordinates, only when enabled and requested document.
     """
-    response = yield {"method": "DOM.getFrameOwner", "params": {"frameId": frameId}}
+    response = yield {
+        "method": "DOM.getFrameOwner",
+        "params": {"frameId": str(frameId)},
+    }
     return {
         "backendNodeId": BackendNodeId(response["backendNodeId"]),
         "nodeId": NodeId(response["nodeId"]) if "nodeId" in response else None,

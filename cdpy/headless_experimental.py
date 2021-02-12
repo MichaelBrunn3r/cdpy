@@ -72,7 +72,7 @@ def begin_frame(
                 "frameTimeTicks": frameTimeTicks,
                 "interval": interval,
                 "noDisplayUpdates": noDisplayUpdates,
-                "screenshot": screenshot,
+                "screenshot": screenshot.to_json() if screenshot else None,
             },
         }
     )

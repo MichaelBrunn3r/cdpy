@@ -128,7 +128,7 @@ def get_application_cache_for_frame(
     """
     response = yield {
         "method": "ApplicationCache.getApplicationCacheForFrame",
-        "params": {"frameId": frameId},
+        "params": {"frameId": str(frameId)},
     }
     return ApplicationCache.from_json(response)
 
@@ -162,7 +162,7 @@ def get_manifest_for_frame(frameId: page.FrameId) -> Generator[dict, dict, str]:
     """
     response = yield {
         "method": "ApplicationCache.getManifestForFrame",
-        "params": {"frameId": frameId},
+        "params": {"frameId": str(frameId)},
     }
     return response
 

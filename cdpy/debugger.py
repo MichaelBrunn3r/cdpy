@@ -334,7 +334,10 @@ def continue_to_location(
     return filter_unset_parameters(
         {
             "method": "Debugger.continueToLocation",
-            "params": {"location": location, "targetCallFrames": targetCallFrames},
+            "params": {
+                "location": location.to_json(),
+                "targetCallFrames": targetCallFrames,
+            },
         }
     )
 
@@ -418,7 +421,7 @@ def evaluate_on_call_frame(
         {
             "method": "Debugger.evaluateOnCallFrame",
             "params": {
-                "callFrameId": callFrameId,
+                "callFrameId": str(callFrameId),
                 "expression": expression,
                 "objectGroup": objectGroup,
                 "includeCommandLineAPI": includeCommandLineAPI,
@@ -426,7 +429,7 @@ def evaluate_on_call_frame(
                 "returnByValue": returnByValue,
                 "generatePreview": generatePreview,
                 "throwOnSideEffect": throwOnSideEffect,
-                "timeout": timeout,
+                "timeout": float(timeout) if timeout else None,
             },
         }
     )
@@ -469,9 +472,9 @@ def execute_wasm_evaluator(
         {
             "method": "Debugger.executeWasmEvaluator",
             "params": {
-                "callFrameId": callFrameId,
+                "callFrameId": str(callFrameId),
                 "evaluator": evaluator,
-                "timeout": timeout,
+                "timeout": float(timeout) if timeout else None,
             },
         }
     )
@@ -512,8 +515,8 @@ def get_possible_breakpoints(
         {
             "method": "Debugger.getPossibleBreakpoints",
             "params": {
-                "start": start,
-                "end": end,
+                "start": start.to_json(),
+                "end": end.to_json() if end else None,
                 "restrictToFunction": restrictToFunction,
             },
         }
@@ -538,7 +541,7 @@ def get_script_source(scriptId: runtime.ScriptId) -> Generator[dict, dict, dict]
     """
     response = yield {
         "method": "Debugger.getScriptSource",
-        "params": {"scriptId": scriptId},
+        "params": {"scriptId": str(scriptId)},
     }
     return {
         "scriptSource": response["scriptSource"],
@@ -563,7 +566,7 @@ def get_wasm_bytecode(scriptId: runtime.ScriptId) -> Generator[dict, dict, str]:
     """
     response = yield {
         "method": "Debugger.getWasmBytecode",
-        "params": {"scriptId": scriptId},
+        "params": {"scriptId": str(scriptId)},
     }
     return response
 
@@ -585,7 +588,7 @@ def get_stack_trace(
     """
     response = yield {
         "method": "Debugger.getStackTrace",
-        "params": {"stackTraceId": stackTraceId},
+        "params": {"stackTraceId": stackTraceId.to_json()},
     }
     return runtime.StackTrace.from_json(response)
 
@@ -608,7 +611,7 @@ def pause_on_async_call(parentStackTraceId: runtime.StackTraceId) -> dict:
     """
     return {
         "method": "Debugger.pauseOnAsyncCall",
-        "params": {"parentStackTraceId": parentStackTraceId},
+        "params": {"parentStackTraceId": parentStackTraceId.to_json()},
     }
 
 
@@ -621,7 +624,7 @@ def remove_breakpoint(breakpointId: BreakpointId) -> dict:
     """
     return {
         "method": "Debugger.removeBreakpoint",
-        "params": {"breakpointId": breakpointId},
+        "params": {"breakpointId": str(breakpointId)},
     }
 
 
@@ -644,7 +647,7 @@ def restart_frame(callFrameId: CallFrameId) -> Generator[dict, dict, dict]:
     """
     response = yield {
         "method": "Debugger.restartFrame",
-        "params": {"callFrameId": callFrameId},
+        "params": {"callFrameId": str(callFrameId)},
     }
     return {
         "callFrames": [CallFrame.from_json(c) for c in response["callFrames"]],
@@ -707,7 +710,7 @@ def search_in_content(
         {
             "method": "Debugger.searchInContent",
             "params": {
-                "scriptId": scriptId,
+                "scriptId": str(scriptId),
                 "query": query,
                 "caseSensitive": caseSensitive,
                 "isRegex": isRegex,
@@ -765,7 +768,10 @@ def set_blackboxed_ranges(
     """
     return {
         "method": "Debugger.setBlackboxedRanges",
-        "params": {"scriptId": scriptId, "positions": positions},
+        "params": {
+            "scriptId": str(scriptId),
+            "positions": [p.to_json() for p in positions],
+        },
     }
 
 
@@ -792,7 +798,7 @@ def set_breakpoint(
     response = yield filter_unset_parameters(
         {
             "method": "Debugger.setBreakpoint",
-            "params": {"location": location, "condition": condition},
+            "params": {"location": location.to_json(), "condition": condition},
         }
     )
     return {
@@ -904,7 +910,7 @@ def set_breakpoint_on_function_call(
     response = yield filter_unset_parameters(
         {
             "method": "Debugger.setBreakpointOnFunctionCall",
-            "params": {"objectId": objectId, "condition": condition},
+            "params": {"objectId": str(objectId), "condition": condition},
         }
     )
     return BreakpointId(response)
@@ -943,7 +949,10 @@ def set_return_value(newValue: runtime.CallArgument) -> dict:
     newValue: runtime.CallArgument
             New return value.
     """
-    return {"method": "Debugger.setReturnValue", "params": {"newValue": newValue}}
+    return {
+        "method": "Debugger.setReturnValue",
+        "params": {"newValue": newValue.to_json()},
+    }
 
 
 def set_script_source(
@@ -978,7 +987,7 @@ def set_script_source(
         {
             "method": "Debugger.setScriptSource",
             "params": {
-                "scriptId": scriptId,
+                "scriptId": str(scriptId),
                 "scriptSource": scriptSource,
                 "dryRun": dryRun,
             },
@@ -1042,8 +1051,8 @@ def set_variable_value(
         "params": {
             "scopeNumber": scopeNumber,
             "variableName": variableName,
-            "newValue": newValue,
-            "callFrameId": callFrameId,
+            "newValue": newValue.to_json(),
+            "callFrameId": str(callFrameId),
         },
     }
 
@@ -1065,7 +1074,10 @@ def step_into(
     return filter_unset_parameters(
         {
             "method": "Debugger.stepInto",
-            "params": {"breakOnAsyncCall": breakOnAsyncCall, "skipList": skipList},
+            "params": {
+                "breakOnAsyncCall": breakOnAsyncCall,
+                "skipList": [s.to_json() for s in skipList] if skipList else None,
+            },
         }
     )
 
@@ -1084,7 +1096,12 @@ def step_over(skipList: Optional[list[LocationRange]] = None) -> dict:
             The skipList specifies location ranges that should be skipped on step over.
     """
     return filter_unset_parameters(
-        {"method": "Debugger.stepOver", "params": {"skipList": skipList}}
+        {
+            "method": "Debugger.stepOver",
+            "params": {
+                "skipList": [s.to_json() for s in skipList] if skipList else None
+            },
+        }
     )
 
 

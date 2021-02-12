@@ -103,7 +103,7 @@ def start_observing(service: ServiceName) -> dict:
     """
     return {
         "method": "BackgroundService.startObserving",
-        "params": {"service": service},
+        "params": {"service": service.value},
     }
 
 
@@ -114,7 +114,10 @@ def stop_observing(service: ServiceName) -> dict:
     ----------
     service: ServiceName
     """
-    return {"method": "BackgroundService.stopObserving", "params": {"service": service}}
+    return {
+        "method": "BackgroundService.stopObserving",
+        "params": {"service": service.value},
+    }
 
 
 def set_recording(shouldRecord: bool, service: ServiceName) -> dict:
@@ -127,7 +130,7 @@ def set_recording(shouldRecord: bool, service: ServiceName) -> dict:
     """
     return {
         "method": "BackgroundService.setRecording",
-        "params": {"shouldRecord": shouldRecord, "service": service},
+        "params": {"shouldRecord": shouldRecord, "service": service.value},
     }
 
 
@@ -138,7 +141,10 @@ def clear_events(service: ServiceName) -> dict:
     ----------
     service: ServiceName
     """
-    return {"method": "BackgroundService.clearEvents", "params": {"service": service}}
+    return {
+        "method": "BackgroundService.clearEvents",
+        "params": {"service": service.value},
+    }
 
 
 @dataclasses.dataclass

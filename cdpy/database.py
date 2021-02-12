@@ -95,7 +95,7 @@ def execute_sql(databaseId: DatabaseId, query: str) -> Generator[dict, dict, dic
     """
     response = yield {
         "method": "Database.executeSQL",
-        "params": {"databaseId": databaseId, "query": query},
+        "params": {"databaseId": str(databaseId), "query": query},
     }
     return {
         "columnNames": response.get("columnNames"),
@@ -120,7 +120,7 @@ def get_database_table_names(
     """
     response = yield {
         "method": "Database.getDatabaseTableNames",
-        "params": {"databaseId": databaseId},
+        "params": {"databaseId": str(databaseId)},
     }
     return response
 

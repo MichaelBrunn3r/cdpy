@@ -788,7 +788,7 @@ def get_encoded_response(
         {
             "method": "Audits.getEncodedResponse",
             "params": {
-                "requestId": requestId,
+                "requestId": str(requestId),
                 "encoding": encoding,
                 "quality": quality,
                 "sizeOnly": sizeOnly,

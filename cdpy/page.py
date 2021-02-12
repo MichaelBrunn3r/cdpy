@@ -854,7 +854,7 @@ def capture_screenshot(
             "params": {
                 "format": format,
                 "quality": quality,
-                "clip": clip,
+                "clip": clip.to_json() if clip else None,
                 "fromSurface": fromSurface,
                 "captureBeyondViewport": captureBeyondViewport,
             },
@@ -939,7 +939,7 @@ def create_isolated_world(
         {
             "method": "Page.createIsolatedWorld",
             "params": {
-                "frameId": frameId,
+                "frameId": str(frameId),
                 "worldName": worldName,
                 "grantUniveralAccess": grantUniveralAccess,
             },
@@ -1117,7 +1117,7 @@ def get_resource_content(frameId: FrameId, url: str) -> Generator[dict, dict, di
     """
     response = yield {
         "method": "Page.getResourceContent",
-        "params": {"frameId": frameId, "url": url},
+        "params": {"frameId": str(frameId), "url": url},
     }
     return {"content": response["content"], "base64Encoded": response["base64Encoded"]}
 
@@ -1192,9 +1192,9 @@ def navigate(
             "params": {
                 "url": url,
                 "referrer": referrer,
-                "transitionType": transitionType,
-                "frameId": frameId,
-                "referrerPolicy": referrerPolicy,
+                "transitionType": transitionType.value if transitionType else None,
+                "frameId": str(frameId) if frameId else None,
+                "referrerPolicy": referrerPolicy.value if referrerPolicy else None,
             },
         }
     )
@@ -1357,7 +1357,7 @@ def remove_script_to_evaluate_on_load(identifier: ScriptIdentifier) -> dict:
     """
     return {
         "method": "Page.removeScriptToEvaluateOnLoad",
-        "params": {"identifier": identifier},
+        "params": {"identifier": str(identifier)},
     }
 
 
@@ -1370,7 +1370,7 @@ def remove_script_to_evaluate_on_new_document(identifier: ScriptIdentifier) -> d
     """
     return {
         "method": "Page.removeScriptToEvaluateOnNewDocument",
-        "params": {"identifier": identifier},
+        "params": {"identifier": str(identifier)},
     }
 
 
@@ -1420,7 +1420,7 @@ def search_in_resource(
         {
             "method": "Page.searchInResource",
             "params": {
-                "frameId": frameId,
+                "frameId": str(frameId),
                 "url": url,
                 "query": query,
                 "caseSensitive": caseSensitive,
@@ -1521,8 +1521,10 @@ def set_device_metrics_override(
                 "positionX": positionX,
                 "positionY": positionY,
                 "dontSetVisibleSize": dontSetVisibleSize,
-                "screenOrientation": screenOrientation,
-                "viewport": viewport,
+                "screenOrientation": screenOrientation.to_json()
+                if screenOrientation
+                else None,
+                "viewport": viewport.to_json() if viewport else None,
             },
         }
     )
@@ -1560,7 +1562,10 @@ def set_font_families(fontFamilies: FontFamilies) -> dict:
     fontFamilies: FontFamilies
             Specifies font families to set. If a font family is not specified, it won't be changed.
     """
-    return {"method": "Page.setFontFamilies", "params": {"fontFamilies": fontFamilies}}
+    return {
+        "method": "Page.setFontFamilies",
+        "params": {"fontFamilies": fontFamilies.to_json()},
+    }
 
 
 def set_font_sizes(fontSizes: FontSizes) -> dict:
@@ -1573,7 +1578,7 @@ def set_font_sizes(fontSizes: FontSizes) -> dict:
     fontSizes: FontSizes
             Specifies font sizes to set. If a font size is not specified, it won't be changed.
     """
-    return {"method": "Page.setFontSizes", "params": {"fontSizes": fontSizes}}
+    return {"method": "Page.setFontSizes", "params": {"fontSizes": fontSizes.to_json()}}
 
 
 def set_document_content(frameId: FrameId, html: str) -> dict:
@@ -1588,7 +1593,7 @@ def set_document_content(frameId: FrameId, html: str) -> dict:
     """
     return {
         "method": "Page.setDocumentContent",
-        "params": {"frameId": frameId, "html": html},
+        "params": {"frameId": str(frameId), "html": html},
     }
 
 

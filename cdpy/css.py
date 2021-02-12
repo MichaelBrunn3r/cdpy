@@ -962,9 +962,9 @@ def add_rule(
     response = yield {
         "method": "CSS.addRule",
         "params": {
-            "styleSheetId": styleSheetId,
+            "styleSheetId": str(styleSheetId),
             "ruleText": ruleText,
-            "location": location,
+            "location": location.to_json(),
         },
     }
     return CSSRule.from_json(response)
@@ -984,7 +984,7 @@ def collect_class_names(styleSheetId: StyleSheetId) -> Generator[dict, dict, lis
     """
     response = yield {
         "method": "CSS.collectClassNames",
-        "params": {"styleSheetId": styleSheetId},
+        "params": {"styleSheetId": str(styleSheetId)},
     }
     return response
 
@@ -1002,7 +1002,10 @@ def create_style_sheet(frameId: page.FrameId) -> Generator[dict, dict, StyleShee
     styleSheetId: StyleSheetId
             Identifier of the created "via-inspector" stylesheet.
     """
-    response = yield {"method": "CSS.createStyleSheet", "params": {"frameId": frameId}}
+    response = yield {
+        "method": "CSS.createStyleSheet",
+        "params": {"frameId": str(frameId)},
+    }
     return StyleSheetId(response)
 
 
@@ -1031,7 +1034,7 @@ def force_pseudo_state(nodeId: dom.NodeId, forcedPseudoClasses: list[str]) -> di
     """
     return {
         "method": "CSS.forcePseudoState",
-        "params": {"nodeId": nodeId, "forcedPseudoClasses": forcedPseudoClasses},
+        "params": {"nodeId": int(nodeId), "forcedPseudoClasses": forcedPseudoClasses},
     }
 
 
@@ -1056,7 +1059,10 @@ def get_background_colors(nodeId: dom.NodeId) -> Generator[dict, dict, dict]:
             The computed font weight for this node, as a CSS computed value string (e.g. 'normal' or
             '100').
     """
-    response = yield {"method": "CSS.getBackgroundColors", "params": {"nodeId": nodeId}}
+    response = yield {
+        "method": "CSS.getBackgroundColors",
+        "params": {"nodeId": int(nodeId)},
+    }
     return {
         "backgroundColors": response.get("backgroundColors"),
         "computedFontSize": response.get("computedFontSize"),
@@ -1080,7 +1086,7 @@ def get_computed_style_for_node(
     """
     response = yield {
         "method": "CSS.getComputedStyleForNode",
-        "params": {"nodeId": nodeId},
+        "params": {"nodeId": int(nodeId)},
     }
     return [CSSComputedStyleProperty.from_json(c) for c in response]
 
@@ -1102,7 +1108,7 @@ def get_inline_styles_for_node(nodeId: dom.NodeId) -> Generator[dict, dict, dict
     """
     response = yield {
         "method": "CSS.getInlineStylesForNode",
-        "params": {"nodeId": nodeId},
+        "params": {"nodeId": int(nodeId)},
     }
     return {
         "inlineStyle": CSSStyle.from_json(response["inlineStyle"])
@@ -1138,7 +1144,7 @@ def get_matched_styles_for_node(nodeId: dom.NodeId) -> Generator[dict, dict, dic
     """
     response = yield {
         "method": "CSS.getMatchedStylesForNode",
-        "params": {"nodeId": nodeId},
+        "params": {"nodeId": int(nodeId)},
     }
     return {
         "inlineStyle": CSSStyle.from_json(response["inlineStyle"])
@@ -1194,7 +1200,7 @@ def get_platform_fonts_for_node(
     """
     response = yield {
         "method": "CSS.getPlatformFontsForNode",
-        "params": {"nodeId": nodeId},
+        "params": {"nodeId": int(nodeId)},
     }
     return [PlatformFontUsage.from_json(f) for f in response]
 
@@ -1213,7 +1219,7 @@ def get_style_sheet_text(styleSheetId: StyleSheetId) -> Generator[dict, dict, st
     """
     response = yield {
         "method": "CSS.getStyleSheetText",
-        "params": {"styleSheetId": styleSheetId},
+        "params": {"styleSheetId": str(styleSheetId)},
     }
     return response
 
@@ -1236,7 +1242,7 @@ def track_computed_style_updates(
     """
     return {
         "method": "CSS.trackComputedStyleUpdates",
-        "params": {"propertiesToTrack": propertiesToTrack},
+        "params": {"propertiesToTrack": [p.to_json() for p in propertiesToTrack]},
     }
 
 
@@ -1269,7 +1275,7 @@ def set_effective_property_value_for_node(
     """
     return {
         "method": "CSS.setEffectivePropertyValueForNode",
-        "params": {"nodeId": nodeId, "propertyName": propertyName, "value": value},
+        "params": {"nodeId": int(nodeId), "propertyName": propertyName, "value": value},
     }
 
 
@@ -1291,7 +1297,11 @@ def set_keyframe_key(
     """
     response = yield {
         "method": "CSS.setKeyframeKey",
-        "params": {"styleSheetId": styleSheetId, "range": range, "keyText": keyText},
+        "params": {
+            "styleSheetId": str(styleSheetId),
+            "range": range.to_json(),
+            "keyText": keyText,
+        },
     }
     return Value.from_json(response)
 
@@ -1314,7 +1324,11 @@ def set_media_text(
     """
     response = yield {
         "method": "CSS.setMediaText",
-        "params": {"styleSheetId": styleSheetId, "range": range, "text": text},
+        "params": {
+            "styleSheetId": str(styleSheetId),
+            "range": range.to_json(),
+            "text": text,
+        },
     }
     return CSSMedia.from_json(response)
 
@@ -1337,7 +1351,11 @@ def set_rule_selector(
     """
     response = yield {
         "method": "CSS.setRuleSelector",
-        "params": {"styleSheetId": styleSheetId, "range": range, "selector": selector},
+        "params": {
+            "styleSheetId": str(styleSheetId),
+            "range": range.to_json(),
+            "selector": selector,
+        },
     }
     return SelectorList.from_json(response)
 
@@ -1359,7 +1377,7 @@ def set_style_sheet_text(
     """
     response = yield {
         "method": "CSS.setStyleSheetText",
-        "params": {"styleSheetId": styleSheetId, "text": text},
+        "params": {"styleSheetId": str(styleSheetId), "text": text},
     }
     return json.get("sourceMapURL")
 
@@ -1378,7 +1396,10 @@ def set_style_texts(
     styles: list[CSSStyle]
             The resulting styles after modification.
     """
-    response = yield {"method": "CSS.setStyleTexts", "params": {"edits": edits}}
+    response = yield {
+        "method": "CSS.setStyleTexts",
+        "params": {"edits": [e.to_json() for e in edits]},
+    }
     return [CSSStyle.from_json(s) for s in response]
 
 

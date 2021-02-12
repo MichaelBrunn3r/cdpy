@@ -420,9 +420,9 @@ def get_partial_ax_tree(
         {
             "method": "Accessibility.getPartialAXTree",
             "params": {
-                "nodeId": nodeId,
-                "backendNodeId": backendNodeId,
-                "objectId": objectId,
+                "nodeId": int(nodeId) if nodeId else None,
+                "backendNodeId": int(backendNodeId) if backendNodeId else None,
+                "objectId": str(objectId) if objectId else None,
                 "fetchRelatives": fetchRelatives,
             },
         }
@@ -467,7 +467,10 @@ def get_child_ax_nodes(id: AXNodeId) -> Generator[dict, dict, list[AXNode]]:
     -------
     nodes: list[AXNode]
     """
-    response = yield {"method": "Accessibility.getChildAXNodes", "params": {"id": id}}
+    response = yield {
+        "method": "Accessibility.getChildAXNodes",
+        "params": {"id": str(id)},
+    }
     return [AXNode.from_json(n) for n in response]
 
 
@@ -509,9 +512,9 @@ def query_ax_tree(
         {
             "method": "Accessibility.queryAXTree",
             "params": {
-                "nodeId": nodeId,
-                "backendNodeId": backendNodeId,
-                "objectId": objectId,
+                "nodeId": int(nodeId) if nodeId else None,
+                "backendNodeId": int(backendNodeId) if backendNodeId else None,
+                "objectId": str(objectId) if objectId else None,
                 "accessibleName": accessibleName,
                 "role": role,
             },

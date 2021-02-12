@@ -328,7 +328,7 @@ def delete_object_store_entries(
             "securityOrigin": securityOrigin,
             "databaseName": databaseName,
             "objectStoreName": objectStoreName,
-            "keyRange": keyRange,
+            "keyRange": keyRange.to_json(),
         },
     }
 
@@ -388,7 +388,7 @@ def request_data(
                 "indexName": indexName,
                 "skipCount": skipCount,
                 "pageSize": pageSize,
-                "keyRange": keyRange,
+                "keyRange": keyRange.to_json() if keyRange else None,
             },
         }
     )

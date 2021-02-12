@@ -24,7 +24,7 @@ def close(handle: StreamHandle) -> dict:
     handle: StreamHandle
             Handle of the stream to close.
     """
-    return {"method": "IO.close", "params": {"handle": handle}}
+    return {"method": "IO.close", "params": {"handle": str(handle)}}
 
 
 def read(
@@ -54,7 +54,7 @@ def read(
     response = yield filter_unset_parameters(
         {
             "method": "IO.read",
-            "params": {"handle": handle, "offset": offset, "size": size},
+            "params": {"handle": str(handle), "offset": offset, "size": size},
         }
     )
     return {
@@ -77,5 +77,5 @@ def resolve_blob(objectId: runtime.RemoteObjectId) -> Generator[dict, dict, str]
     uuid: str
             UUID of the specified Blob.
     """
-    response = yield {"method": "IO.resolveBlob", "params": {"objectId": objectId}}
+    response = yield {"method": "IO.resolveBlob", "params": {"objectId": str(objectId)}}
     return response

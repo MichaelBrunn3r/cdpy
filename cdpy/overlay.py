@@ -706,10 +706,10 @@ def get_highlight_object_for_test(
         {
             "method": "Overlay.getHighlightObjectForTest",
             "params": {
-                "nodeId": nodeId,
+                "nodeId": int(nodeId),
                 "includeDistance": includeDistance,
                 "includeStyle": includeStyle,
-                "colorFormat": colorFormat,
+                "colorFormat": colorFormat.value if colorFormat else None,
                 "showAccessibilityInfo": showAccessibilityInfo,
             },
         }
@@ -734,7 +734,7 @@ def get_grid_highlight_objects_for_test(
     """
     response = yield {
         "method": "Overlay.getGridHighlightObjectsForTest",
-        "params": {"nodeIds": nodeIds},
+        "params": {"nodeIds": [int(n) for n in nodeIds]},
     }
     return response
 
@@ -756,7 +756,7 @@ def get_source_order_highlight_object_for_test(
     """
     response = yield {
         "method": "Overlay.getSourceOrderHighlightObjectForTest",
-        "params": {"nodeId": nodeId},
+        "params": {"nodeId": int(nodeId)},
     }
     return response
 
@@ -786,9 +786,11 @@ def highlight_frame(
         {
             "method": "Overlay.highlightFrame",
             "params": {
-                "frameId": frameId,
-                "contentColor": contentColor,
-                "contentOutlineColor": contentOutlineColor,
+                "frameId": str(frameId),
+                "contentColor": contentColor.to_json() if contentColor else None,
+                "contentOutlineColor": contentOutlineColor.to_json()
+                if contentOutlineColor
+                else None,
             },
         }
     )
@@ -821,10 +823,10 @@ def highlight_node(
         {
             "method": "Overlay.highlightNode",
             "params": {
-                "highlightConfig": highlightConfig,
-                "nodeId": nodeId,
-                "backendNodeId": backendNodeId,
-                "objectId": objectId,
+                "highlightConfig": highlightConfig.to_json(),
+                "nodeId": int(nodeId) if nodeId else None,
+                "backendNodeId": int(backendNodeId) if backendNodeId else None,
+                "objectId": str(objectId) if objectId else None,
                 "selector": selector,
             },
         }
@@ -850,7 +852,11 @@ def highlight_quad(
     return filter_unset_parameters(
         {
             "method": "Overlay.highlightQuad",
-            "params": {"quad": quad, "color": color, "outlineColor": outlineColor},
+            "params": {
+                "quad": list(quad),
+                "color": color.to_json() if color else None,
+                "outlineColor": outlineColor.to_json() if outlineColor else None,
+            },
         }
     )
 
@@ -888,8 +894,8 @@ def highlight_rect(
                 "y": y,
                 "width": width,
                 "height": height,
-                "color": color,
-                "outlineColor": outlineColor,
+                "color": color.to_json() if color else None,
+                "outlineColor": outlineColor.to_json() if outlineColor else None,
             },
         }
     )
@@ -919,10 +925,10 @@ def highlight_source_order(
         {
             "method": "Overlay.highlightSourceOrder",
             "params": {
-                "sourceOrderConfig": sourceOrderConfig,
-                "nodeId": nodeId,
-                "backendNodeId": backendNodeId,
-                "objectId": objectId,
+                "sourceOrderConfig": sourceOrderConfig.to_json(),
+                "nodeId": int(nodeId) if nodeId else None,
+                "backendNodeId": int(backendNodeId) if backendNodeId else None,
+                "objectId": str(objectId) if objectId else None,
             },
         }
     )
@@ -945,7 +951,12 @@ def set_inspect_mode(
     return filter_unset_parameters(
         {
             "method": "Overlay.setInspectMode",
-            "params": {"mode": mode, "highlightConfig": highlightConfig},
+            "params": {
+                "mode": mode.value,
+                "highlightConfig": highlightConfig.to_json()
+                if highlightConfig
+                else None,
+            },
         }
     )
 
@@ -1007,7 +1018,9 @@ def set_show_grid_overlays(
     """
     return {
         "method": "Overlay.setShowGridOverlays",
-        "params": {"gridNodeHighlightConfigs": gridNodeHighlightConfigs},
+        "params": {
+            "gridNodeHighlightConfigs": [g.to_json() for g in gridNodeHighlightConfigs]
+        },
     }
 
 
@@ -1022,7 +1035,9 @@ def set_show_flex_overlays(
     """
     return {
         "method": "Overlay.setShowFlexOverlays",
-        "params": {"flexNodeHighlightConfigs": flexNodeHighlightConfigs},
+        "params": {
+            "flexNodeHighlightConfigs": [f.to_json() for f in flexNodeHighlightConfigs]
+        },
     }
 
 
@@ -1100,7 +1115,10 @@ def set_show_hinge(hingeConfig: Optional[HingeConfig] = None) -> dict:
             hinge data, null means hideHinge
     """
     return filter_unset_parameters(
-        {"method": "Overlay.setShowHinge", "params": {"hingeConfig": hingeConfig}}
+        {
+            "method": "Overlay.setShowHinge",
+            "params": {"hingeConfig": hingeConfig.to_json() if hingeConfig else None},
+        }
     )
 
 

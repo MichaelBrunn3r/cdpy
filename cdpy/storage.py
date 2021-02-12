@@ -103,7 +103,9 @@ def get_cookies(
     response = yield filter_unset_parameters(
         {
             "method": "Storage.getCookies",
-            "params": {"browserContextId": browserContextId},
+            "params": {
+                "browserContextId": str(browserContextId) if browserContextId else None
+            },
         }
     )
     return [network.Cookie.from_json(c) for c in response]
@@ -125,7 +127,10 @@ def set_cookies(
     return filter_unset_parameters(
         {
             "method": "Storage.setCookies",
-            "params": {"cookies": cookies, "browserContextId": browserContextId},
+            "params": {
+                "cookies": [c.to_json() for c in cookies],
+                "browserContextId": str(browserContextId) if browserContextId else None,
+            },
         }
     )
 
@@ -141,7 +146,9 @@ def clear_cookies(browserContextId: Optional[browser.BrowserContextID] = None) -
     return filter_unset_parameters(
         {
             "method": "Storage.clearCookies",
-            "params": {"browserContextId": browserContextId},
+            "params": {
+                "browserContextId": str(browserContextId) if browserContextId else None
+            },
         }
     )
 

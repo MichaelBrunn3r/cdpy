@@ -185,7 +185,7 @@ def add_virtual_authenticator(
     """
     response = yield {
         "method": "WebAuthn.addVirtualAuthenticator",
-        "params": {"options": options},
+        "params": {"options": options.to_json()},
     }
     return AuthenticatorId(response)
 
@@ -199,7 +199,7 @@ def remove_virtual_authenticator(authenticatorId: AuthenticatorId) -> dict:
     """
     return {
         "method": "WebAuthn.removeVirtualAuthenticator",
-        "params": {"authenticatorId": authenticatorId},
+        "params": {"authenticatorId": str(authenticatorId)},
     }
 
 
@@ -213,7 +213,10 @@ def add_credential(authenticatorId: AuthenticatorId, credential: Credential) -> 
     """
     return {
         "method": "WebAuthn.addCredential",
-        "params": {"authenticatorId": authenticatorId, "credential": credential},
+        "params": {
+            "authenticatorId": str(authenticatorId),
+            "credential": credential.to_json(),
+        },
     }
 
 
@@ -234,7 +237,10 @@ def get_credential(
     """
     response = yield {
         "method": "WebAuthn.getCredential",
-        "params": {"authenticatorId": authenticatorId, "credentialId": credentialId},
+        "params": {
+            "authenticatorId": str(authenticatorId),
+            "credentialId": credentialId,
+        },
     }
     return Credential.from_json(response)
 
@@ -254,7 +260,7 @@ def get_credentials(
     """
     response = yield {
         "method": "WebAuthn.getCredentials",
-        "params": {"authenticatorId": authenticatorId},
+        "params": {"authenticatorId": str(authenticatorId)},
     }
     return [Credential.from_json(c) for c in response]
 
@@ -269,7 +275,10 @@ def remove_credential(authenticatorId: AuthenticatorId, credentialId: str) -> di
     """
     return {
         "method": "WebAuthn.removeCredential",
-        "params": {"authenticatorId": authenticatorId, "credentialId": credentialId},
+        "params": {
+            "authenticatorId": str(authenticatorId),
+            "credentialId": credentialId,
+        },
     }
 
 
@@ -282,7 +291,7 @@ def clear_credentials(authenticatorId: AuthenticatorId) -> dict:
     """
     return {
         "method": "WebAuthn.clearCredentials",
-        "params": {"authenticatorId": authenticatorId},
+        "params": {"authenticatorId": str(authenticatorId)},
     }
 
 
@@ -298,7 +307,7 @@ def set_user_verified(authenticatorId: AuthenticatorId, isUserVerified: bool) ->
     return {
         "method": "WebAuthn.setUserVerified",
         "params": {
-            "authenticatorId": authenticatorId,
+            "authenticatorId": str(authenticatorId),
             "isUserVerified": isUserVerified,
         },
     }
@@ -317,5 +326,5 @@ def set_automatic_presence_simulation(
     """
     return {
         "method": "WebAuthn.setAutomaticPresenceSimulation",
-        "params": {"authenticatorId": authenticatorId, "enabled": enabled},
+        "params": {"authenticatorId": str(authenticatorId), "enabled": enabled},
     }

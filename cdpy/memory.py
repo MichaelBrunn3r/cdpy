@@ -150,7 +150,10 @@ def simulate_pressure_notification(level: PressureLevel) -> dict:
     level: PressureLevel
             Memory pressure level of the notification.
     """
-    return {"method": "Memory.simulatePressureNotification", "params": {"level": level}}
+    return {
+        "method": "Memory.simulatePressureNotification",
+        "params": {"level": level.value},
+    }
 
 
 def start_sampling(

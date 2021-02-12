@@ -1930,14 +1930,16 @@ def continue_intercepted_request(
         {
             "method": "Network.continueInterceptedRequest",
             "params": {
-                "interceptionId": interceptionId,
-                "errorReason": errorReason,
+                "interceptionId": str(interceptionId),
+                "errorReason": errorReason.value if errorReason else None,
                 "rawResponse": rawResponse,
                 "url": url,
                 "method": method,
                 "postData": postData,
-                "headers": headers,
-                "authChallengeResponse": authChallengeResponse,
+                "headers": dict(headers) if headers else None,
+                "authChallengeResponse": authChallengeResponse.to_json()
+                if authChallengeResponse
+                else None,
             },
         }
     )
@@ -2006,7 +2008,7 @@ def emulate_network_conditions(
                 "latency": latency,
                 "downloadThroughput": downloadThroughput,
                 "uploadThroughput": uploadThroughput,
-                "connectionType": connectionType,
+                "connectionType": connectionType.value if connectionType else None,
             },
         }
     )
@@ -2112,7 +2114,7 @@ def get_response_body(requestId: RequestId) -> Generator[dict, dict, dict]:
     """
     response = yield {
         "method": "Network.getResponseBody",
-        "params": {"requestId": requestId},
+        "params": {"requestId": str(requestId)},
     }
     return {"body": response["body"], "base64Encoded": response["base64Encoded"]}
 
@@ -2132,7 +2134,7 @@ def get_request_post_data(requestId: RequestId) -> Generator[dict, dict, str]:
     """
     response = yield {
         "method": "Network.getRequestPostData",
-        "params": {"requestId": requestId},
+        "params": {"requestId": str(requestId)},
     }
     return response
 
@@ -2158,7 +2160,7 @@ def get_response_body_for_interception(
     """
     response = yield {
         "method": "Network.getResponseBodyForInterception",
-        "params": {"interceptionId": interceptionId},
+        "params": {"interceptionId": str(interceptionId)},
     }
     return {"body": response["body"], "base64Encoded": response["base64Encoded"]}
 
@@ -2183,7 +2185,7 @@ def take_response_body_for_interception_as_stream(
     """
     response = yield {
         "method": "Network.takeResponseBodyForInterceptionAsStream",
-        "params": {"interceptionId": interceptionId},
+        "params": {"interceptionId": str(interceptionId)},
     }
     return io.StreamHandle(response)
 
@@ -2200,7 +2202,7 @@ def replay_xhr(requestId: RequestId) -> dict:
     requestId: RequestId
             Identifier of XHR to replay.
     """
-    return {"method": "Network.replayXHR", "params": {"requestId": requestId}}
+    return {"method": "Network.replayXHR", "params": {"requestId": str(requestId)}}
 
 
 def search_in_response_body(
@@ -2233,7 +2235,7 @@ def search_in_response_body(
         {
             "method": "Network.searchInResponseBody",
             "params": {
-                "requestId": requestId,
+                "requestId": str(requestId),
                 "query": query,
                 "caseSensitive": caseSensitive,
                 "isRegex": isRegex,
@@ -2337,9 +2339,9 @@ def set_cookie(
                 "path": path,
                 "secure": secure,
                 "httpOnly": httpOnly,
-                "sameSite": sameSite,
-                "expires": expires,
-                "priority": priority,
+                "sameSite": sameSite.value if sameSite else None,
+                "expires": float(expires) if expires else None,
+                "priority": priority.value if priority else None,
             },
         }
     )
@@ -2354,7 +2356,10 @@ def set_cookies(cookies: list[CookieParam]) -> dict:
     cookies: list[CookieParam]
             Cookies to be set.
     """
-    return {"method": "Network.setCookies", "params": {"cookies": cookies}}
+    return {
+        "method": "Network.setCookies",
+        "params": {"cookies": [c.to_json() for c in cookies]},
+    }
 
 
 def set_data_size_limits_for_test(maxTotalSize: int, maxResourceSize: int) -> dict:
@@ -2383,7 +2388,10 @@ def set_extra_http_headers(headers: Headers) -> dict:
     headers: Headers
             Map with extra HTTP headers.
     """
-    return {"method": "Network.setExtraHTTPHeaders", "params": {"headers": headers}}
+    return {
+        "method": "Network.setExtraHTTPHeaders",
+        "params": {"headers": dict(headers)},
+    }
 
 
 def set_attach_debug_stack(enabled: bool) -> dict:
@@ -2415,7 +2423,7 @@ def set_request_interception(patterns: list[RequestPattern]) -> dict:
     """
     return {
         "method": "Network.setRequestInterception",
-        "params": {"patterns": patterns},
+        "params": {"patterns": [p.to_json() for p in patterns]},
     }
 
 
@@ -2445,7 +2453,9 @@ def set_user_agent_override(
                 "userAgent": userAgent,
                 "acceptLanguage": acceptLanguage,
                 "platform": platform,
-                "userAgentMetadata": userAgentMetadata,
+                "userAgentMetadata": userAgentMetadata.to_json()
+                if userAgentMetadata
+                else None,
             },
         }
     )
@@ -2468,7 +2478,10 @@ def get_security_isolation_status(
     status: SecurityIsolationStatus
     """
     response = yield filter_unset_parameters(
-        {"method": "Network.getSecurityIsolationStatus", "params": {"frameId": frameId}}
+        {
+            "method": "Network.getSecurityIsolationStatus",
+            "params": {"frameId": str(frameId) if frameId else None},
+        }
     )
     return SecurityIsolationStatus.from_json(response)
 
@@ -2495,7 +2508,7 @@ def load_network_resource(
     """
     response = yield {
         "method": "Network.loadNetworkResource",
-        "params": {"frameId": frameId, "url": url, "options": options},
+        "params": {"frameId": str(frameId), "url": url, "options": options.to_json()},
     }
     return LoadNetworkResourcePageResult.from_json(response)
 

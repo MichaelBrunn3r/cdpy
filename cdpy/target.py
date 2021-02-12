@@ -114,7 +114,7 @@ def activate_target(targetId: TargetID) -> dict:
     ----------
     targetId: TargetID
     """
-    return {"method": "Target.activateTarget", "params": {"targetId": targetId}}
+    return {"method": "Target.activateTarget", "params": {"targetId": str(targetId)}}
 
 
 def attach_to_target(
@@ -138,7 +138,7 @@ def attach_to_target(
     response = yield filter_unset_parameters(
         {
             "method": "Target.attachToTarget",
-            "params": {"targetId": targetId, "flatten": flatten},
+            "params": {"targetId": str(targetId), "flatten": flatten},
         }
     )
     return SessionID(response)
@@ -170,7 +170,10 @@ def close_target(targetId: TargetID) -> Generator[dict, dict, bool]:
     success: bool
             Always set to true. If an error occurs, the response indicates protocol error.
     """
-    response = yield {"method": "Target.closeTarget", "params": {"targetId": targetId}}
+    response = yield {
+        "method": "Target.closeTarget",
+        "params": {"targetId": str(targetId)},
+    }
     return response
 
 
@@ -197,7 +200,7 @@ def expose_dev_tools_protocol(
     return filter_unset_parameters(
         {
             "method": "Target.exposeDevToolsProtocol",
-            "params": {"targetId": targetId, "bindingName": bindingName},
+            "params": {"targetId": str(targetId), "bindingName": bindingName},
         }
     )
 
@@ -295,7 +298,7 @@ def create_target(
                 "url": url,
                 "width": width,
                 "height": height,
-                "browserContextId": browserContextId,
+                "browserContextId": str(browserContextId) if browserContextId else None,
                 "enableBeginFrameControl": enableBeginFrameControl,
                 "newWindow": newWindow,
                 "background": background,
@@ -320,7 +323,10 @@ def detach_from_target(
     return filter_unset_parameters(
         {
             "method": "Target.detachFromTarget",
-            "params": {"sessionId": sessionId, "targetId": targetId},
+            "params": {
+                "sessionId": str(sessionId) if sessionId else None,
+                "targetId": str(targetId) if targetId else None,
+            },
         }
     )
 
@@ -337,7 +343,7 @@ def dispose_browser_context(browserContextId: browser.BrowserContextID) -> dict:
     """
     return {
         "method": "Target.disposeBrowserContext",
-        "params": {"browserContextId": browserContextId},
+        "params": {"browserContextId": str(browserContextId)},
     }
 
 
@@ -357,7 +363,10 @@ def get_target_info(
     targetInfo: TargetInfo
     """
     response = yield filter_unset_parameters(
-        {"method": "Target.getTargetInfo", "params": {"targetId": targetId}}
+        {
+            "method": "Target.getTargetInfo",
+            "params": {"targetId": str(targetId) if targetId else None},
+        }
     )
     return TargetInfo.from_json(response)
 
@@ -398,8 +407,8 @@ def send_message_to_target(
             "method": "Target.sendMessageToTarget",
             "params": {
                 "message": message,
-                "sessionId": sessionId,
-                "targetId": targetId,
+                "sessionId": str(sessionId) if sessionId else None,
+                "targetId": str(targetId) if targetId else None,
             },
         }
     )
@@ -461,7 +470,10 @@ def set_remote_locations(locations: list[RemoteLocation]) -> dict:
     locations: list[RemoteLocation]
             List of remote locations.
     """
-    return {"method": "Target.setRemoteLocations", "params": {"locations": locations}}
+    return {
+        "method": "Target.setRemoteLocations",
+        "params": {"locations": [l.to_json() for l in locations]},
+    }
 
 
 @dataclasses.dataclass

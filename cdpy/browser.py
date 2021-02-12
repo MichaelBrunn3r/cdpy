@@ -259,10 +259,10 @@ def set_permission(
         {
             "method": "Browser.setPermission",
             "params": {
-                "permission": permission,
-                "setting": setting,
+                "permission": permission.to_json(),
+                "setting": setting.value,
                 "origin": origin,
-                "browserContextId": browserContextId,
+                "browserContextId": str(browserContextId) if browserContextId else None,
             },
         }
     )
@@ -289,9 +289,9 @@ def grant_permissions(
         {
             "method": "Browser.grantPermissions",
             "params": {
-                "permissions": permissions,
+                "permissions": [p.value for p in permissions],
                 "origin": origin,
-                "browserContextId": browserContextId,
+                "browserContextId": str(browserContextId) if browserContextId else None,
             },
         }
     )
@@ -310,7 +310,9 @@ def reset_permissions(browserContextId: Optional[BrowserContextID] = None) -> di
     return filter_unset_parameters(
         {
             "method": "Browser.resetPermissions",
-            "params": {"browserContextId": browserContextId},
+            "params": {
+                "browserContextId": str(browserContextId) if browserContextId else None
+            },
         }
     )
 
@@ -341,7 +343,7 @@ def set_download_behavior(
             "method": "Browser.setDownloadBehavior",
             "params": {
                 "behavior": behavior,
-                "browserContextId": browserContextId,
+                "browserContextId": str(browserContextId) if browserContextId else None,
                 "downloadPath": downloadPath,
             },
         }
@@ -480,7 +482,7 @@ def get_window_bounds(windowId: WindowID) -> Generator[dict, dict, Bounds]:
     """
     response = yield {
         "method": "Browser.getWindowBounds",
-        "params": {"windowId": windowId},
+        "params": {"windowId": int(windowId)},
     }
     return Bounds.from_json(response)
 
@@ -506,7 +508,10 @@ def get_window_for_target(
             position and size are returned.
     """
     response = yield filter_unset_parameters(
-        {"method": "Browser.getWindowForTarget", "params": {"targetId": targetId}}
+        {
+            "method": "Browser.getWindowForTarget",
+            "params": {"targetId": str(targetId) if targetId else None},
+        }
     )
     return {
         "windowId": WindowID(response["windowId"]),
@@ -529,7 +534,7 @@ def set_window_bounds(windowId: WindowID, bounds: Bounds) -> dict:
     """
     return {
         "method": "Browser.setWindowBounds",
-        "params": {"windowId": windowId, "bounds": bounds},
+        "params": {"windowId": int(windowId), "bounds": bounds.to_json()},
     }
 
 
@@ -565,5 +570,5 @@ def execute_browser_command(commandId: BrowserCommandId) -> dict:
     """
     return {
         "method": "Browser.executeBrowserCommand",
-        "params": {"commandId": commandId},
+        "params": {"commandId": commandId.value},
     }

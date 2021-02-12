@@ -183,7 +183,11 @@ def deliver_push_message(
     """
     return {
         "method": "ServiceWorker.deliverPushMessage",
-        "params": {"origin": origin, "registrationId": registrationId, "data": data},
+        "params": {
+            "origin": origin,
+            "registrationId": str(registrationId),
+            "data": data,
+        },
     }
 
 
@@ -207,7 +211,7 @@ def dispatch_sync_event(
         "method": "ServiceWorker.dispatchSyncEvent",
         "params": {
             "origin": origin,
-            "registrationId": registrationId,
+            "registrationId": str(registrationId),
             "tag": tag,
             "lastChance": lastChance,
         },
@@ -226,7 +230,7 @@ def dispatch_periodic_sync_event(
     """
     return {
         "method": "ServiceWorker.dispatchPeriodicSyncEvent",
-        "params": {"origin": origin, "registrationId": registrationId, "tag": tag},
+        "params": {"origin": origin, "registrationId": str(registrationId), "tag": tag},
     }
 
 

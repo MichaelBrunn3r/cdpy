@@ -181,7 +181,10 @@ def enable(
     return filter_unset_parameters(
         {
             "method": "Fetch.enable",
-            "params": {"patterns": patterns, "handleAuthRequests": handleAuthRequests},
+            "params": {
+                "patterns": [p.to_json() for p in patterns] if patterns else None,
+                "handleAuthRequests": handleAuthRequests,
+            },
         }
     )
 
@@ -198,7 +201,7 @@ def fail_request(requestId: RequestId, errorReason: network.ErrorReason) -> dict
     """
     return {
         "method": "Fetch.failRequest",
-        "params": {"requestId": requestId, "errorReason": errorReason},
+        "params": {"requestId": str(requestId), "errorReason": errorReason.value},
     }
 
 
@@ -235,9 +238,11 @@ def fulfill_request(
         {
             "method": "Fetch.fulfillRequest",
             "params": {
-                "requestId": requestId,
+                "requestId": str(requestId),
                 "responseCode": responseCode,
-                "responseHeaders": responseHeaders,
+                "responseHeaders": [r.to_json() for r in responseHeaders]
+                if responseHeaders
+                else None,
                 "binaryResponseHeaders": binaryResponseHeaders,
                 "body": body,
                 "responsePhrase": responsePhrase,
@@ -272,11 +277,11 @@ def continue_request(
         {
             "method": "Fetch.continueRequest",
             "params": {
-                "requestId": requestId,
+                "requestId": str(requestId),
                 "url": url,
                 "method": method,
                 "postData": postData,
-                "headers": headers,
+                "headers": [h.to_json() for h in headers] if headers else None,
             },
         }
     )
@@ -297,8 +302,8 @@ def continue_with_auth(
     return {
         "method": "Fetch.continueWithAuth",
         "params": {
-            "requestId": requestId,
-            "authChallengeResponse": authChallengeResponse,
+            "requestId": str(requestId),
+            "authChallengeResponse": authChallengeResponse.to_json(),
         },
     }
 
@@ -325,7 +330,7 @@ def get_response_body(requestId: RequestId) -> Generator[dict, dict, dict]:
     """
     response = yield {
         "method": "Fetch.getResponseBody",
-        "params": {"requestId": requestId},
+        "params": {"requestId": str(requestId)},
     }
     return {"body": response["body"], "base64Encoded": response["base64Encoded"]}
 
@@ -354,7 +359,7 @@ def take_response_body_as_stream(
     """
     response = yield {
         "method": "Fetch.takeResponseBodyAsStream",
-        "params": {"requestId": requestId},
+        "params": {"requestId": str(requestId)},
     }
     return io.StreamHandle(response)
 

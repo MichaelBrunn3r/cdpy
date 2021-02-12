@@ -261,7 +261,7 @@ def compositing_reasons(layerId: LayerId) -> Generator[dict, dict, dict]:
     """
     response = yield {
         "method": "LayerTree.compositingReasons",
-        "params": {"layerId": layerId},
+        "params": {"layerId": str(layerId)},
     }
     return {
         "compositingReasons": response["compositingReasons"],
@@ -292,7 +292,10 @@ def load_snapshot(tiles: list[PictureTile]) -> Generator[dict, dict, SnapshotId]
     snapshotId: SnapshotId
             The id of the snapshot.
     """
-    response = yield {"method": "LayerTree.loadSnapshot", "params": {"tiles": tiles}}
+    response = yield {
+        "method": "LayerTree.loadSnapshot",
+        "params": {"tiles": [t.to_json() for t in tiles]},
+    }
     return SnapshotId(response)
 
 
@@ -311,7 +314,7 @@ def make_snapshot(layerId: LayerId) -> Generator[dict, dict, SnapshotId]:
     """
     response = yield {
         "method": "LayerTree.makeSnapshot",
-        "params": {"layerId": layerId},
+        "params": {"layerId": str(layerId)},
     }
     return SnapshotId(response)
 
@@ -343,10 +346,10 @@ def profile_snapshot(
         {
             "method": "LayerTree.profileSnapshot",
             "params": {
-                "snapshotId": snapshotId,
+                "snapshotId": str(snapshotId),
                 "minRepeatCount": minRepeatCount,
                 "minDuration": minDuration,
-                "clipRect": clipRect,
+                "clipRect": clipRect.to_json() if clipRect else None,
             },
         }
     )
@@ -361,7 +364,10 @@ def release_snapshot(snapshotId: SnapshotId) -> dict:
     snapshotId: SnapshotId
             The id of the layer snapshot.
     """
-    return {"method": "LayerTree.releaseSnapshot", "params": {"snapshotId": snapshotId}}
+    return {
+        "method": "LayerTree.releaseSnapshot",
+        "params": {"snapshotId": str(snapshotId)},
+    }
 
 
 def replay_snapshot(
@@ -392,7 +398,7 @@ def replay_snapshot(
         {
             "method": "LayerTree.replaySnapshot",
             "params": {
-                "snapshotId": snapshotId,
+                "snapshotId": str(snapshotId),
                 "fromStep": fromStep,
                 "toStep": toStep,
                 "scale": scale,
@@ -417,7 +423,7 @@ def snapshot_command_log(snapshotId: SnapshotId) -> Generator[dict, dict, list[d
     """
     response = yield {
         "method": "LayerTree.snapshotCommandLog",
-        "params": {"snapshotId": snapshotId},
+        "params": {"snapshotId": str(snapshotId)},
     }
     return response
 
