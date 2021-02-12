@@ -187,7 +187,7 @@ def add_virtual_authenticator(
         "method": "WebAuthn.addVirtualAuthenticator",
         "params": {"options": options.to_json()},
     }
-    return AuthenticatorId(response)
+    return AuthenticatorId(response["authenticatorId"])
 
 
 def remove_virtual_authenticator(authenticatorId: AuthenticatorId) -> dict:
@@ -242,7 +242,7 @@ def get_credential(
             "credentialId": credentialId,
         },
     }
-    return Credential.from_json(response)
+    return Credential.from_json(response["credential"])
 
 
 def get_credentials(
@@ -262,7 +262,7 @@ def get_credentials(
         "method": "WebAuthn.getCredentials",
         "params": {"authenticatorId": str(authenticatorId)},
     }
-    return [Credential.from_json(c) for c in response]
+    return [Credential.from_json(c) for c in response["credentials"]]
 
 
 def remove_credential(authenticatorId: AuthenticatorId, credentialId: str) -> dict:

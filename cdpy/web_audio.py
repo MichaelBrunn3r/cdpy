@@ -312,7 +312,7 @@ def get_realtime_data(
         "method": "WebAudio.getRealtimeData",
         "params": {"contextId": str(contextId)},
     }
-    return ContextRealtimeData.from_json(response)
+    return ContextRealtimeData.from_json(response["realtimeData"])
 
 
 @dataclasses.dataclass

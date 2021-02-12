@@ -967,7 +967,7 @@ def add_rule(
             "location": location.to_json(),
         },
     }
-    return CSSRule.from_json(response)
+    return CSSRule.from_json(response["rule"])
 
 
 def collect_class_names(styleSheetId: StyleSheetId) -> Generator[dict, dict, list[str]]:
@@ -986,7 +986,7 @@ def collect_class_names(styleSheetId: StyleSheetId) -> Generator[dict, dict, lis
         "method": "CSS.collectClassNames",
         "params": {"styleSheetId": str(styleSheetId)},
     }
-    return response
+    return response["classNames"]
 
 
 def create_style_sheet(frameId: page.FrameId) -> Generator[dict, dict, StyleSheetId]:
@@ -1006,7 +1006,7 @@ def create_style_sheet(frameId: page.FrameId) -> Generator[dict, dict, StyleShee
         "method": "CSS.createStyleSheet",
         "params": {"frameId": str(frameId)},
     }
-    return StyleSheetId(response)
+    return StyleSheetId(response["styleSheetId"])
 
 
 def disable() -> dict:
@@ -1088,7 +1088,7 @@ def get_computed_style_for_node(
         "method": "CSS.getComputedStyleForNode",
         "params": {"nodeId": int(nodeId)},
     }
-    return [CSSComputedStyleProperty.from_json(c) for c in response]
+    return [CSSComputedStyleProperty.from_json(c) for c in response["computedStyle"]]
 
 
 def get_inline_styles_for_node(nodeId: dom.NodeId) -> Generator[dict, dict, dict]:
@@ -1180,7 +1180,7 @@ def get_media_queries() -> Generator[dict, dict, list[CSSMedia]]:
     medias: list[CSSMedia]
     """
     response = yield {"method": "CSS.getMediaQueries", "params": {}}
-    return [CSSMedia.from_json(m) for m in response]
+    return [CSSMedia.from_json(m) for m in response["medias"]]
 
 
 def get_platform_fonts_for_node(
@@ -1202,7 +1202,7 @@ def get_platform_fonts_for_node(
         "method": "CSS.getPlatformFontsForNode",
         "params": {"nodeId": int(nodeId)},
     }
-    return [PlatformFontUsage.from_json(f) for f in response]
+    return [PlatformFontUsage.from_json(f) for f in response["fonts"]]
 
 
 def get_style_sheet_text(styleSheetId: StyleSheetId) -> Generator[dict, dict, str]:
@@ -1221,7 +1221,7 @@ def get_style_sheet_text(styleSheetId: StyleSheetId) -> Generator[dict, dict, st
         "method": "CSS.getStyleSheetText",
         "params": {"styleSheetId": str(styleSheetId)},
     }
-    return response
+    return response["text"]
 
 
 def track_computed_style_updates(
@@ -1257,7 +1257,7 @@ def take_computed_style_updates() -> Generator[dict, dict, list[dom.NodeId]]:
             The list of node Ids that have their tracked computed styles updated
     """
     response = yield {"method": "CSS.takeComputedStyleUpdates", "params": {}}
-    return [dom.NodeId(n) for n in response]
+    return [dom.NodeId(n) for n in response["nodeIds"]]
 
 
 def set_effective_property_value_for_node(
@@ -1303,7 +1303,7 @@ def set_keyframe_key(
             "keyText": keyText,
         },
     }
-    return Value.from_json(response)
+    return Value.from_json(response["keyText"])
 
 
 def set_media_text(
@@ -1330,7 +1330,7 @@ def set_media_text(
             "text": text,
         },
     }
-    return CSSMedia.from_json(response)
+    return CSSMedia.from_json(response["media"])
 
 
 def set_rule_selector(
@@ -1357,7 +1357,7 @@ def set_rule_selector(
             "selector": selector,
         },
     }
-    return SelectorList.from_json(response)
+    return SelectorList.from_json(response["selectorList"])
 
 
 def set_style_sheet_text(
@@ -1379,7 +1379,7 @@ def set_style_sheet_text(
         "method": "CSS.setStyleSheetText",
         "params": {"styleSheetId": str(styleSheetId), "text": text},
     }
-    return json.get("sourceMapURL")
+    return response.get("sourceMapURL")
 
 
 def set_style_texts(
@@ -1400,7 +1400,7 @@ def set_style_texts(
         "method": "CSS.setStyleTexts",
         "params": {"edits": [e.to_json() for e in edits]},
     }
-    return [CSSStyle.from_json(s) for s in response]
+    return [CSSStyle.from_json(s) for s in response["styles"]]
 
 
 def start_rule_usage_tracking() -> dict:
@@ -1417,7 +1417,7 @@ def stop_rule_usage_tracking() -> Generator[dict, dict, list[RuleUsage]]:
     ruleUsage: list[RuleUsage]
     """
     response = yield {"method": "CSS.stopRuleUsageTracking", "params": {}}
-    return [RuleUsage.from_json(r) for r in response]
+    return [RuleUsage.from_json(r) for r in response["ruleUsage"]]
 
 
 def take_coverage_delta() -> Generator[dict, dict, dict]:

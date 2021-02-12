@@ -133,7 +133,7 @@ def get_event_listeners(
             "params": {"objectId": str(objectId), "depth": depth, "pierce": pierce},
         }
     )
-    return [EventListener.from_json(l) for l in response]
+    return [EventListener.from_json(l) for l in response["listeners"]]
 
 
 def remove_dom_breakpoint(nodeId: dom.NodeId, type: DOMBreakpointType) -> dict:

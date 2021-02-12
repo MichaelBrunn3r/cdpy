@@ -427,7 +427,7 @@ def get_partial_ax_tree(
             },
         }
     )
-    return [AXNode.from_json(n) for n in response]
+    return [AXNode.from_json(n) for n in response["nodes"]]
 
 
 def get_full_ax_tree(
@@ -450,7 +450,7 @@ def get_full_ax_tree(
     response = yield filter_unset_parameters(
         {"method": "Accessibility.getFullAXTree", "params": {"max_depth": max_depth}}
     )
-    return [AXNode.from_json(n) for n in response]
+    return [AXNode.from_json(n) for n in response["nodes"]]
 
 
 def get_child_ax_nodes(id: AXNodeId) -> Generator[dict, dict, list[AXNode]]:
@@ -471,7 +471,7 @@ def get_child_ax_nodes(id: AXNodeId) -> Generator[dict, dict, list[AXNode]]:
         "method": "Accessibility.getChildAXNodes",
         "params": {"id": str(id)},
     }
-    return [AXNode.from_json(n) for n in response]
+    return [AXNode.from_json(n) for n in response["nodes"]]
 
 
 def query_ax_tree(
@@ -520,4 +520,4 @@ def query_ax_tree(
             },
         }
     )
-    return [AXNode.from_json(n) for n in response]
+    return [AXNode.from_json(n) for n in response["nodes"]]

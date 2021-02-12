@@ -141,7 +141,7 @@ def attach_to_target(
             "params": {"targetId": str(targetId), "flatten": flatten},
         }
     )
-    return SessionID(response)
+    return SessionID(response["sessionId"])
 
 
 def attach_to_browser_target() -> Generator[dict, dict, SessionID]:
@@ -155,7 +155,7 @@ def attach_to_browser_target() -> Generator[dict, dict, SessionID]:
             Id assigned to the session.
     """
     response = yield {"method": "Target.attachToBrowserTarget", "params": {}}
-    return SessionID(response)
+    return SessionID(response["sessionId"])
 
 
 def close_target(targetId: TargetID) -> Generator[dict, dict, bool]:
@@ -174,7 +174,7 @@ def close_target(targetId: TargetID) -> Generator[dict, dict, bool]:
         "method": "Target.closeTarget",
         "params": {"targetId": str(targetId)},
     }
-    return response
+    return response["success"]
 
 
 def expose_dev_tools_protocol(
@@ -239,7 +239,7 @@ def create_browser_context(
             },
         }
     )
-    return browser.BrowserContextID(response)
+    return browser.BrowserContextID(response["browserContextId"])
 
 
 def get_browser_contexts() -> Generator[dict, dict, list[browser.BrowserContextID]]:
@@ -253,7 +253,7 @@ def get_browser_contexts() -> Generator[dict, dict, list[browser.BrowserContextI
             An array of browser context ids.
     """
     response = yield {"method": "Target.getBrowserContexts", "params": {}}
-    return [browser.BrowserContextID(b) for b in response]
+    return [browser.BrowserContextID(b) for b in response["browserContextIds"]]
 
 
 def create_target(
@@ -305,7 +305,7 @@ def create_target(
             },
         }
     )
-    return TargetID(response)
+    return TargetID(response["targetId"])
 
 
 def detach_from_target(
@@ -368,7 +368,7 @@ def get_target_info(
             "params": {"targetId": str(targetId) if targetId else None},
         }
     )
-    return TargetInfo.from_json(response)
+    return TargetInfo.from_json(response["targetInfo"])
 
 
 def get_targets() -> Generator[dict, dict, list[TargetInfo]]:
@@ -380,7 +380,7 @@ def get_targets() -> Generator[dict, dict, list[TargetInfo]]:
             The list of targets.
     """
     response = yield {"method": "Target.getTargets", "params": {}}
-    return [TargetInfo.from_json(t) for t in response]
+    return [TargetInfo.from_json(t) for t in response["targetInfos"]]
 
 
 def send_message_to_target(

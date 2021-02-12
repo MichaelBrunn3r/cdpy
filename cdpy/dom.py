@@ -481,7 +481,7 @@ def collect_class_names_from_subtree(
         "method": "DOM.collectClassNamesFromSubtree",
         "params": {"nodeId": int(nodeId)},
     }
-    return response
+    return response["classNames"]
 
 
 def copy_to(
@@ -519,7 +519,7 @@ def copy_to(
             },
         }
     )
-    return NodeId(response)
+    return NodeId(response["nodeId"])
 
 
 def describe_node(
@@ -564,7 +564,7 @@ def describe_node(
             },
         }
     )
-    return Node.from_json(response)
+    return Node.from_json(response["node"])
 
 
 def scroll_into_view_if_needed(
@@ -670,7 +670,7 @@ def get_attributes(nodeId: NodeId) -> Generator[dict, dict, list[str]]:
             An interleaved array of node attribute names and values.
     """
     response = yield {"method": "DOM.getAttributes", "params": {"nodeId": int(nodeId)}}
-    return response
+    return response["attributes"]
 
 
 def get_box_model(
@@ -704,7 +704,7 @@ def get_box_model(
             },
         }
     )
-    return BoxModel.from_json(response)
+    return BoxModel.from_json(response["model"])
 
 
 def get_content_quads(
@@ -741,7 +741,7 @@ def get_content_quads(
             },
         }
     )
-    return [Quad(q) for q in response]
+    return [Quad(q) for q in response["quads"]]
 
 
 def get_document(
@@ -766,7 +766,7 @@ def get_document(
     response = yield filter_unset_parameters(
         {"method": "DOM.getDocument", "params": {"depth": depth, "pierce": pierce}}
     )
-    return Node.from_json(response)
+    return Node.from_json(response["root"])
 
 
 def get_flattened_document(
@@ -798,7 +798,7 @@ def get_flattened_document(
             "params": {"depth": depth, "pierce": pierce},
         }
     )
-    return [Node.from_json(n) for n in response]
+    return [Node.from_json(n) for n in response["nodes"]]
 
 
 def get_nodes_for_subtree_by_style(
@@ -835,7 +835,7 @@ def get_nodes_for_subtree_by_style(
             },
         }
     )
-    return [NodeId(n) for n in response]
+    return [NodeId(n) for n in response["nodeIds"]]
 
 
 def get_node_for_location(
@@ -916,7 +916,7 @@ def get_outer_html(
             },
         }
     )
-    return response
+    return response["outerHTML"]
 
 
 def get_relayout_boundary(nodeId: NodeId) -> Generator[dict, dict, NodeId]:
@@ -938,7 +938,7 @@ def get_relayout_boundary(nodeId: NodeId) -> Generator[dict, dict, NodeId]:
         "method": "DOM.getRelayoutBoundary",
         "params": {"nodeId": int(nodeId)},
     }
-    return NodeId(response)
+    return NodeId(response["nodeId"])
 
 
 def get_search_results(
@@ -967,7 +967,7 @@ def get_search_results(
         "method": "DOM.getSearchResults",
         "params": {"searchId": searchId, "fromIndex": fromIndex, "toIndex": toIndex},
     }
-    return [NodeId(n) for n in response]
+    return [NodeId(n) for n in response["nodeIds"]]
 
 
 def hide_highlight() -> dict:
@@ -1025,7 +1025,7 @@ def move_to(
             },
         }
     )
-    return NodeId(response)
+    return NodeId(response["nodeId"])
 
 
 def perform_search(
@@ -1081,7 +1081,7 @@ def push_node_by_path_to_frontend(path: str) -> Generator[dict, dict, NodeId]:
         "method": "DOM.pushNodeByPathToFrontend",
         "params": {"path": path},
     }
-    return NodeId(response)
+    return NodeId(response["nodeId"])
 
 
 def push_nodes_by_backend_ids_to_frontend(
@@ -1106,7 +1106,7 @@ def push_nodes_by_backend_ids_to_frontend(
         "method": "DOM.pushNodesByBackendIdsToFrontend",
         "params": {"backendNodeIds": [int(b) for b in backendNodeIds]},
     }
-    return [NodeId(n) for n in response]
+    return [NodeId(n) for n in response["nodeIds"]]
 
 
 def query_selector(nodeId: NodeId, selector: str) -> Generator[dict, dict, NodeId]:
@@ -1128,7 +1128,7 @@ def query_selector(nodeId: NodeId, selector: str) -> Generator[dict, dict, NodeI
         "method": "DOM.querySelector",
         "params": {"nodeId": int(nodeId), "selector": selector},
     }
-    return NodeId(response)
+    return NodeId(response["nodeId"])
 
 
 def query_selector_all(
@@ -1152,7 +1152,7 @@ def query_selector_all(
         "method": "DOM.querySelectorAll",
         "params": {"nodeId": int(nodeId), "selector": selector},
     }
-    return [NodeId(n) for n in response]
+    return [NodeId(n) for n in response["nodeIds"]]
 
 
 def redo() -> dict:
@@ -1235,7 +1235,7 @@ def request_node(objectId: runtime.RemoteObjectId) -> Generator[dict, dict, Node
         "method": "DOM.requestNode",
         "params": {"objectId": str(objectId)},
     }
-    return NodeId(response)
+    return NodeId(response["nodeId"])
 
 
 def resolve_node(
@@ -1275,7 +1275,7 @@ def resolve_node(
             },
         }
     )
-    return runtime.RemoteObject.from_json(response)
+    return runtime.RemoteObject.from_json(response["object"])
 
 
 def set_attribute_value(nodeId: NodeId, name: str, value: str) -> dict:
@@ -1386,7 +1386,11 @@ def get_node_stack_traces(
         "method": "DOM.getNodeStackTraces",
         "params": {"nodeId": int(nodeId)},
     }
-    return runtime.StackTrace.from_json(response) if "creation" in json else None
+    return (
+        runtime.StackTrace.from_json(response["creation"])
+        if "creation" in response
+        else None
+    )
 
 
 def get_file_info(objectId: runtime.RemoteObjectId) -> Generator[dict, dict, str]:
@@ -1408,7 +1412,7 @@ def get_file_info(objectId: runtime.RemoteObjectId) -> Generator[dict, dict, str
         "method": "DOM.getFileInfo",
         "params": {"objectId": str(objectId)},
     }
-    return response
+    return response["path"]
 
 
 def set_inspected_node(nodeId: NodeId) -> dict:
@@ -1444,7 +1448,7 @@ def set_node_name(nodeId: NodeId, name: str) -> Generator[dict, dict, NodeId]:
         "method": "DOM.setNodeName",
         "params": {"nodeId": int(nodeId), "name": name},
     }
-    return NodeId(response)
+    return NodeId(response["nodeId"])
 
 
 def set_node_value(nodeId: NodeId, value: str) -> dict:

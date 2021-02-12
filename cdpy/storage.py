@@ -108,7 +108,7 @@ def get_cookies(
             },
         }
     )
-    return [network.Cookie.from_json(c) for c in response]
+    return [network.Cookie.from_json(c) for c in response["cookies"]]
 
 
 def set_cookies(
@@ -273,7 +273,7 @@ def get_trust_tokens() -> Generator[dict, dict, list[TrustTokens]]:
     tokens: list[TrustTokens]
     """
     response = yield {"method": "Storage.getTrustTokens", "params": {}}
-    return [TrustTokens.from_json(t) for t in response]
+    return [TrustTokens.from_json(t) for t in response["tokens"]]
 
 
 @dataclasses.dataclass

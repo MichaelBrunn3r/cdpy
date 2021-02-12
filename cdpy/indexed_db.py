@@ -458,7 +458,7 @@ def request_database(
         "method": "IndexedDB.requestDatabase",
         "params": {"securityOrigin": securityOrigin, "databaseName": databaseName},
     }
-    return DatabaseWithObjectStores.from_json(response)
+    return DatabaseWithObjectStores.from_json(response["databaseWithObjectStores"])
 
 
 def request_database_names(securityOrigin: str) -> Generator[dict, dict, list[str]]:
@@ -478,4 +478,4 @@ def request_database_names(securityOrigin: str) -> Generator[dict, dict, list[st
         "method": "IndexedDB.requestDatabaseNames",
         "params": {"securityOrigin": securityOrigin},
     }
-    return response
+    return response["databaseNames"]

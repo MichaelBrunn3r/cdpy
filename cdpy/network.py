@@ -1841,7 +1841,7 @@ def can_clear_browser_cache() -> Generator[dict, dict, bool]:
             True if browser cache can be cleared.
     """
     response = yield {"method": "Network.canClearBrowserCache", "params": {}}
-    return response
+    return response["result"]
 
 
 def can_clear_browser_cookies() -> Generator[dict, dict, bool]:
@@ -1855,7 +1855,7 @@ def can_clear_browser_cookies() -> Generator[dict, dict, bool]:
             True if browser cookies can be cleared.
     """
     response = yield {"method": "Network.canClearBrowserCookies", "params": {}}
-    return response
+    return response["result"]
 
 
 def can_emulate_network_conditions() -> Generator[dict, dict, bool]:
@@ -1869,7 +1869,7 @@ def can_emulate_network_conditions() -> Generator[dict, dict, bool]:
             True if emulation of network conditions is supported.
     """
     response = yield {"method": "Network.canEmulateNetworkConditions", "params": {}}
-    return response
+    return response["result"]
 
 
 def clear_browser_cache() -> dict:
@@ -2052,7 +2052,7 @@ def get_all_cookies() -> Generator[dict, dict, list[Cookie]]:
             Array of cookie objects.
     """
     response = yield {"method": "Network.getAllCookies", "params": {}}
-    return [Cookie.from_json(c) for c in response]
+    return [Cookie.from_json(c) for c in response["cookies"]]
 
 
 def get_certificate(origin: str) -> Generator[dict, dict, list[str]]:
@@ -2070,7 +2070,7 @@ def get_certificate(origin: str) -> Generator[dict, dict, list[str]]:
     tableNames: list[str]
     """
     response = yield {"method": "Network.getCertificate", "params": {"origin": origin}}
-    return response
+    return response["tableNames"]
 
 
 def get_cookies(
@@ -2094,7 +2094,7 @@ def get_cookies(
     response = yield filter_unset_parameters(
         {"method": "Network.getCookies", "params": {"urls": urls}}
     )
-    return [Cookie.from_json(c) for c in response]
+    return [Cookie.from_json(c) for c in response["cookies"]]
 
 
 def get_response_body(requestId: RequestId) -> Generator[dict, dict, dict]:
@@ -2136,7 +2136,7 @@ def get_request_post_data(requestId: RequestId) -> Generator[dict, dict, str]:
         "method": "Network.getRequestPostData",
         "params": {"requestId": str(requestId)},
     }
-    return response
+    return response["postData"]
 
 
 def get_response_body_for_interception(
@@ -2187,7 +2187,7 @@ def take_response_body_for_interception_as_stream(
         "method": "Network.takeResponseBodyForInterceptionAsStream",
         "params": {"interceptionId": str(interceptionId)},
     }
-    return io.StreamHandle(response)
+    return io.StreamHandle(response["stream"])
 
 
 def replay_xhr(requestId: RequestId) -> dict:
@@ -2242,7 +2242,7 @@ def search_in_response_body(
             },
         }
     )
-    return [debugger.SearchMatch.from_json(r) for r in response]
+    return [debugger.SearchMatch.from_json(r) for r in response["result"]]
 
 
 def set_blocked_ur_ls(urls: list[str]) -> dict:
@@ -2345,7 +2345,7 @@ def set_cookie(
             },
         }
     )
-    return response
+    return response["success"]
 
 
 def set_cookies(cookies: list[CookieParam]) -> dict:
@@ -2483,7 +2483,7 @@ def get_security_isolation_status(
             "params": {"frameId": str(frameId) if frameId else None},
         }
     )
-    return SecurityIsolationStatus.from_json(response)
+    return SecurityIsolationStatus.from_json(response["status"])
 
 
 def load_network_resource(
@@ -2510,7 +2510,7 @@ def load_network_resource(
         "method": "Network.loadNetworkResource",
         "params": {"frameId": str(frameId), "url": url, "options": options.to_json()},
     }
-    return LoadNetworkResourcePageResult.from_json(response)
+    return LoadNetworkResourcePageResult.from_json(response["resource"])
 
 
 @dataclasses.dataclass

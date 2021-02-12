@@ -120,7 +120,7 @@ def get_categories() -> Generator[dict, dict, list[str]]:
             A list of supported tracing categories.
     """
     response = yield {"method": "Tracing.getCategories", "params": {}}
-    return response
+    return response["categories"]
 
 
 def record_clock_sync_marker(syncId: str) -> dict:

@@ -1004,7 +1004,7 @@ def get_isolate_id() -> Generator[dict, dict, str]:
             The isolate id.
     """
     response = yield {"method": "Runtime.getIsolateId", "params": {}}
-    return response
+    return response["id"]
 
 
 def get_heap_usage() -> Generator[dict, dict, dict]:
@@ -1112,7 +1112,7 @@ def global_lexical_scope_names(
             },
         }
     )
-    return response
+    return response["names"]
 
 
 def query_objects(
@@ -1140,7 +1140,7 @@ def query_objects(
             },
         }
     )
-    return RemoteObject.from_json(response)
+    return RemoteObject.from_json(response["objects"])
 
 
 def release_object(objectId: RemoteObjectId) -> dict:

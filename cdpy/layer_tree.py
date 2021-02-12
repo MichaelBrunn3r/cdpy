@@ -296,7 +296,7 @@ def load_snapshot(tiles: list[PictureTile]) -> Generator[dict, dict, SnapshotId]
         "method": "LayerTree.loadSnapshot",
         "params": {"tiles": [t.to_json() for t in tiles]},
     }
-    return SnapshotId(response)
+    return SnapshotId(response["snapshotId"])
 
 
 def make_snapshot(layerId: LayerId) -> Generator[dict, dict, SnapshotId]:
@@ -316,7 +316,7 @@ def make_snapshot(layerId: LayerId) -> Generator[dict, dict, SnapshotId]:
         "method": "LayerTree.makeSnapshot",
         "params": {"layerId": str(layerId)},
     }
-    return SnapshotId(response)
+    return SnapshotId(response["snapshotId"])
 
 
 def profile_snapshot(
@@ -353,7 +353,7 @@ def profile_snapshot(
             },
         }
     )
-    return [PaintProfile(t) for t in response]
+    return [PaintProfile(t) for t in response["timings"]]
 
 
 def release_snapshot(snapshotId: SnapshotId) -> dict:
@@ -405,7 +405,7 @@ def replay_snapshot(
             },
         }
     )
-    return response
+    return response["dataURL"]
 
 
 def snapshot_command_log(snapshotId: SnapshotId) -> Generator[dict, dict, list[dict]]:
@@ -425,7 +425,7 @@ def snapshot_command_log(snapshotId: SnapshotId) -> Generator[dict, dict, list[d
         "method": "LayerTree.snapshotCommandLog",
         "params": {"snapshotId": str(snapshotId)},
     }
-    return response
+    return response["commandLog"]
 
 
 @dataclasses.dataclass

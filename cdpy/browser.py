@@ -409,7 +409,7 @@ def get_browser_command_line() -> Generator[dict, dict, list[str]]:
             Commandline parameters
     """
     response = yield {"method": "Browser.getBrowserCommandLine", "params": {}}
-    return response
+    return response["arguments"]
 
 
 def get_histograms(
@@ -436,7 +436,7 @@ def get_histograms(
     response = yield filter_unset_parameters(
         {"method": "Browser.getHistograms", "params": {"query": query, "delta": delta}}
     )
-    return [Histogram.from_json(h) for h in response]
+    return [Histogram.from_json(h) for h in response["histograms"]]
 
 
 def get_histogram(
@@ -461,7 +461,7 @@ def get_histogram(
     response = yield filter_unset_parameters(
         {"method": "Browser.getHistogram", "params": {"name": name, "delta": delta}}
     )
-    return Histogram.from_json(response)
+    return Histogram.from_json(response["histogram"])
 
 
 def get_window_bounds(windowId: WindowID) -> Generator[dict, dict, Bounds]:
@@ -484,7 +484,7 @@ def get_window_bounds(windowId: WindowID) -> Generator[dict, dict, Bounds]:
         "method": "Browser.getWindowBounds",
         "params": {"windowId": int(windowId)},
     }
-    return Bounds.from_json(response)
+    return Bounds.from_json(response["bounds"])
 
 
 def get_window_for_target(

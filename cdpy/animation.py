@@ -232,7 +232,7 @@ def get_current_time(id: str) -> Generator[dict, dict, float]:
             Current time of the page.
     """
     response = yield {"method": "Animation.getCurrentTime", "params": {"id": id}}
-    return response
+    return response["currentTime"]
 
 
 def get_playback_rate() -> Generator[dict, dict, float]:
@@ -244,7 +244,7 @@ def get_playback_rate() -> Generator[dict, dict, float]:
             Playback rate for animations on page.
     """
     response = yield {"method": "Animation.getPlaybackRate", "params": {}}
-    return response
+    return response["playbackRate"]
 
 
 def release_animations(animations: list[str]) -> dict:
@@ -278,7 +278,7 @@ def resolve_animation(animationId: str) -> Generator[dict, dict, runtime.RemoteO
         "method": "Animation.resolveAnimation",
         "params": {"animationId": animationId},
     }
-    return runtime.RemoteObject.from_json(response)
+    return runtime.RemoteObject.from_json(response["remoteObject"])
 
 
 def seek_animations(animations: list[str], currentTime: float) -> dict:

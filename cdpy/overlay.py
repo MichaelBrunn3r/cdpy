@@ -714,7 +714,7 @@ def get_highlight_object_for_test(
             },
         }
     )
-    return response
+    return response["highlight"]
 
 
 def get_grid_highlight_objects_for_test(
@@ -736,7 +736,7 @@ def get_grid_highlight_objects_for_test(
         "method": "Overlay.getGridHighlightObjectsForTest",
         "params": {"nodeIds": [int(n) for n in nodeIds]},
     }
-    return response
+    return response["highlights"]
 
 
 def get_source_order_highlight_object_for_test(
@@ -758,7 +758,7 @@ def get_source_order_highlight_object_for_test(
         "method": "Overlay.getSourceOrderHighlightObjectForTest",
         "params": {"nodeId": int(nodeId)},
     }
-    return response
+    return response["highlight"]
 
 
 def hide_highlight() -> dict:

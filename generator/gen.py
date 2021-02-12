@@ -157,15 +157,6 @@ class CDPPropertyCategory(enum.Enum):
             }.get(type.category)
 
     @property
-    def is_list_of_references(self):
-        """Wether the types in this category are lists and their items are references to a type"""
-        return self in [
-            self.SIMPLE_LIST,
-            self.ENUM_LIST,
-            self.OBJECT_LIST,
-        ]
-
-    @property
     def does_not_require_parsing(self):
         return self in (self.BUILTIN, self.BUILTIN_LIST, self.TYPELESS_ENUM)
 
@@ -175,26 +166,12 @@ class CDPPropertyCategory(enum.Enum):
         return self in (self.OBJECT, self.OBJECT_LIST)
 
     @property
-    def parse_with_constructor(self):
-        """Wether the types of this category should be parsed with a constructor (e.g. SomeType(json), [SomeType(j) for j in json])"""
-        return self in (
-            self.SIMPLE,
-            self.ENUM,
-            self.SIMPLE_LIST,
-            self.ENUM_LIST,
-        )
-
-    @property
     def does_not_require_unparsing(self):
         return self.does_not_require_parsing
 
     @property
     def unparse_with_to_json(self):
         return self.parse_with_from_json
-
-    @property
-    def unparse_with_base_type(self):
-        return self in (self.SIMPLE, self.SIMPLE_LIST)
 
     @property
     def unparse_with_attribute_value(self):
@@ -235,15 +212,16 @@ class CDPProperty:
         )
 
     @property
+    def is_list(self):
+        return self.items != None
+
+    @property
     def category(self):
         if not hasattr(self, "_category"):
-            if self.items:
-                # Property is a list
+            if self.is_list:
                 if self.items.type:
-                    # Property is a list of primitves/builtins
                     self._category = CDPPropertyCategory.BUILTIN_LIST
                 else:
-                    # Property is a list of cdp types
                     items_type = self.context.get_type_by_ref(self.items.ref)
                     self._category = CDPPropertyCategory.from_cdp_type(items_type, True)
             elif self.enum_values:
@@ -254,7 +232,7 @@ class CDPProperty:
             elif self.type:
                 self._category = CDPPropertyCategory.BUILTIN
             else:
-                raise Exception("Can't determin cdp property type")
+                raise Exception("Can't determin property type")
 
         return self._category
 
@@ -264,69 +242,66 @@ class CDPProperty:
         )
         return ast.arg(self.name, ast.Name(annotation))
 
-    def create_parse_ast(self, json_val: str, json_dict: str = "json"):
+    def create_parse_from_ast(self, from_dict):
+        value = f"{from_dict}['{self.name}']"
+
         if self.category.does_not_require_parsing:
             if self.optional:
-                code = f"{json_dict}.get('{self.name}')"
+                code = f"{from_dict}.get('{self.name}')"
             else:
-                code = json_val
-        elif self.category.is_list_of_references:
-            type_name = self.context.get_type_by_ref(self.items.ref).create_reference(
-                self.context
-            )
-            e = self.name[0]  # reference used for each element
-
-            if self.category.parse_with_constructor:
-                code = f"[{type_name}({e}) for {e} in {json_val}]"
-            elif self.category.parse_with_from_json:
-                code = f"[{type_name}.from_json({e}) for {e} in {json_val}]"
+                code = value
         else:
-            type_name = self.context.get_type_by_ref(self.ref).create_reference(
-                self.context
-            )
+            if self.is_list:
+                base_type = create_type_annotation(
+                    self.items.type, self.items.ref, None, False, self.context
+                )
+            else:
+                base_type = create_type_annotation(
+                    self.type, self.ref, None, False, self.context
+                )
 
-            if self.category.parse_with_constructor:
-                code = f"{type_name}({json_val})"
-            elif self.category.parse_with_from_json:
-                code = f"{type_name}.from_json({json_val})"
+            if self.category.parse_with_from_json:
+                parse_template = f"{base_type}.from_json({{}})"
+            else:
+                parse_template = f"{base_type}({{}})"
 
-        # Wrap argument in 'if ... else None' if the attribute is optional.
-        # Primitives are calling 'dict.get()' instead.
-        if self.optional and not self.category.does_not_require_parsing:
-            code = f"{code} if '{self.name}' in {json_dict} else None"
+            if self.is_list:
+                elem = self.name[0]
+                code = f"[{parse_template.format(elem)} for {elem} in {value}]"
+            else:
+                code = parse_template.format(value)
+
+            if self.optional:
+                code = f"{code} if '{self.name}' in {from_dict} else None"
 
         return ast_from_str(code)
 
-    def create_unparse_ast(self, value: str):
+    def create_unparse_from_ast(self, from_value: str):
         if self.category.does_not_require_unparsing:
-            json_val = value
-        elif self.category.is_list_of_references:
-            e = self.name[0]  # reference used for each element
-
-            if self.category.unparse_with_base_type:
-                base_type = JS_TYPE_TO_BUILTIN_MAP.get(
-                    self.context.get_type_by_ref(self.items.ref).type
-                )
-                json_val = f"[{base_type}({e}) for {e} in {value}]"
-            elif self.category.unparse_with_to_json:
-                json_val = f"[{e}.to_json() for {e} in {value}]"
-            elif self.category.unparse_with_attribute_value:
-                json_val = f"[{e}.value for {e} in {value}]"
+            code = from_value
         else:
-            if self.category.unparse_with_base_type:
-                base_type = JS_TYPE_TO_BUILTIN_MAP.get(
-                    self.context.get_type_by_ref(self.ref).type
-                )
-                json_val = f"{base_type}({value})"
+            if self.category.unparse_with_attribute_value:
+                unparse_template = f"{{}}.value"
             elif self.category.unparse_with_to_json:
-                json_val = f"{value}.to_json()"
-            elif self.category.unparse_with_attribute_value:
-                json_val = f"{value}.value"
+                unparse_template = f"{{}}.to_json()"
+            else:
+                base_type = JS_TYPE_TO_BUILTIN_MAP.get(
+                    self.context.get_type_by_ref(
+                        self.items.ref if self.is_list else self.ref
+                    ).type
+                )
+                unparse_template = f"{base_type}({{}})"
 
-        if self.optional and not self.category.does_not_require_unparsing:
-            json_val = f"{json_val} if {value} else None"
+            if self.is_list:
+                elem = self.name[0]
+                code = f"[{unparse_template.format(elem)} for {elem} in {from_value}]"
+            else:
+                code = unparse_template.format(from_value)
 
-        return json_val
+            if self.optional and not self.category.does_not_require_unparsing:
+                code = f"{code} if {from_value} else None"
+
+        return code
 
     def to_docstring(self):
         annotation = create_type_annotation(
@@ -494,7 +469,7 @@ class CDPType:
     def create_object_from_json_function(self):
         cls_args = []
         for attr in self.attributes:
-            cls_args.append(attr.create_parse_ast(f'json["{attr.name}"]'))
+            cls_args.append(attr.create_parse_from_ast("json"))
 
         return ast_function(
             "from_json",
@@ -508,7 +483,7 @@ class CDPType:
         json = ast.Dict(
             [ast.Constant(a.name) for a in self.attributes],
             [
-                ast_from_str(a.create_unparse_ast(f"self.{a.name}"))
+                ast_from_str(a.create_unparse_from_ast(f"self.{a.name}"))
                 for a in self.attributes
             ],
         )
@@ -642,7 +617,7 @@ class CDPCommand:
             self.context.require("typing", "Generator")
             if len(self.returns) == 1:
                 ret = self.returns[0]
-                response = ret.create_parse_ast("response")
+                response = ret.create_parse_from_ast("response")
                 return_type = create_type_annotation(
                     ret.type, ret.ref, ret.items, ret.optional, self.context
                 )
@@ -650,10 +625,7 @@ class CDPCommand:
             else:
                 response = ast.Dict(
                     [ast.Constant(r.name) for r in self.returns],
-                    [
-                        r.create_parse_ast(f'response["{r.name}"]', "response")
-                        for r in self.returns
-                    ],
+                    [r.create_parse_from_ast("response") for r in self.returns],
                 )
                 function_type = "Generator[dict,dict,dict]"
             body.append(ast.Return(response))
@@ -667,7 +639,10 @@ class CDPCommand:
 
     def create_command_json(self):
         params = ",".join(
-            [f'"{p.name}": {p.create_unparse_ast(p.name)}' for p in self.parameters]
+            [
+                f'"{p.name}": {p.create_unparse_from_ast(p.name)}'
+                for p in self.parameters
+            ]
         )
         command_json = f'{{"method": "{self.context.domain_name}.{self.name}", "params": {{{params}}}}}'
 
@@ -756,7 +731,7 @@ class CDPEvent:
     def create_from_json_function(self):
         cls_args = []
         for attr in self.attributes:
-            cls_args.append(attr.create_parse_ast(f'json["{attr.name}"]'))
+            cls_args.append(attr.create_parse_from_ast("json"))
 
         return ast_function(
             "from_json",

@@ -3,7 +3,7 @@ from typing import Generator
 import cdpy
 
 
-class TestReturn:
+class TestUnparseTypes:
     def test_unparse_builtin_list(self):
         args = {"nodeId": cdpy.dom.NodeId(321), "forcedPseudoClasses": ["a", "b", "c"]}
         expected = {

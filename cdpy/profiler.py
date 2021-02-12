@@ -377,7 +377,7 @@ def get_best_effort_coverage() -> Generator[dict, dict, list[ScriptCoverage]]:
             Coverage data for the current isolate.
     """
     response = yield {"method": "Profiler.getBestEffortCoverage", "params": {}}
-    return [ScriptCoverage.from_json(r) for r in response]
+    return [ScriptCoverage.from_json(r) for r in response["result"]]
 
 
 def set_sampling_interval(interval: int) -> dict:
@@ -429,7 +429,7 @@ def start_precise_coverage(
             },
         }
     )
-    return response
+    return response["timestamp"]
 
 
 def start_type_profile() -> dict:
@@ -448,7 +448,7 @@ def stop() -> Generator[dict, dict, Profile]:
             Recorded profile.
     """
     response = yield {"method": "Profiler.stop", "params": {}}
-    return Profile.from_json(response)
+    return Profile.from_json(response["profile"])
 
 
 def stop_precise_coverage() -> dict:
@@ -495,7 +495,7 @@ def take_type_profile() -> Generator[dict, dict, list[ScriptTypeProfile]]:
             Type profile for all scripts since startTypeProfile() was turned on.
     """
     response = yield {"method": "Profiler.takeTypeProfile", "params": {}}
-    return [ScriptTypeProfile.from_json(r) for r in response]
+    return [ScriptTypeProfile.from_json(r) for r in response["result"]]
 
 
 def enable_counters() -> dict:
@@ -525,7 +525,7 @@ def get_counters() -> Generator[dict, dict, list[CounterInfo]]:
             Collected counters information.
     """
     response = yield {"method": "Profiler.getCounters", "params": {}}
-    return [CounterInfo.from_json(r) for r in response]
+    return [CounterInfo.from_json(r) for r in response["result"]]
 
 
 def enable_runtime_call_stats() -> dict:
@@ -555,7 +555,7 @@ def get_runtime_call_stats() -> Generator[dict, dict, list[RuntimeCallCounterInf
             Collected runtime call counter information.
     """
     response = yield {"method": "Profiler.getRuntimeCallStats", "params": {}}
-    return [RuntimeCallCounterInfo.from_json(r) for r in response]
+    return [RuntimeCallCounterInfo.from_json(r) for r in response["result"]]
 
 
 @dataclasses.dataclass

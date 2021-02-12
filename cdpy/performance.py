@@ -73,7 +73,7 @@ def get_metrics() -> Generator[dict, dict, list[Metric]]:
             Current values for run-time metrics.
     """
     response = yield {"method": "Performance.getMetrics", "params": {}}
-    return [Metric.from_json(m) for m in response]
+    return [Metric.from_json(m) for m in response["metrics"]]
 
 
 @dataclasses.dataclass

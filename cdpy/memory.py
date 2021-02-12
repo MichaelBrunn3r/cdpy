@@ -193,7 +193,7 @@ def get_all_time_sampling_profile() -> Generator[dict, dict, SamplingProfile]:
     profile: SamplingProfile
     """
     response = yield {"method": "Memory.getAllTimeSamplingProfile", "params": {}}
-    return SamplingProfile.from_json(response)
+    return SamplingProfile.from_json(response["profile"])
 
 
 def get_browser_sampling_profile() -> Generator[dict, dict, SamplingProfile]:
@@ -205,7 +205,7 @@ def get_browser_sampling_profile() -> Generator[dict, dict, SamplingProfile]:
     profile: SamplingProfile
     """
     response = yield {"method": "Memory.getBrowserSamplingProfile", "params": {}}
-    return SamplingProfile.from_json(response)
+    return SamplingProfile.from_json(response["profile"])
 
 
 def get_sampling_profile() -> Generator[dict, dict, SamplingProfile]:
@@ -217,4 +217,4 @@ def get_sampling_profile() -> Generator[dict, dict, SamplingProfile]:
     profile: SamplingProfile
     """
     response = yield {"method": "Memory.getSamplingProfile", "params": {}}
-    return SamplingProfile.from_json(response)
+    return SamplingProfile.from_json(response["profile"])

@@ -361,7 +361,7 @@ def take_response_body_as_stream(
         "method": "Fetch.takeResponseBodyAsStream",
         "params": {"requestId": str(requestId)},
     }
-    return io.StreamHandle(response)
+    return io.StreamHandle(response["stream"])
 
 
 @dataclasses.dataclass

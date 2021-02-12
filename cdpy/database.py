@@ -122,7 +122,7 @@ def get_database_table_names(
         "method": "Database.getDatabaseTableNames",
         "params": {"databaseId": str(databaseId)},
     }
-    return response
+    return response["tableNames"]
 
 
 @dataclasses.dataclass

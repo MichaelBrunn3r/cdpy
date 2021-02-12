@@ -78,4 +78,4 @@ def resolve_blob(objectId: runtime.RemoteObjectId) -> Generator[dict, dict, str]
             UUID of the specified Blob.
     """
     response = yield {"method": "IO.resolveBlob", "params": {"objectId": str(objectId)}}
-    return response
+    return response["uuid"]

@@ -155,7 +155,7 @@ def get_heap_object_id(
         "method": "HeapProfiler.getHeapObjectId",
         "params": {"objectId": str(objectId)},
     }
-    return HeapSnapshotObjectId(response)
+    return HeapSnapshotObjectId(response["heapSnapshotObjectId"])
 
 
 def get_object_by_heap_object_id(
@@ -179,7 +179,7 @@ def get_object_by_heap_object_id(
             "params": {"objectId": str(objectId), "objectGroup": objectGroup},
         }
     )
-    return runtime.RemoteObject.from_json(response)
+    return runtime.RemoteObject.from_json(response["result"])
 
 
 def get_sampling_profile() -> Generator[dict, dict, SamplingHeapProfile]:
@@ -190,7 +190,7 @@ def get_sampling_profile() -> Generator[dict, dict, SamplingHeapProfile]:
             Return the sampling profile being collected.
     """
     response = yield {"method": "HeapProfiler.getSamplingProfile", "params": {}}
-    return SamplingHeapProfile.from_json(response)
+    return SamplingHeapProfile.from_json(response["profile"])
 
 
 def start_sampling(samplingInterval: Optional[float] = None) -> dict:
@@ -231,7 +231,7 @@ def stop_sampling() -> Generator[dict, dict, SamplingHeapProfile]:
             Recorded sampling heap profile.
     """
     response = yield {"method": "HeapProfiler.stopSampling", "params": {}}
-    return SamplingHeapProfile.from_json(response)
+    return SamplingHeapProfile.from_json(response["profile"])
 
 
 def stop_tracking_heap_objects(

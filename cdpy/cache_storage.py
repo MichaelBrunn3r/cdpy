@@ -198,7 +198,7 @@ def request_cache_names(securityOrigin: str) -> Generator[dict, dict, list[Cache
         "method": "CacheStorage.requestCacheNames",
         "params": {"securityOrigin": securityOrigin},
     }
-    return [Cache.from_json(c) for c in response]
+    return [Cache.from_json(c) for c in response["caches"]]
 
 
 def request_cached_response(
@@ -228,7 +228,7 @@ def request_cached_response(
             "requestHeaders": [r.to_json() for r in requestHeaders],
         },
     }
-    return CachedResponse.from_json(response)
+    return CachedResponse.from_json(response["response"])
 
 
 def request_entries(

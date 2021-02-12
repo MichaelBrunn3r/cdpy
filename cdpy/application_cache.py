@@ -130,7 +130,7 @@ def get_application_cache_for_frame(
         "method": "ApplicationCache.getApplicationCacheForFrame",
         "params": {"frameId": str(frameId)},
     }
-    return ApplicationCache.from_json(response)
+    return ApplicationCache.from_json(response["applicationCache"])
 
 
 def get_frames_with_manifests() -> Generator[dict, dict, list[FrameWithManifest]]:
@@ -144,7 +144,7 @@ def get_frames_with_manifests() -> Generator[dict, dict, list[FrameWithManifest]
             associated with some application cache.
     """
     response = yield {"method": "ApplicationCache.getFramesWithManifests", "params": {}}
-    return [FrameWithManifest.from_json(f) for f in response]
+    return [FrameWithManifest.from_json(f) for f in response["frameIds"]]
 
 
 def get_manifest_for_frame(frameId: page.FrameId) -> Generator[dict, dict, str]:
@@ -164,7 +164,7 @@ def get_manifest_for_frame(frameId: page.FrameId) -> Generator[dict, dict, str]:
         "method": "ApplicationCache.getManifestForFrame",
         "params": {"frameId": str(frameId)},
     }
-    return response
+    return response["manifestURL"]
 
 
 @dataclasses.dataclass

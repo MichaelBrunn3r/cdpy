@@ -370,7 +370,7 @@ def enable(
             "params": {"maxScriptsCacheSize": maxScriptsCacheSize},
         }
     )
-    return runtime.UniqueDebuggerId(response)
+    return runtime.UniqueDebuggerId(response["debuggerId"])
 
 
 def evaluate_on_call_frame(
@@ -521,7 +521,7 @@ def get_possible_breakpoints(
             },
         }
     )
-    return [BreakLocation.from_json(l) for l in response]
+    return [BreakLocation.from_json(l) for l in response["locations"]]
 
 
 def get_script_source(scriptId: runtime.ScriptId) -> Generator[dict, dict, dict]:
@@ -568,7 +568,7 @@ def get_wasm_bytecode(scriptId: runtime.ScriptId) -> Generator[dict, dict, str]:
         "method": "Debugger.getWasmBytecode",
         "params": {"scriptId": str(scriptId)},
     }
-    return response
+    return response["bytecode"]
 
 
 def get_stack_trace(
@@ -590,7 +590,7 @@ def get_stack_trace(
         "method": "Debugger.getStackTrace",
         "params": {"stackTraceId": stackTraceId.to_json()},
     }
-    return runtime.StackTrace.from_json(response)
+    return runtime.StackTrace.from_json(response["stackTrace"])
 
 
 def pause() -> dict:
@@ -717,7 +717,7 @@ def search_in_content(
             },
         }
     )
-    return [SearchMatch.from_json(r) for r in response]
+    return [SearchMatch.from_json(r) for r in response["result"]]
 
 
 def set_async_call_stack_depth(maxDepth: int) -> dict:
@@ -826,7 +826,7 @@ def set_instrumentation_breakpoint(
         "method": "Debugger.setInstrumentationBreakpoint",
         "params": {"instrumentation": instrumentation},
     }
-    return BreakpointId(response)
+    return BreakpointId(response["breakpointId"])
 
 
 def set_breakpoint_by_url(
@@ -913,7 +913,7 @@ def set_breakpoint_on_function_call(
             "params": {"objectId": str(objectId), "condition": condition},
         }
     )
-    return BreakpointId(response)
+    return BreakpointId(response["breakpointId"])
 
 
 def set_breakpoints_active(active: bool) -> dict:

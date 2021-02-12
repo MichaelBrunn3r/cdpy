@@ -786,7 +786,7 @@ def add_script_to_evaluate_on_load(
         "method": "Page.addScriptToEvaluateOnLoad",
         "params": {"scriptSource": scriptSource},
     }
-    return ScriptIdentifier(response)
+    return ScriptIdentifier(response["identifier"])
 
 
 def add_script_to_evaluate_on_new_document(
@@ -813,7 +813,7 @@ def add_script_to_evaluate_on_new_document(
             "params": {"source": source, "worldName": worldName},
         }
     )
-    return ScriptIdentifier(response)
+    return ScriptIdentifier(response["identifier"])
 
 
 def bring_to_front() -> dict:
@@ -860,7 +860,7 @@ def capture_screenshot(
             },
         }
     )
-    return response
+    return response["data"]
 
 
 def capture_snapshot(format: Optional[str] = None) -> Generator[dict, dict, str]:
@@ -882,7 +882,7 @@ def capture_snapshot(format: Optional[str] = None) -> Generator[dict, dict, str]
     response = yield filter_unset_parameters(
         {"method": "Page.captureSnapshot", "params": {"format": format}}
     )
-    return response
+    return response["data"]
 
 
 def clear_device_metrics_override() -> dict:
@@ -945,7 +945,7 @@ def create_isolated_world(
             },
         }
     )
-    return runtime.ExecutionContextId(response)
+    return runtime.ExecutionContextId(response["executionContextId"])
 
 
 def delete_cookie(cookieName: str, url: str) -> dict:
@@ -1010,7 +1010,7 @@ def get_installability_errors() -> Generator[dict, dict, list[InstallabilityErro
     installabilityErrors: list[InstallabilityError]
     """
     response = yield {"method": "Page.getInstallabilityErrors", "params": {}}
-    return [InstallabilityError.from_json(i) for i in response]
+    return [InstallabilityError.from_json(i) for i in response["installabilityErrors"]]
 
 
 def get_manifest_icons() -> Generator[dict, dict, Optional[str]]:
@@ -1022,7 +1022,7 @@ def get_manifest_icons() -> Generator[dict, dict, Optional[str]]:
     primaryIcon: Optional[str]
     """
     response = yield {"method": "Page.getManifestIcons", "params": {}}
-    return json.get("primaryIcon")
+    return response.get("primaryIcon")
 
 
 def get_cookies() -> Generator[dict, dict, list[network.Cookie]]:
@@ -1039,7 +1039,7 @@ def get_cookies() -> Generator[dict, dict, list[network.Cookie]]:
             Array of cookie objects.
     """
     response = yield {"method": "Page.getCookies", "params": {}}
-    return [network.Cookie.from_json(c) for c in response]
+    return [network.Cookie.from_json(c) for c in response["cookies"]]
 
 
 def get_frame_tree() -> Generator[dict, dict, FrameTree]:
@@ -1051,7 +1051,7 @@ def get_frame_tree() -> Generator[dict, dict, FrameTree]:
             Present frame tree structure.
     """
     response = yield {"method": "Page.getFrameTree", "params": {}}
-    return FrameTree.from_json(response)
+    return FrameTree.from_json(response["frameTree"])
 
 
 def get_layout_metrics() -> Generator[dict, dict, dict]:
@@ -1133,7 +1133,7 @@ def get_resource_tree() -> Generator[dict, dict, FrameResourceTree]:
             Present frame / resource tree structure.
     """
     response = yield {"method": "Page.getResourceTree", "params": {}}
-    return FrameResourceTree.from_json(response)
+    return FrameResourceTree.from_json(response["frameTree"])
 
 
 def handle_java_script_dialog(accept: bool, promptText: Optional[str] = None) -> dict:
@@ -1428,7 +1428,7 @@ def search_in_resource(
             },
         }
     )
-    return [debugger.SearchMatch.from_json(r) for r in response]
+    return [debugger.SearchMatch.from_json(r) for r in response["result"]]
 
 
 def set_ad_blocking_enabled(enabled: bool) -> dict:

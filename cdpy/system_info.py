@@ -350,4 +350,4 @@ def get_process_info() -> Generator[dict, dict, list[ProcessInfo]]:
             An array of process info blocks.
     """
     response = yield {"method": "SystemInfo.getProcessInfo", "params": {}}
-    return [ProcessInfo.from_json(p) for p in response]
+    return [ProcessInfo.from_json(p) for p in response["processInfo"]]

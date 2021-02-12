@@ -184,7 +184,7 @@ def can_emulate() -> Generator[dict, dict, bool]:
             True if emulation is supported.
     """
     response = yield {"method": "Emulation.canEmulate", "params": {}}
-    return response
+    return response["result"]
 
 
 def clear_device_metrics_override() -> dict:
@@ -580,7 +580,7 @@ def set_virtual_time_policy(
             },
         }
     )
-    return response
+    return response["virtualTimeTicksBase"]
 
 
 def set_locale_override(locale: Optional[str] = None) -> dict:

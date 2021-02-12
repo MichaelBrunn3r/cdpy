@@ -70,7 +70,7 @@ def get_dom_storage_items(storageId: StorageId) -> Generator[dict, dict, list[It
         "method": "DOMStorage.getDOMStorageItems",
         "params": {"storageId": storageId.to_json()},
     }
-    return [Item(e) for e in response]
+    return [Item(e) for e in response["entries"]]
 
 
 def remove_dom_storage_item(storageId: StorageId, key: str) -> dict:

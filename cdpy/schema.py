@@ -36,4 +36,4 @@ def get_domains() -> Generator[dict, dict, list[Domain]]:
             List of supported domains.
     """
     response = yield {"method": "Schema.getDomains", "params": {}}
-    return [Domain.from_json(d) for d in response]
+    return [Domain.from_json(d) for d in response["domains"]]
