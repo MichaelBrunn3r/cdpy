@@ -827,16 +827,14 @@ def generate(
     version: str,
     dry: bool = typer.Option(False, help="Do a dry run, don't generate anything"),
 ):
-    # Parse version parameter
+    # Load protocol
     version = version.replace("v", "")
     major, minor = version.split(".")
-
+    protocol = load_protocol(major, minor)
     logger.info(f"Generating protocol version {major}.{minor}")
 
-    # Parse domains
-    protocol = load_protocol(major, minor)
+    # Parse protocol
     global_context = GlobalContext()
-
     for domain_json in protocol["domains"]:
         domain_name = domain_json["domain"]
         module_context = ModuleContext(
@@ -845,21 +843,25 @@ def generate(
         domain = Domain.from_json(domain_json, module_context)
         global_context.register_domain(domain_name, domain)
 
-    # Create domain modules
-    output_dir = Path(GENERATE_DIR.parent, "cdpy")
+    generated_files: dict[str, str] = {}
 
+    # Generate domain modules
     for domain in global_context.domains.values():
-        output_path = Path(output_dir, domain.context.module_name + ".py")
+        generated_files[domain.context.module_name + ".py"] = ast.unparse(
+            domain.to_ast()
+        )
+    logger.info(f"Generated {len(global_context.domains)} domains")
 
-        code = ast.unparse(domain.to_ast())
-        if not dry:
-            with output_path.open("w") as f:
-                f.write(code)
+    # Generate Init module
+    generated_files["__init__.py"] = ast.unparse(create_init_module(global_context))
 
-    init_module = ast.unparse(create_init_module(global_context))
+    # Write files to disk
+
     if not dry:
-        with Path(output_dir, "__init__.py").open("w") as f:
-            f.write(init_module)
+        logger.info(f"Writing {len(generated_files)} files ...")
+        for path, content in generated_files.items():
+            with Path(GENERATE_DIR.parent, "cdpy", path).open("w") as f:
+                f.write(content)
 
 
 @app.command()
