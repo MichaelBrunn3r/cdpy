@@ -47,6 +47,9 @@ class GlobalContext:
             if type_.id == type_name:
                 return type_
 
+    def register_domain(self, name: str, domain: Domain):
+        self.domains[name] = domain
+
 
 class ModuleContext:
     def __init__(
@@ -735,7 +738,7 @@ class Domain:
         methods = json.get("commands", [])
         events = json.get("events", [])
 
-        json = cls(
+        return cls(
             domain_name,
             json.get("description"),
             json.get("experimental", False),
@@ -745,10 +748,6 @@ class Domain:
             [Event.from_json(e, context) for e in events],
             context,
         )
-
-        # Register and return domain
-        context.global_context.domains[domain_name] = json
-        return json
 
     def to_ast(self):
         # Default imports
@@ -844,6 +843,7 @@ def generate(
             domain_to_module_name(domain_name), domain_name, global_context
         )
         domain = Domain.from_json(domain_json, module_context)
+        global_context.register_domain(domain_name, domain)
 
     # Create domain modules
     output_dir = Path(GENERATE_DIR.parent, "cdpy")
