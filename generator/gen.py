@@ -399,29 +399,35 @@ class Type:
             return self.id
 
     def to_ast(self):
+        base, decorators = None, []
+        body = [self.create_docstring()]
+
         if self.category in [TypeCategory.BUILTIN, TypeCategory.BUILTIN_LIST]:
-            return self.create_builtin_ast()
+            base = create_type_annotation(
+                self.type, None, self.items, False, self.context
+            )
+            body.append(self.create_builtin_repr_function())
         elif self.category == TypeCategory.ENUM:
             self.context.require("enum", None)
-            return self.create_enum_ast()
+            base = "enum.Enum"
+            for v in self.enum_values:
+                body.append(ast_from_str(f'{snake_case(v).upper()} = "{v}"'))
         elif self.category == TypeCategory.OBJECT:
-            return self.create_object_ast()
+            decorators = ["dataclasses.dataclass"]
+            for attr in self.attributes:
+                body.append(attr.to_ast())
+            body.append(self.create_object_from_json_function())
+            body.append(self.create_object_to_json_function())
         elif self.category == TypeCategory.OBJECT_LIST:
-            return self.create_object_list_ast()
+            base = create_type_annotation(None, None, self.items, False, self.context)
+            body.append(self.create_object_list_from_json_function())
+            body.append(self.create_object_list_to_json_function())
         else:
             raise Exception(
                 f"Can't generate AST for type '{self.context.domain_name}.{self.id}'"
             )
 
-    def create_builtin_ast(self):
-        """Create the AST for a simple type or simple list type"""
-        base = create_type_annotation(self.type, None, self.items, False, self.context)
-
-        return ast_classdef(
-            self.id,
-            [self.create_docstring(), self.create_builtin_repr_function()],
-            [base],
-        )
+        return ast_classdef(self.id, body, [base] if base else [], decorators)
 
     def create_builtin_repr_function(self):
         """Create the __repr__ function for a simple type"""
@@ -430,29 +436,6 @@ class Type:
             ast_args([ast.arg("self", None)]),
             [ast_from_str(f"return f'{self.id}({{super().__repr__()}})'")],
         )
-
-    def create_enum_ast(self):
-        """Create the AST for an enum type"""
-        body = [self.create_docstring()]
-
-        # Add enum values
-        for v in self.enum_values:
-            body.append(
-                ast.Assign([ast.Name(snake_case(v).upper())], ast.Str(v), lineno=0)
-            )
-
-        return ast_classdef(self.id, body, ["enum.Enum"])
-
-    def create_object_ast(self):
-        body = [self.create_docstring()]
-
-        for attr in self.attributes:
-            body.append(attr.to_ast())
-
-        body.append(self.create_object_from_json_function())
-        body.append(self.create_object_to_json_function())
-
-        return ast_classdef(self.id, body, decorators=["dataclasses.dataclass"])
 
     def create_object_from_json_function(self):
         cls_args = []
@@ -486,18 +469,6 @@ class Type:
             [ast.Return(json)],
             returns=ast.Name("dict"),
         )
-
-    def create_object_list_ast(self):
-        body = [
-            self.create_docstring(),
-            self.create_object_list_from_json_function(),
-            self.create_object_list_to_json_function(),
-        ]
-        base = ast.Name(
-            create_type_annotation(self.type, None, self.items, False, self.context)
-        )
-
-        return ast_classdef(self.id, body, [base])
 
     def create_object_list_from_json_function(self):
         items_type = self.context.get_type_by_ref(self.items.ref)
