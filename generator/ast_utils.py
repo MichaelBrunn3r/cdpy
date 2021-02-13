@@ -1,5 +1,43 @@
 import ast
-from typing import Union
+from os import O_APPEND, linesep
+from typing import Iterable, Optional, Union
+
+
+class DocstringBuilder(list):
+    def __init__(self, line: Optional[str] = None, linesep="\n\t"):
+        self._linesep = linesep
+
+        if line != None:
+            self.line(line)
+
+    def section(self, name: str, entries: Iterable[str]):
+        self.append("")
+        self.append(name)
+        self.append("-" * len(name))
+
+        for e in entries:
+            self += e
+
+    def section_if(self, condition, name: str, entries: Iterable[str]):
+        if condition:
+            self.section(name, entries)
+        return self
+
+    def line(self, line: str = ""):
+        if line != None:
+            self += line.split("\n")
+        return self
+
+    def line_if(self, condition, line: str):
+        if condition:
+            self.line(line)
+        return self
+
+    def build(self):
+        docstr = self._linesep.join(self)
+        if len(self) > 1:
+            docstr += "\n\t"
+        return ast.Expr(ast.Constant(docstr))
 
 
 def ast_from_str(expr: str):
@@ -28,20 +66,6 @@ def ast_call(callable: Union[str, ast.AST], args: list[Union[str, ast.AST]]):
     return ast.Call(callable, list(args), [])
 
 
-def ast_list_comp(
-    foreach: ast.AST, target: Union[str, ast.AST], iterable: Union[str, ast.AST]
-):
-    if type(target) == str:
-        target = ast.Name(target)
-
-    if type(iterable) == str:
-        iterable = ast.Name(iterable)
-
-    return ast.ListComp(
-        foreach, [ast.comprehension(target, iterable, [], is_async=False)]
-    )
-
-
 def ast_classdef(
     name: str,
     body: list[ast.AST],
@@ -55,13 +79,6 @@ def ast_classdef(
     return ast.ClassDef(
         name, bases=list(bases), body=body, decorator_list=list(decorators), keywords=[]
     )
-
-
-def ast_docstring(lines: list[str]):
-    docstr = "\n\t".join(lines)
-    if len(lines) > 1:
-        docstr += "\n\t"
-    return ast.Expr(ast.Constant(docstr))
 
 
 def ast_args(args: list[ast.AST], defaults: list[ast.AST] = []):

@@ -217,6 +217,10 @@ class Property:
         return self.items != None
 
     @property
+    def default_value(self) -> ast.AST | None:
+        return ast.Constant(None) if self.optional else None
+
+    @property
     def category(self):
         if not hasattr(self, "_category"):
             if self.is_list:
@@ -513,20 +517,14 @@ class Type:
         )
 
     def create_docstring(self):
-        lines = []
-
-        if self.description:
-            lines += self.description.split("\n")
+        docstr = DocstringBuilder(self.description)
 
         if self.attributes:
-            lines.append("")
-            lines.append("Attributes")
-            lines.append("----------")
+            docstr.section(
+                "Attributes", map(lambda a: a.to_docstring(), self.attributes)
+            )
 
-            for attr in self.attributes:
-                lines += attr.to_docstring()
-
-        return ast_docstring(lines)
+        return docstr.build()
 
 
 @dataclass
@@ -576,19 +574,17 @@ class Method:
     def create_build_method_function(self):
         args = ast_args(
             [p.to_ast() for p in self.parameters],
-            [ast.Constant(None) if p.optional else None for p in self.parameters],
+            [p.default_value for p in self.parameters],
         )
 
         body = [self.create_docstring()]
 
         # Create method builder
-        cmd_params = ",".join(
-            [
-                f'"{p.name}": {p.create_unparse_from_ast(p.name)}'
-                for p in self.parameters
-            ]
-        )
-        cmd = f'{{"method": "{self.context.domain_name}.{self.name}", "params": {{{cmd_params}}}}}'
+        cmd_params = [
+            f'"{p.name}": {p.create_unparse_from_ast(p.name)}' for p in self.parameters
+        ]
+
+        cmd = f'{{"method": "{self.context.domain_name}.{self.name}", "params": {{{",".join(cmd_params)}}}}}'
 
         # Remove unset optional parameters
         if self.has_optional_params:
@@ -616,36 +612,23 @@ class Method:
         )
 
     def create_docstring(self):
-        lines = []
-
-        if self.description:
-            lines += self.description.split("\n")
+        docstr = DocstringBuilder(self.description)
 
         if self.experimental:
-            lines.append("")
-            lines.append("**Experimental**")
+            docstr.line("\n**Experimental**")
 
         if self.deprecated:
-            lines.append("")
-            lines.append("**Deprectated**")
+            docstr.line("\n**Deprectated**")
 
         if len(self.parameters) > 0:
-            lines.append("")
-            lines.append("Parameters")
-            lines.append("----------")
-
-            for param in self.parameters:
-                lines += param.to_docstring()
+            docstr.section(
+                "Parameters", map(lambda p: p.to_docstring(), self.parameters)
+            )
 
         if self.returns:
-            lines.append("")
-            lines.append("Returns")
-            lines.append("-------")
+            docstr.section("Returns", map(lambda r: r.to_docstring(), self.returns))
 
-            for ret in self.returns:
-                lines += ret.to_docstring()
-
-        return ast_docstring(lines)
+        return docstr.build()
 
 
 @dataclass
@@ -704,20 +687,14 @@ class Event:
         )
 
     def create_docstring(self):
-        lines = []
-
-        if self.description:
-            lines += self.description.split("\n")
+        docstr = DocstringBuilder(self.description)
 
         if self.attributes:
-            lines.append("")
-            lines.append("Attributes")
-            lines.append("----------")
+            docstr.section(
+                "Attributes", map(lambda a: a.to_docstring(), self.attributes)
+            )
 
-            for attr in self.attributes:
-                lines += attr.to_docstring()
-
-        return ast_docstring(lines)
+        return docstr.build()
 
 
 @dataclass
@@ -856,7 +833,6 @@ def generate(
     generated_files["__init__.py"] = ast.unparse(create_init_module(global_context))
 
     # Write files to disk
-
     if not dry:
         logger.info(f"Writing {len(generated_files)} files ...")
         for path, content in generated_files.items():
