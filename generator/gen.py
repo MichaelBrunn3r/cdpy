@@ -768,22 +768,17 @@ def fetch_and_save_protocol(url: str, filename_template: str) -> tuple[int, int]
     return (major, minor)
 
 
-def load_protocol(major: int, minor: int):
-    browser_protocol_path = Path(
-        GENERATE_DIR, BROWSER_PROTOCOL_FILENAME_TEMPLATE.format(major, minor)
-    )
-    with browser_protocol_path.open("r") as f:
-        browser_protocol = json.loads(f.read())
+def load_domains(major: int, minor: int):
+    domain_files = [
+        BROWSER_PROTOCOL_FILENAME_TEMPLATE.format(major, minor),
+        JS_PROTOCOL_FILENAME_TEMPLATE.format(major, minor),
+    ]
+    domains = []
+    for part in domain_files:
+        with Path(GENERATE_DIR, part).open("r") as f:
+            domains += json.loads(f.read())["domains"]
 
-    js_protocol_path = Path(
-        GENERATE_DIR, JS_PROTOCOL_FILENAME_TEMPLATE.format(major, minor)
-    )
-    with js_protocol_path.open("r") as f:
-        js_protocol = json.loads(f.read())
-
-    # Combine and return protocols
-    browser_protocol["domains"] += js_protocol["domains"]
-    return browser_protocol
+    return domains
 
 
 def create_init_module(global_context: GlobalContext):
@@ -807,12 +802,12 @@ def generate(
     # Load protocol
     version = version.replace("v", "")
     major, minor = version.split(".")
-    protocol = load_protocol(major, minor)
+    domains = load_domains(major, minor)
     logger.info(f"Generating protocol version {major}.{minor}")
 
     # Parse protocol
     global_context = GlobalContext()
-    for domain_json in protocol["domains"]:
+    for domain_json in domains:
         domain_name = domain_json["domain"]
         module_context = ModuleContext(
             domain_to_module_name(domain_name), domain_name, global_context
