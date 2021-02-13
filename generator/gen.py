@@ -38,9 +38,9 @@ logger = logging.getLogger(__name__)
 
 class GlobalContext:
     def __init__(self):
-        self.domains: dict[str, CDPDomain] = {}
+        self.domains: dict[str, Domain] = {}
 
-    def get_type_by_ref(self, reference: str) -> CDPType | None:
+    def get_type_by_ref(self, reference: str) -> Type | None:
         domain_name, type_name = get_reference_parts(reference)
         domain = self.domains[domain_name]
         for type_ in domain.types:
@@ -66,7 +66,7 @@ class ModuleContext:
                 names.add(name)
             self.required_imports[package] = names
 
-    def get_type_by_ref(self, reference: str) -> CDPType | None:
+    def get_type_by_ref(self, reference: str) -> Type | None:
         domain_name, type_name = get_reference_parts(reference)
         if not domain_name:
             domain_name = self.domain_name
@@ -82,9 +82,7 @@ def snake_case(string: str):
     return inflection.underscore(string)
 
 
-def create_type_annotation(
-    type, ref, items: CDPItems, optional, context: ModuleContext
-):
+def create_type_annotation(type, ref, items: Items, optional, context: ModuleContext):
     if items:
         annot = f"list[{create_type_annotation(items.type, items.ref, None, False, context)}]"
     elif type:
@@ -113,20 +111,20 @@ def get_reference_parts(reference: str) -> tuple[Optional[str], str]:
 
 
 @dataclass
-class CDPItems:
+class Items:
     type: Optional[str]
     ref: Optional[str]
     context: ModuleContext
 
     @classmethod
-    def from_json(cls, item: dict, context: ModuleContext):
-        return cls(item.get("type"), item.get("$ref"), context)
+    def from_json(cls, json: dict, context: ModuleContext):
+        return cls(json.get("type"), json.get("$ref"), context)
 
     def create_type_annotation(self):
         return create_type_annotation(self.type, self.type, None, False, self.context)
 
 
-class CDPPropertyCategory(enum.Enum):
+class PropertyCategory(enum.Enum):
     BUILTIN = 0
     BUILTIN_LIST = 1
     TYPELESS_ENUM = 2
@@ -138,22 +136,22 @@ class CDPPropertyCategory(enum.Enum):
     OBJECT_LIST = 8
 
     @classmethod
-    def from_cdp_type(cls, type: CDPType, is_list: bool):
+    def from_cdp_type(cls, type: Type, is_list: bool):
         """Returns a category according to a properties type"""
         if is_list:
             return {
-                CDPTypeCategory.BUILTIN: CDPPropertyCategory.SIMPLE_LIST,
-                CDPTypeCategory.BUILTIN_LIST: CDPPropertyCategory.SIMPLE_LIST,
-                CDPTypeCategory.ENUM: CDPPropertyCategory.ENUM_LIST,
-                CDPTypeCategory.OBJECT: CDPPropertyCategory.OBJECT_LIST,
-                CDPTypeCategory.OBJECT_LIST: CDPPropertyCategory.OBJECT_LIST,
+                TypeCategory.BUILTIN: PropertyCategory.SIMPLE_LIST,
+                TypeCategory.BUILTIN_LIST: PropertyCategory.SIMPLE_LIST,
+                TypeCategory.ENUM: PropertyCategory.ENUM_LIST,
+                TypeCategory.OBJECT: PropertyCategory.OBJECT_LIST,
+                TypeCategory.OBJECT_LIST: PropertyCategory.OBJECT_LIST,
             }.get(type.category)
         else:
             return {
-                CDPTypeCategory.BUILTIN: CDPPropertyCategory.SIMPLE,
-                CDPTypeCategory.BUILTIN_LIST: CDPPropertyCategory.SIMPLE,
-                CDPTypeCategory.ENUM: CDPPropertyCategory.ENUM,
-                CDPTypeCategory.OBJECT: CDPPropertyCategory.OBJECT,
+                TypeCategory.BUILTIN: PropertyCategory.SIMPLE,
+                TypeCategory.BUILTIN_LIST: PropertyCategory.SIMPLE,
+                TypeCategory.ENUM: PropertyCategory.ENUM,
+                TypeCategory.OBJECT: PropertyCategory.OBJECT,
             }.get(type.category)
 
     @property
@@ -179,35 +177,35 @@ class CDPPropertyCategory(enum.Enum):
 
 
 @dataclass
-class CDPProperty:
+class Property:
     name: str
     description: Optional[str]
     type: Optional[str]
     ref: Optional[str]
     enum_values: Optional[list[str]]
-    items: Optional[CDPItems]
+    items: Optional[Items]
     optional: bool
     experimental: bool
     deprecated: bool
     context: ModuleContext
 
     @classmethod
-    def from_json(cls, property: dict, context: ModuleContext) -> CDPProperty:
-        items = property.get("items")
-        optional = property.get("optional", False)
+    def from_json(cls, json: dict, context: ModuleContext) -> Property:
+        items = json.get("items")
+        optional = json.get("optional", False)
         if optional:
             context.require("typing", "Optional")
 
         return cls(
-            property["name"],
-            property.get("description"),
-            property.get("type"),
-            property.get("$ref"),
-            property.get("enum"),
-            CDPItems.from_json(items, context) if items else None,
+            json["name"],
+            json.get("description"),
+            json.get("type"),
+            json.get("$ref"),
+            json.get("enum"),
+            Items.from_json(items, context) if items else None,
             optional,
-            property.get("experimental", False),
-            property.get("deprecated", False),
+            json.get("experimental", False),
+            json.get("deprecated", False),
             context,
         )
 
@@ -220,17 +218,17 @@ class CDPProperty:
         if not hasattr(self, "_category"):
             if self.is_list:
                 if self.items.type:
-                    self._category = CDPPropertyCategory.BUILTIN_LIST
+                    self._category = PropertyCategory.BUILTIN_LIST
                 else:
                     items_type = self.context.get_type_by_ref(self.items.ref)
-                    self._category = CDPPropertyCategory.from_cdp_type(items_type, True)
+                    self._category = PropertyCategory.from_cdp_type(items_type, True)
             elif self.enum_values:
-                self._category = CDPPropertyCategory.TYPELESS_ENUM
+                self._category = PropertyCategory.TYPELESS_ENUM
             elif self.ref:
                 ref_type = self.context.get_type_by_ref(self.ref)
-                self._category = CDPPropertyCategory.from_cdp_type(ref_type, False)
+                self._category = PropertyCategory.from_cdp_type(ref_type, False)
             elif self.type:
-                self._category = CDPPropertyCategory.BUILTIN
+                self._category = PropertyCategory.BUILTIN
             else:
                 raise Exception("Can't determin property type")
 
@@ -315,7 +313,7 @@ class CDPProperty:
 
 
 @dataclass
-class CDPAttribute(CDPProperty):
+class Attribute(Property):
     def to_ast(self):
         annotation = create_type_annotation(
             self.type, self.ref, self.items, self.optional, self.context
@@ -328,7 +326,7 @@ class CDPAttribute(CDPProperty):
         )
 
 
-class CDPTypeCategory(enum.Enum):
+class TypeCategory(enum.Enum):
     BUILTIN = 0
     BUILTIN_LIST = 1
     ENUM = 2
@@ -337,13 +335,13 @@ class CDPTypeCategory(enum.Enum):
 
 
 @dataclass
-class CDPType:
+class Type:
     id: str
     description: Optional[str]
     type: str
-    items: CDPItems
+    items: Items
     enum_values: Optional[list[str]]
-    attributes: Optional[list[CDPAttribute]]
+    attributes: Optional[list[Attribute]]
     context: ModuleContext
     has_optional_attributes: bool
 
@@ -355,7 +353,7 @@ class CDPType:
         attributes = json.get("properties")
         if attributes:
             for i, attr_json in enumerate(attributes):
-                attr = CDPAttribute.from_json(attr_json, context)
+                attr = Attribute.from_json(attr_json, context)
                 attributes[i] = attr
 
                 if attr.optional:
@@ -369,7 +367,7 @@ class CDPType:
             json["id"],
             json.get("description"),
             json["type"],
-            CDPItems.from_json(items, context) if items else None,
+            Items.from_json(items, context) if items else None,
             json.get("enum"),
             attributes,
             context,
@@ -377,19 +375,19 @@ class CDPType:
         )
 
     @property
-    def category(self) -> CDPTypeCategory:
+    def category(self) -> TypeCategory:
         if not hasattr(self, "_category"):
             if self.items:
                 if self.items.type:
-                    self._category = CDPTypeCategory.BUILTIN_LIST
+                    self._category = TypeCategory.BUILTIN_LIST
                 else:
-                    self._category = CDPTypeCategory.OBJECT_LIST
+                    self._category = TypeCategory.OBJECT_LIST
             elif self.enum_values:
-                self._category = CDPTypeCategory.ENUM
+                self._category = TypeCategory.ENUM
             elif self.attributes:
-                self._category = CDPTypeCategory.OBJECT
+                self._category = TypeCategory.OBJECT
             else:
-                self._category = CDPTypeCategory.BUILTIN
+                self._category = TypeCategory.BUILTIN
 
         return self._category
 
@@ -401,14 +399,14 @@ class CDPType:
             return self.id
 
     def to_ast(self):
-        if self.category in [CDPTypeCategory.BUILTIN, CDPTypeCategory.BUILTIN_LIST]:
+        if self.category in [TypeCategory.BUILTIN, TypeCategory.BUILTIN_LIST]:
             return self.create_builtin_ast()
-        elif self.category == CDPTypeCategory.ENUM:
+        elif self.category == TypeCategory.ENUM:
             self.context.require("enum", None)
             return self.create_enum_ast()
-        elif self.category == CDPTypeCategory.OBJECT:
+        elif self.category == TypeCategory.OBJECT:
             return self.create_object_ast()
-        elif self.category == CDPTypeCategory.OBJECT_LIST:
+        elif self.category == TypeCategory.OBJECT_LIST:
             return self.create_object_list_ast()
         else:
             raise Exception(
@@ -505,7 +503,7 @@ class CDPType:
         items_type = self.context.get_type_by_ref(self.items.ref)
         type_name = items_type.create_reference(self.context)
 
-        if items_type.category == CDPTypeCategory.BUILTIN:
+        if items_type.category == TypeCategory.BUILTIN:
             items = f"[{type_name}(e) for e in json]"
         else:
             raise Exception(
@@ -523,7 +521,7 @@ class CDPType:
     def create_object_list_to_json_function(self):
         items_type = self.context.get_type_by_ref(self.items.ref)
 
-        if items_type.category == CDPTypeCategory.BUILTIN:
+        if items_type.category == TypeCategory.BUILTIN:
             items_base = create_type_annotation(
                 items_type.type, None, None, False, self.context
             )
@@ -558,22 +556,22 @@ class CDPType:
 
 
 @dataclass
-class CDPCommand:
+class Method:
     name: str
     description: Optional[str]
     experimental: bool
     deprecated: bool
-    parameters: list[CDPProperty]
-    returns: Optional[list[CDPProperty]]
+    parameters: list[Property]
+    returns: Optional[list[Property]]
     context: ModuleContext
     has_optional_params: bool
 
     @classmethod
-    def from_json(cls, command: dict, context: ModuleContext):
+    def from_json(cls, json: dict, context: ModuleContext):
         parameters = []
         has_optional_params = False
-        for p in command.get("parameters", []):
-            param = CDPProperty.from_json(p, context)
+        for p in json.get("parameters", []):
+            param = Property.from_json(p, context)
             parameters.append(param)
             if param.optional:
                 has_optional_params = True
@@ -581,27 +579,27 @@ class CDPCommand:
         parameters.sort(key=lambda p: p.optional)
 
         return cls(
-            command["name"],
-            command.get("description"),
-            command.get("experimental", False),
-            command.get("deprecated", False),
+            json["name"],
+            json.get("description"),
+            json.get("experimental", False),
+            json.get("deprecated", False),
             parameters,
-            [CDPProperty.from_json(r, context) for r in command["returns"]]
-            if "returns" in command
+            [Property.from_json(r, context) for r in json["returns"]]
+            if "returns" in json
             else None,
             context,
             has_optional_params,
         )
 
     def to_ast(self):
-        functions = [self.create_build_command_function()]
+        functions = [self.create_build_method_function()]
 
         if self.returns:
             functions.append(self.create_parse_response_function())
 
         return functions
 
-    def create_build_command_function(self):
+    def create_build_method_function(self):
         args = ast_args(
             [p.to_ast() for p in self.parameters],
             [ast.Constant(None) if p.optional else None for p in self.parameters],
@@ -609,7 +607,7 @@ class CDPCommand:
 
         body = [self.create_docstring()]
 
-        # Create command builder
+        # Create method builder
         cmd_params = ",".join(
             [
                 f'"{p.name}": {p.create_unparse_from_ast(p.name)}'
@@ -677,28 +675,28 @@ class CDPCommand:
 
 
 @dataclass
-class CDPEvent:
+class Event:
     name: str
     description: Optional[str]
     deprecated: bool
     experimental: bool
-    attributes: list[CDPAttribute]
+    attributes: list[Attribute]
     context: ModuleContext
 
     @classmethod
-    def from_json(cls, event: dict, context: ModuleContext):
-        attributes = event.get("parameters", [])
+    def from_json(cls, json: dict, context: ModuleContext):
+        attributes = json.get("parameters", [])
         if attributes:
-            attributes = [CDPAttribute.from_json(p, context) for p in attributes]
+            attributes = [Attribute.from_json(p, context) for p in attributes]
             attributes.sort(
                 key=lambda p: p.optional
             )  # Default value attributes after non-default attributes
 
         return cls(
-            event["name"],
-            event.get("description"),
-            event.get("deprecated", False),
-            event.get("experimental", False),
+            json["name"],
+            json.get("description"),
+            json.get("deprecated", False),
+            json.get("experimental", False),
             attributes,
             context,
         )
@@ -749,37 +747,37 @@ class CDPEvent:
 
 
 @dataclass
-class CDPDomain:
+class Domain:
     domain: str
     description: Optional[str]
     experimental: bool
     dependencies: list[str]
-    types: list[CDPType]
-    commands: list[CDPCommand]
-    events: list[CDPEvent]
+    types: list[Type]
+    methods: list[Method]
+    events: list[Event]
     context: ModuleContext
 
     @classmethod
-    def from_json(cls, domain: dict, context: ModuleContext) -> CDPDomain:
-        domain_name = domain["domain"]
-        types = domain.get("types", [])
-        commands = domain.get("commands", [])
-        events = domain.get("events", [])
+    def from_json(cls, json: dict, context: ModuleContext) -> Domain:
+        domain_name = json["domain"]
+        types = json.get("types", [])
+        methods = json.get("commands", [])
+        events = json.get("events", [])
 
-        domain = cls(
+        json = cls(
             domain_name,
-            domain.get("description"),
-            domain.get("experimental", False),
-            domain.get("dependencies", []),
-            [CDPType.from_json(t, context) for t in types],
-            [CDPCommand.from_json(c, context) for c in commands],
-            [CDPEvent.from_json(e, context) for e in events],
+            json.get("description"),
+            json.get("experimental", False),
+            json.get("dependencies", []),
+            [Type.from_json(t, context) for t in types],
+            [Method.from_json(m, context) for m in methods],
+            [Event.from_json(e, context) for e in events],
             context,
         )
 
         # Register and return domain
-        context.global_context.domains[domain_name] = domain
-        return domain
+        context.global_context.domains[domain_name] = json
+        return json
 
     def to_ast(self):
         # Default imports
@@ -792,8 +790,8 @@ class CDPDomain:
         for type in self.types:
             body.append(type.to_ast())
 
-        for command in self.commands:
-            body += command.to_ast()
+        for m in self.methods:
+            body += m.to_ast()
 
         for event in self.events:
             body.append(event.to_ast())
@@ -874,9 +872,7 @@ def generate(
         module_context = ModuleContext(
             domain_to_module_name(domain_name), domain_name, global_context
         )
-        domain = CDPDomain.from_json(domain_json, module_context)
-
-        # logger.info(f"{domain.domain.ljust(20)}: {len(domain.types)} types, {len(domain.commands)} commands, {len(domain.events)} events")
+        domain = Domain.from_json(domain_json, module_context)
 
     # Create domain modules
     output_dir = Path(GENERATE_DIR.parent, "cdpy")
