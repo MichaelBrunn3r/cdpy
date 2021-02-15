@@ -85,10 +85,10 @@ def snake_case(string: str):
     return inflection.underscore(string)
 
 
-def create_type_annotation(type, ref, items: Items, optional, context: ModuleContext):
-    if items:
-        annot = f"list[{create_type_annotation(items.type, items.ref, None, False, context)}]"
-    elif type:
+def create_type_annotation(
+    type, ref, is_list: bool, optional: bool, context: ModuleContext
+):
+    if type:
         annot = JS_TYPE_TO_BUILTIN_MAP.get(type, type)
     else:
         referenced_domain, referenced_type = get_reference_parts(ref)
@@ -100,6 +100,9 @@ def create_type_annotation(type, ref, items: Items, optional, context: ModuleCon
             referenced_module = domain_to_module_name(referenced_domain)
             context.require(".", referenced_module)
             annot = f"{referenced_module}.{referenced_type}"
+
+    if is_list:
+        annot = f"list[{annot}]"
 
     if optional:
         annot = f"Optional[{annot}]"
@@ -115,7 +118,7 @@ def get_reference_parts(reference: str) -> tuple[Optional[str], str]:
 
 @dataclass
 class Items:
-    type: Optional[str]
+    json_type: Optional[str]
     ref: Optional[str]
     context: ModuleContext
 
@@ -123,8 +126,11 @@ class Items:
     def from_json(cls, json: dict, context: ModuleContext):
         return cls(json.get("type"), json.get("$ref"), context)
 
-    def create_type_annotation(self):
-        return create_type_annotation(self.type, self.type, None, False, self.context)
+    @property
+    def type(self):
+        return create_type_annotation(
+            self.json_type, self.ref, False, False, self.context
+        )
 
 
 class PropertyCategory(enum.Enum):
@@ -183,7 +189,7 @@ class PropertyCategory(enum.Enum):
 class Property:
     name: str
     description: Optional[str]
-    type: Optional[str]
+    json_type: Optional[str]
     ref: Optional[str]
     enum_values: Optional[list[str]]
     items: Optional[Items]
@@ -220,11 +226,25 @@ class Property:
     def default_value(self) -> ast.AST | None:
         return ast.Constant(None) if self.optional else None
 
+    def type(self, annotated=False):
+        if self.is_list:
+            type, ref = self.items.json_type, self.items.ref
+        else:
+            type, ref = self.json_type, self.ref
+
+        return create_type_annotation(
+            type, ref, self.is_list, annotated and self.optional, self.context
+        )
+
+    @property
+    def type_annotation(self):
+        return self.type(True)
+
     @property
     def category(self):
         if not hasattr(self, "_category"):
             if self.is_list:
-                if self.items.type:
+                if self.items.json_type:
                     self._category = PropertyCategory.BUILTIN_LIST
                 else:
                     items_type = self.context.get_type_by_ref(self.items.ref)
@@ -234,7 +254,7 @@ class Property:
             elif self.ref:
                 ref_type = self.context.get_type_by_ref(self.ref)
                 self._category = PropertyCategory.from_cdp_type(ref_type, False)
-            elif self.type:
+            elif self.json_type:
                 self._category = PropertyCategory.BUILTIN
             else:
                 raise Exception("Can't determin property type")
@@ -242,10 +262,7 @@ class Property:
         return self._category
 
     def to_ast(self):
-        annotation = create_type_annotation(
-            self.type, self.ref, self.items, self.optional, self.context
-        )
-        return ast.arg(self.name, ast.Name(annotation))
+        return ast.arg(self.name, ast.Name(self.type_annotation))
 
     def create_parse_from_ast(self, from_dict):
         value = f"{from_dict}['{self.name}']"
@@ -257,13 +274,9 @@ class Property:
                 code = value
         else:
             if self.is_list:
-                base_type = create_type_annotation(
-                    self.items.type, self.items.ref, None, False, self.context
-                )
+                base_type = self.items.type
             else:
-                base_type = create_type_annotation(
-                    self.type, self.ref, None, False, self.context
-                )
+                base_type = self.type()
 
             if self.category.parse_with_from_json:
                 parse_template = f"{base_type}.from_json({{}})"
@@ -293,7 +306,7 @@ class Property:
                 base_type = JS_TYPE_TO_BUILTIN_MAP.get(
                     self.context.get_type_by_ref(
                         self.items.ref if self.is_list else self.ref
-                    ).type
+                    ).json_type
                 )
                 unparse_template = f"{base_type}({{}})"
 
@@ -309,10 +322,7 @@ class Property:
         return code
 
     def to_docstring(self):
-        annotation = create_type_annotation(
-            self.type, self.ref, self.items, self.optional, self.context
-        )
-        lines = [f"{self.name}: {annotation}"]
+        lines = [f"{self.name}: {self.type_annotation}"]
 
         if self.description and not self.description.isspace():
             lines += map(lambda l: "\t" + l, self.description.split("\n"))
@@ -322,14 +332,11 @@ class Property:
 @dataclass
 class Attribute(Property):
     def to_ast(self):
-        annotation = create_type_annotation(
-            self.type, self.ref, self.items, self.optional, self.context
-        )
         value = (
             ast.Constant(None) if self.optional else None
         )  # Default value if optional
         return ast.AnnAssign(
-            ast.Name(self.name), ast.Name(annotation), value=value, simple=1
+            ast.Name(self.name), ast.Name(self.type_annotation), value=value, simple=1
         )
 
 
@@ -345,7 +352,7 @@ class TypeCategory(enum.Enum):
 class Type:
     id: str
     description: Optional[str]
-    type: str
+    json_type: str
     items: Items
     enum_values: Optional[list[str]]
     attributes: Optional[list[Attribute]]
@@ -385,7 +392,7 @@ class Type:
     def category(self) -> TypeCategory:
         if not hasattr(self, "_category"):
             if self.items:
-                if self.items.type:
+                if self.items.json_type:
                     self._category = TypeCategory.BUILTIN_LIST
                 else:
                     self._category = TypeCategory.OBJECT_LIST
@@ -405,28 +412,43 @@ class Type:
         else:
             return self.id
 
+    @property
+    def base(self) -> str:
+        if not hasattr(self, "_base"):
+            if self.category == TypeCategory.BUILTIN:
+                self._base = create_type_annotation(
+                    self.json_type, None, False, False, self.context
+                )
+            elif self.category == TypeCategory.ENUM:
+                self.context.require("enum", None)
+                self._base = "enum.Enum"
+            elif self.category in [TypeCategory.BUILTIN_LIST, TypeCategory.OBJECT_LIST]:
+                self._base = f"list[{self.items.type}]"
+            else:
+                self._base = "object"
+        return self._base
+
+    @property
+    def decorators(self):
+        if self.category == TypeCategory.OBJECT:
+            return ["dataclasses.dataclass"]
+        else:
+            return []
+
     def to_ast(self):
-        base, decorators = None, []
         body = [self.create_docstring()]
 
         if self.category in [TypeCategory.BUILTIN, TypeCategory.BUILTIN_LIST]:
-            base = create_type_annotation(
-                self.type, None, self.items, False, self.context
-            )
             body.append(self.create_builtin_repr_function())
         elif self.category == TypeCategory.ENUM:
-            self.context.require("enum", None)
-            base = "enum.Enum"
             for v in self.enum_values:
                 body.append(ast_from_str(f'{snake_case(v).upper()} = "{v}"'))
         elif self.category == TypeCategory.OBJECT:
-            decorators = ["dataclasses.dataclass"]
             for attr in self.attributes:
                 body.append(attr.to_ast())
             body.append(self.create_object_from_json_function())
             body.append(self.create_object_to_json_function())
         elif self.category == TypeCategory.OBJECT_LIST:
-            base = create_type_annotation(None, None, self.items, False, self.context)
             body.append(self.create_object_list_from_json_function())
             body.append(self.create_object_list_to_json_function())
         else:
@@ -434,7 +456,9 @@ class Type:
                 f"Can't generate AST for type '{self.context.domain_name}.{self.id}'"
             )
 
-        return ast_classdef(self.id, body, [base] if base else [], decorators)
+        return ast_classdef(
+            self.id, body, [self.base] if self.base != "object" else [], self.decorators
+        )
 
     def create_builtin_repr_function(self):
         """Create the __repr__ function for a simple type"""
@@ -500,10 +524,7 @@ class Type:
         items_type = self.context.get_type_by_ref(self.items.ref)
 
         if items_type.category == TypeCategory.BUILTIN:
-            items_base = create_type_annotation(
-                items_type.type, None, None, False, self.context
-            )
-            items = f"[{items_base}(e) for e in self]"
+            items = f"[{items_type.base}(e) for e in self]"
         else:
             raise Exception(
                 f"Can't create to_json function for {self.context.module_name}.{self.id}. Not implemented yet"
