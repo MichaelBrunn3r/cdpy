@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
+from typing import Generator
 
 
 @dataclasses.dataclass
@@ -26,7 +27,7 @@ class Domain:
         return {"name": self.name, "version": self.version}
 
 
-def get_domains():
+def get_domains() -> Generator[dict, dict, list[Domain]]:
     """Returns supported domains.
 
     Returns
@@ -34,8 +35,5 @@ def get_domains():
     domains: list[Domain]
             List of supported domains.
     """
-    return {"method": "Schema.getDomains", "params": {}}
-
-
-def parse_get_domains_response(response):
+    response = yield {"method": "Schema.getDomains", "params": {}}
     return [Domain.from_json(d) for d in response["domains"]]

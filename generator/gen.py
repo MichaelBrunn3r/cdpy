@@ -585,14 +585,6 @@ class Method:
         )
 
     def to_ast(self):
-        functions = [self.create_build_method_function()]
-
-        if self.returns:
-            functions.append(self.create_parse_response_function())
-
-        return functions
-
-    def create_build_method_function(self):
         args = ast_args(
             [p.to_ast() for p in self.parameters],
             [p.default_value for p in self.parameters],
@@ -600,37 +592,44 @@ class Method:
 
         body = [self.create_docstring()]
 
-        # Create method builder
-        cmd_params = [
+        if self.returns:
+            # Yield method json and receive response json
+            body.append(ast_from_str(f"response = yield {self.method_json_ast()}"))
+
+            self.context.require("typing", "Generator")
+            if len(self.returns) == 1:
+                ret = self.returns[0]
+                response = ret.create_parse_from_ast("response")
+                function_type = f"Generator[dict,dict,{ret.type_annotation}]"
+            else:
+                response = ast.Dict(
+                    [ast.Constant(r.name) for r in self.returns],
+                    [r.create_parse_from_ast("response") for r in self.returns],
+                )
+                function_type = "Generator[dict,dict,dict]"
+
+            # Return parsed response
+            body.append(ast.Return(response))
+        else:
+            body.append(ast_from_str(f"return {self.method_json_ast()}"))
+            function_type = "dict"
+
+        return ast_function(
+            snake_case(self.name), args, body, returns=ast.Name(function_type)
+        )
+
+    def method_json_ast(self):
+        params = [
             f'"{p.name}": {p.create_unparse_from_ast(p.name)}' for p in self.parameters
         ]
-
-        cmd = f'{{"method": "{self.context.domain_name}.{self.name}", "params": {{{",".join(cmd_params)}}}}}'
+        params = "{" + ",".join(params) + "}"
 
         # Remove unset optional parameters
         if self.has_optional_params:
-            self.context.require(".common", "filter_unset_parameters")
-            cmd = f"filter_unset_parameters({cmd})"
+            self.context.require(".common", "filter_none")
+            params = f"filter_none({params})"
 
-        body.append(ast_from_str(f"return {cmd}"))
-
-        return ast_function(snake_case(self.name), args, body)
-
-    def create_parse_response_function(self):
-        if len(self.returns) == 1:
-            ret = self.returns[0]
-            response = ret.create_parse_from_ast("response")
-        else:
-            response = ast.Dict(
-                [ast.Constant(r.name) for r in self.returns],
-                [r.create_parse_from_ast("response") for r in self.returns],
-            )
-
-        return ast_function(
-            f"parse_{snake_case(self.name)}_response",
-            ast_args([ast.Name("response")]),
-            [ast.Return(response)],
-        )
+        return f'{{"method": "{self.context.domain_name}.{self.name}", "params": {params}}}'
 
     def create_docstring(self):
         docstr = DocstringBuilder(self.description)
@@ -759,7 +758,7 @@ class Domain:
             body.append(type.to_ast())
 
         for m in self.methods:
-            body += m.to_ast()
+            body.append(m.to_ast())
 
         for event in self.events:
             body.append(event.to_ast())

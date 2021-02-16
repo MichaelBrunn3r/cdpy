@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import dataclasses
 import enum
-from typing import Optional
+from typing import Generator, Optional
 
 from . import io
-from .common import filter_none, filter_unset_parameters
+from .common import filter_none
 
 
 class MemoryDumpConfig(dict):
@@ -106,12 +106,12 @@ class MemoryDumpLevelOfDetail(enum.Enum):
     DETAILED = "detailed"
 
 
-def end():
+def end() -> dict:
     """Stop trace events collection."""
     return {"method": "Tracing.end", "params": {}}
 
 
-def get_categories():
+def get_categories() -> Generator[dict, dict, list[str]]:
     """Gets supported tracing categories.
 
     Returns
@@ -119,14 +119,11 @@ def get_categories():
     categories: list[str]
             A list of supported tracing categories.
     """
-    return {"method": "Tracing.getCategories", "params": {}}
-
-
-def parse_get_categories_response(response):
+    response = yield {"method": "Tracing.getCategories", "params": {}}
     return response["categories"]
 
 
-def record_clock_sync_marker(syncId: str):
+def record_clock_sync_marker(syncId: str) -> dict:
     """Record a clock sync marker in the trace.
 
     Parameters
@@ -140,7 +137,7 @@ def record_clock_sync_marker(syncId: str):
 def request_memory_dump(
     deterministic: Optional[bool] = None,
     levelOfDetail: Optional[MemoryDumpLevelOfDetail] = None,
-):
+) -> Generator[dict, dict, dict]:
     """Request a global memory dump.
 
     Parameters
@@ -157,18 +154,15 @@ def request_memory_dump(
     success: bool
             True iff the global memory dump succeeded.
     """
-    return filter_unset_parameters(
-        {
-            "method": "Tracing.requestMemoryDump",
-            "params": {
+    response = yield {
+        "method": "Tracing.requestMemoryDump",
+        "params": filter_none(
+            {
                 "deterministic": deterministic,
                 "levelOfDetail": levelOfDetail.value if levelOfDetail else None,
-            },
-        }
-    )
-
-
-def parse_request_memory_dump_response(response):
+            }
+        ),
+    }
     return {"dumpGuid": response["dumpGuid"], "success": response["success"]}
 
 
@@ -181,7 +175,7 @@ def start(
     streamCompression: Optional[StreamCompression] = None,
     traceConfig: Optional[TraceConfig] = None,
     perfettoConfig: Optional[str] = None,
-):
+) -> dict:
     """Start trace events collection.
 
     Parameters
@@ -207,10 +201,10 @@ def start(
             When specified, the parameters `categories`, `options`, `traceConfig`
             are ignored. (Encoded as a base64 string when passed over JSON)
     """
-    return filter_unset_parameters(
-        {
-            "method": "Tracing.start",
-            "params": {
+    return {
+        "method": "Tracing.start",
+        "params": filter_none(
+            {
                 "categories": categories,
                 "options": options,
                 "bufferUsageReportingInterval": bufferUsageReportingInterval,
@@ -221,9 +215,9 @@ def start(
                 else None,
                 "traceConfig": traceConfig.to_json() if traceConfig else None,
                 "perfettoConfig": perfettoConfig,
-            },
-        }
-    )
+            }
+        ),
+    }
 
 
 @dataclasses.dataclass

@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import dataclasses
 import enum
-from typing import Optional
+from typing import Generator, Optional
 
 from . import dom, runtime
-from .common import filter_none, filter_unset_parameters
+from .common import filter_none
 
 
 class DOMBreakpointType(enum.Enum):
@@ -108,7 +108,7 @@ def get_event_listeners(
     objectId: runtime.RemoteObjectId,
     depth: Optional[int] = None,
     pierce: Optional[bool] = None,
-):
+) -> Generator[dict, dict, list[EventListener]]:
     """Returns event listeners of the given object.
 
     Parameters
@@ -127,19 +127,16 @@ def get_event_listeners(
     listeners: list[EventListener]
             Array of relevant listeners.
     """
-    return filter_unset_parameters(
-        {
-            "method": "DOMDebugger.getEventListeners",
-            "params": {"objectId": str(objectId), "depth": depth, "pierce": pierce},
-        }
-    )
-
-
-def parse_get_event_listeners_response(response):
+    response = yield {
+        "method": "DOMDebugger.getEventListeners",
+        "params": filter_none(
+            {"objectId": str(objectId), "depth": depth, "pierce": pierce}
+        ),
+    }
     return [EventListener.from_json(l) for l in response["listeners"]]
 
 
-def remove_dom_breakpoint(nodeId: dom.NodeId, type: DOMBreakpointType):
+def remove_dom_breakpoint(nodeId: dom.NodeId, type: DOMBreakpointType) -> dict:
     """Removes DOM breakpoint that was set using `setDOMBreakpoint`.
 
     Parameters
@@ -155,7 +152,9 @@ def remove_dom_breakpoint(nodeId: dom.NodeId, type: DOMBreakpointType):
     }
 
 
-def remove_event_listener_breakpoint(eventName: str, targetName: Optional[str] = None):
+def remove_event_listener_breakpoint(
+    eventName: str, targetName: Optional[str] = None
+) -> dict:
     """Removes breakpoint on particular DOM event.
 
     Parameters
@@ -165,15 +164,13 @@ def remove_event_listener_breakpoint(eventName: str, targetName: Optional[str] =
     targetName: Optional[str]
             EventTarget interface name.
     """
-    return filter_unset_parameters(
-        {
-            "method": "DOMDebugger.removeEventListenerBreakpoint",
-            "params": {"eventName": eventName, "targetName": targetName},
-        }
-    )
+    return {
+        "method": "DOMDebugger.removeEventListenerBreakpoint",
+        "params": filter_none({"eventName": eventName, "targetName": targetName}),
+    }
 
 
-def remove_instrumentation_breakpoint(eventName: str):
+def remove_instrumentation_breakpoint(eventName: str) -> dict:
     """Removes breakpoint on particular native event.
 
     **Experimental**
@@ -189,7 +186,7 @@ def remove_instrumentation_breakpoint(eventName: str):
     }
 
 
-def remove_xhr_breakpoint(url: str):
+def remove_xhr_breakpoint(url: str) -> dict:
     """Removes breakpoint from XMLHttpRequest.
 
     Parameters
@@ -200,7 +197,7 @@ def remove_xhr_breakpoint(url: str):
     return {"method": "DOMDebugger.removeXHRBreakpoint", "params": {"url": url}}
 
 
-def set_break_on_csp_violation(violationTypes: list[CSPViolationType]):
+def set_break_on_csp_violation(violationTypes: list[CSPViolationType]) -> dict:
     """Sets breakpoint on particular CSP violations.
 
     **Experimental**
@@ -216,7 +213,7 @@ def set_break_on_csp_violation(violationTypes: list[CSPViolationType]):
     }
 
 
-def set_dom_breakpoint(nodeId: dom.NodeId, type: DOMBreakpointType):
+def set_dom_breakpoint(nodeId: dom.NodeId, type: DOMBreakpointType) -> dict:
     """Sets breakpoint on particular operation with DOM.
 
     Parameters
@@ -232,7 +229,9 @@ def set_dom_breakpoint(nodeId: dom.NodeId, type: DOMBreakpointType):
     }
 
 
-def set_event_listener_breakpoint(eventName: str, targetName: Optional[str] = None):
+def set_event_listener_breakpoint(
+    eventName: str, targetName: Optional[str] = None
+) -> dict:
     """Sets breakpoint on particular DOM event.
 
     Parameters
@@ -243,15 +242,13 @@ def set_event_listener_breakpoint(eventName: str, targetName: Optional[str] = No
             EventTarget interface name to stop on. If equal to `"*"` or not provided, will stop on any
             EventTarget.
     """
-    return filter_unset_parameters(
-        {
-            "method": "DOMDebugger.setEventListenerBreakpoint",
-            "params": {"eventName": eventName, "targetName": targetName},
-        }
-    )
+    return {
+        "method": "DOMDebugger.setEventListenerBreakpoint",
+        "params": filter_none({"eventName": eventName, "targetName": targetName}),
+    }
 
 
-def set_instrumentation_breakpoint(eventName: str):
+def set_instrumentation_breakpoint(eventName: str) -> dict:
     """Sets breakpoint on particular native event.
 
     **Experimental**
@@ -267,7 +264,7 @@ def set_instrumentation_breakpoint(eventName: str):
     }
 
 
-def set_xhr_breakpoint(url: str):
+def set_xhr_breakpoint(url: str) -> dict:
     """Sets breakpoint on XMLHttpRequest.
 
     Parameters

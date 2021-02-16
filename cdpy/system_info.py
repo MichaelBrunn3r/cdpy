@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 import enum
-from typing import Optional
+from typing import Generator, Optional
 
 from .common import filter_none
 
@@ -315,7 +315,7 @@ class ProcessInfo:
         return {"type": self.type, "id": self.id, "cpuTime": self.cpuTime}
 
 
-def get_info():
+def get_info() -> Generator[dict, dict, dict]:
     """Returns information about the system.
 
     Returns
@@ -332,10 +332,7 @@ def get_info():
             The command line string used to launch the browser. Will be the empty string if not
             supported.
     """
-    return {"method": "SystemInfo.getInfo", "params": {}}
-
-
-def parse_get_info_response(response):
+    response = yield {"method": "SystemInfo.getInfo", "params": {}}
     return {
         "gpu": GPUInfo.from_json(response["gpu"]),
         "modelName": response["modelName"],
@@ -344,7 +341,7 @@ def parse_get_info_response(response):
     }
 
 
-def get_process_info():
+def get_process_info() -> Generator[dict, dict, list[ProcessInfo]]:
     """Returns information about all running processes.
 
     Returns
@@ -352,8 +349,5 @@ def get_process_info():
     processInfo: list[ProcessInfo]
             An array of process info blocks.
     """
-    return {"method": "SystemInfo.getProcessInfo", "params": {}}
-
-
-def parse_get_process_info_response(response):
+    response = yield {"method": "SystemInfo.getProcessInfo", "params": {}}
     return [ProcessInfo.from_json(p) for p in response["processInfo"]]

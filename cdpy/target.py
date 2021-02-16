@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Optional
+from typing import Generator, Optional
 
 from . import browser, page
-from .common import filter_none, filter_unset_parameters
+from .common import filter_none
 
 
 class TargetID(str):
@@ -107,7 +107,7 @@ class RemoteLocation:
         return {"host": self.host, "port": self.port}
 
 
-def activate_target(targetId: TargetID):
+def activate_target(targetId: TargetID) -> dict:
     """Activates (focuses) the target.
 
     Parameters
@@ -117,7 +117,9 @@ def activate_target(targetId: TargetID):
     return {"method": "Target.activateTarget", "params": {"targetId": str(targetId)}}
 
 
-def attach_to_target(targetId: TargetID, flatten: Optional[bool] = None):
+def attach_to_target(
+    targetId: TargetID, flatten: Optional[bool] = None
+) -> Generator[dict, dict, SessionID]:
     """Attaches to the target with given id.
 
     Parameters
@@ -133,19 +135,14 @@ def attach_to_target(targetId: TargetID, flatten: Optional[bool] = None):
     sessionId: SessionID
             Id assigned to the session.
     """
-    return filter_unset_parameters(
-        {
-            "method": "Target.attachToTarget",
-            "params": {"targetId": str(targetId), "flatten": flatten},
-        }
-    )
-
-
-def parse_attach_to_target_response(response):
+    response = yield {
+        "method": "Target.attachToTarget",
+        "params": filter_none({"targetId": str(targetId), "flatten": flatten}),
+    }
     return SessionID(response["sessionId"])
 
 
-def attach_to_browser_target():
+def attach_to_browser_target() -> Generator[dict, dict, SessionID]:
     """Attaches to the browser target, only uses flat sessionId mode.
 
     **Experimental**
@@ -155,14 +152,11 @@ def attach_to_browser_target():
     sessionId: SessionID
             Id assigned to the session.
     """
-    return {"method": "Target.attachToBrowserTarget", "params": {}}
-
-
-def parse_attach_to_browser_target_response(response):
+    response = yield {"method": "Target.attachToBrowserTarget", "params": {}}
     return SessionID(response["sessionId"])
 
 
-def close_target(targetId: TargetID):
+def close_target(targetId: TargetID) -> Generator[dict, dict, bool]:
     """Closes the target. If the target is a page that gets closed too.
 
     Parameters
@@ -174,14 +168,16 @@ def close_target(targetId: TargetID):
     success: bool
             Always set to true. If an error occurs, the response indicates protocol error.
     """
-    return {"method": "Target.closeTarget", "params": {"targetId": str(targetId)}}
-
-
-def parse_close_target_response(response):
+    response = yield {
+        "method": "Target.closeTarget",
+        "params": {"targetId": str(targetId)},
+    }
     return response["success"]
 
 
-def expose_dev_tools_protocol(targetId: TargetID, bindingName: Optional[str] = None):
+def expose_dev_tools_protocol(
+    targetId: TargetID, bindingName: Optional[str] = None
+) -> dict:
     """Inject object to the target's main frame that provides a communication
     channel with browser target.
 
@@ -199,19 +195,17 @@ def expose_dev_tools_protocol(targetId: TargetID, bindingName: Optional[str] = N
     bindingName: Optional[str]
             Binding name, 'cdp' if not specified.
     """
-    return filter_unset_parameters(
-        {
-            "method": "Target.exposeDevToolsProtocol",
-            "params": {"targetId": str(targetId), "bindingName": bindingName},
-        }
-    )
+    return {
+        "method": "Target.exposeDevToolsProtocol",
+        "params": filter_none({"targetId": str(targetId), "bindingName": bindingName}),
+    }
 
 
 def create_browser_context(
     disposeOnDetach: Optional[bool] = None,
     proxyServer: Optional[str] = None,
     proxyBypassList: Optional[str] = None,
-):
+) -> Generator[dict, dict, browser.BrowserContextID]:
     """Creates a new empty BrowserContext. Similar to an incognito profile but you can have more than
     one.
 
@@ -231,23 +225,20 @@ def create_browser_context(
     browserContextId: browser.BrowserContextID
             The id of the context created.
     """
-    return filter_unset_parameters(
-        {
-            "method": "Target.createBrowserContext",
-            "params": {
+    response = yield {
+        "method": "Target.createBrowserContext",
+        "params": filter_none(
+            {
                 "disposeOnDetach": disposeOnDetach,
                 "proxyServer": proxyServer,
                 "proxyBypassList": proxyBypassList,
-            },
-        }
-    )
-
-
-def parse_create_browser_context_response(response):
+            }
+        ),
+    }
     return browser.BrowserContextID(response["browserContextId"])
 
 
-def get_browser_contexts():
+def get_browser_contexts() -> Generator[dict, dict, list[browser.BrowserContextID]]:
     """Returns all browser contexts created with `Target.createBrowserContext` method.
 
     **Experimental**
@@ -257,10 +248,7 @@ def get_browser_contexts():
     browserContextIds: list[browser.BrowserContextID]
             An array of browser context ids.
     """
-    return {"method": "Target.getBrowserContexts", "params": {}}
-
-
-def parse_get_browser_contexts_response(response):
+    response = yield {"method": "Target.getBrowserContexts", "params": {}}
     return [browser.BrowserContextID(b) for b in response["browserContextIds"]]
 
 
@@ -272,7 +260,7 @@ def create_target(
     enableBeginFrameControl: Optional[bool] = None,
     newWindow: Optional[bool] = None,
     background: Optional[bool] = None,
-):
+) -> Generator[dict, dict, TargetID]:
     """Creates a new page.
 
     Parameters
@@ -299,10 +287,10 @@ def create_target(
     targetId: TargetID
             The id of the page opened.
     """
-    return filter_unset_parameters(
-        {
-            "method": "Target.createTarget",
-            "params": {
+    response = yield {
+        "method": "Target.createTarget",
+        "params": filter_none(
+            {
                 "url": url,
                 "width": width,
                 "height": height,
@@ -310,18 +298,15 @@ def create_target(
                 "enableBeginFrameControl": enableBeginFrameControl,
                 "newWindow": newWindow,
                 "background": background,
-            },
-        }
-    )
-
-
-def parse_create_target_response(response):
+            }
+        ),
+    }
     return TargetID(response["targetId"])
 
 
 def detach_from_target(
     sessionId: Optional[SessionID] = None, targetId: Optional[TargetID] = None
-):
+) -> dict:
     """Detaches session with given id.
 
     Parameters
@@ -331,18 +316,18 @@ def detach_from_target(
     targetId: Optional[TargetID]
             Deprecated.
     """
-    return filter_unset_parameters(
-        {
-            "method": "Target.detachFromTarget",
-            "params": {
+    return {
+        "method": "Target.detachFromTarget",
+        "params": filter_none(
+            {
                 "sessionId": str(sessionId) if sessionId else None,
                 "targetId": str(targetId) if targetId else None,
-            },
-        }
-    )
+            }
+        ),
+    }
 
 
-def dispose_browser_context(browserContextId: browser.BrowserContextID):
+def dispose_browser_context(browserContextId: browser.BrowserContextID) -> dict:
     """Deletes a BrowserContext. All the belonging pages will be closed without calling their
     beforeunload hooks.
 
@@ -358,7 +343,9 @@ def dispose_browser_context(browserContextId: browser.BrowserContextID):
     }
 
 
-def get_target_info(targetId: Optional[TargetID] = None):
+def get_target_info(
+    targetId: Optional[TargetID] = None,
+) -> Generator[dict, dict, TargetInfo]:
     """Returns information about a target.
 
     **Experimental**
@@ -371,19 +358,14 @@ def get_target_info(targetId: Optional[TargetID] = None):
     -------
     targetInfo: TargetInfo
     """
-    return filter_unset_parameters(
-        {
-            "method": "Target.getTargetInfo",
-            "params": {"targetId": str(targetId) if targetId else None},
-        }
-    )
-
-
-def parse_get_target_info_response(response):
+    response = yield {
+        "method": "Target.getTargetInfo",
+        "params": filter_none({"targetId": str(targetId) if targetId else None}),
+    }
     return TargetInfo.from_json(response["targetInfo"])
 
 
-def get_targets():
+def get_targets() -> Generator[dict, dict, list[TargetInfo]]:
     """Retrieves a list of available targets.
 
     Returns
@@ -391,10 +373,7 @@ def get_targets():
     targetInfos: list[TargetInfo]
             The list of targets.
     """
-    return {"method": "Target.getTargets", "params": {}}
-
-
-def parse_get_targets_response(response):
+    response = yield {"method": "Target.getTargets", "params": {}}
     return [TargetInfo.from_json(t) for t in response["targetInfos"]]
 
 
@@ -402,7 +381,7 @@ def send_message_to_target(
     message: str,
     sessionId: Optional[SessionID] = None,
     targetId: Optional[TargetID] = None,
-):
+) -> dict:
     """Sends protocol message over session with given id.
     Consider using flat mode instead; see commands attachToTarget, setAutoAttach,
     and crbug.com/991325.
@@ -417,21 +396,21 @@ def send_message_to_target(
     targetId: Optional[TargetID]
             Deprecated.
     """
-    return filter_unset_parameters(
-        {
-            "method": "Target.sendMessageToTarget",
-            "params": {
+    return {
+        "method": "Target.sendMessageToTarget",
+        "params": filter_none(
+            {
                 "message": message,
                 "sessionId": str(sessionId) if sessionId else None,
                 "targetId": str(targetId) if targetId else None,
-            },
-        }
-    )
+            }
+        ),
+    }
 
 
 def set_auto_attach(
     autoAttach: bool, waitForDebuggerOnStart: bool, flatten: Optional[bool] = None
-):
+) -> dict:
     """Controls whether to automatically attach to new targets which are considered to be related to
     this one. When turned on, attaches to all existing related targets as well. When turned off,
     automatically detaches from all currently attached targets.
@@ -450,19 +429,19 @@ def set_auto_attach(
             We plan to make this the default, deprecate non-flattened mode,
             and eventually retire it. See crbug.com/991325.
     """
-    return filter_unset_parameters(
-        {
-            "method": "Target.setAutoAttach",
-            "params": {
+    return {
+        "method": "Target.setAutoAttach",
+        "params": filter_none(
+            {
                 "autoAttach": autoAttach,
                 "waitForDebuggerOnStart": waitForDebuggerOnStart,
                 "flatten": flatten,
-            },
-        }
-    )
+            }
+        ),
+    }
 
 
-def set_discover_targets(discover: bool):
+def set_discover_targets(discover: bool) -> dict:
     """Controls whether to discover available targets and notify via
     `targetCreated/targetInfoChanged/targetDestroyed` events.
 
@@ -474,7 +453,7 @@ def set_discover_targets(discover: bool):
     return {"method": "Target.setDiscoverTargets", "params": {"discover": discover}}
 
 
-def set_remote_locations(locations: list[RemoteLocation]):
+def set_remote_locations(locations: list[RemoteLocation]) -> dict:
     """Enables target discovery for the specified locations, when `setDiscoverTargets` was set to
     `true`.
 

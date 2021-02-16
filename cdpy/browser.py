@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import dataclasses
 import enum
-from typing import Optional
+from typing import Generator, Optional
 
 from . import target
-from .common import filter_none, filter_unset_parameters
+from .common import filter_none
 
 
 class BrowserContextID(str):
@@ -239,7 +239,7 @@ def set_permission(
     setting: PermissionSetting,
     origin: Optional[str] = None,
     browserContextId: Optional[BrowserContextID] = None,
-):
+) -> dict:
     """Set permission settings for given origin.
 
     **Experimental**
@@ -255,24 +255,24 @@ def set_permission(
     browserContextId: Optional[BrowserContextID]
             Context to override. When omitted, default browser context is used.
     """
-    return filter_unset_parameters(
-        {
-            "method": "Browser.setPermission",
-            "params": {
+    return {
+        "method": "Browser.setPermission",
+        "params": filter_none(
+            {
                 "permission": permission.to_json(),
                 "setting": setting.value,
                 "origin": origin,
                 "browserContextId": str(browserContextId) if browserContextId else None,
-            },
-        }
-    )
+            }
+        ),
+    }
 
 
 def grant_permissions(
     permissions: list[PermissionType],
     origin: Optional[str] = None,
     browserContextId: Optional[BrowserContextID] = None,
-):
+) -> dict:
     """Grant specific permissions to the given origin and reject all others.
 
     **Experimental**
@@ -285,19 +285,19 @@ def grant_permissions(
     browserContextId: Optional[BrowserContextID]
             BrowserContext to override permissions. When omitted, default browser context is used.
     """
-    return filter_unset_parameters(
-        {
-            "method": "Browser.grantPermissions",
-            "params": {
+    return {
+        "method": "Browser.grantPermissions",
+        "params": filter_none(
+            {
                 "permissions": [p.value for p in permissions],
                 "origin": origin,
                 "browserContextId": str(browserContextId) if browserContextId else None,
-            },
-        }
-    )
+            }
+        ),
+    }
 
 
-def reset_permissions(browserContextId: Optional[BrowserContextID] = None):
+def reset_permissions(browserContextId: Optional[BrowserContextID] = None) -> dict:
     """Reset all permission management for all origins.
 
     **Experimental**
@@ -307,21 +307,19 @@ def reset_permissions(browserContextId: Optional[BrowserContextID] = None):
     browserContextId: Optional[BrowserContextID]
             BrowserContext to reset permissions. When omitted, default browser context is used.
     """
-    return filter_unset_parameters(
-        {
-            "method": "Browser.resetPermissions",
-            "params": {
-                "browserContextId": str(browserContextId) if browserContextId else None
-            },
-        }
-    )
+    return {
+        "method": "Browser.resetPermissions",
+        "params": filter_none(
+            {"browserContextId": str(browserContextId) if browserContextId else None}
+        ),
+    }
 
 
 def set_download_behavior(
     behavior: str,
     browserContextId: Optional[BrowserContextID] = None,
     downloadPath: Optional[str] = None,
-):
+) -> dict:
     """Set the behavior when downloading a file.
 
     **Experimental**
@@ -338,24 +336,24 @@ def set_download_behavior(
             The default path to save downloaded files to. This is requred if behavior is set to 'allow'
             or 'allowAndName'.
     """
-    return filter_unset_parameters(
-        {
-            "method": "Browser.setDownloadBehavior",
-            "params": {
+    return {
+        "method": "Browser.setDownloadBehavior",
+        "params": filter_none(
+            {
                 "behavior": behavior,
                 "browserContextId": str(browserContextId) if browserContextId else None,
                 "downloadPath": downloadPath,
-            },
-        }
-    )
+            }
+        ),
+    }
 
 
-def close():
+def close() -> dict:
     """Close browser gracefully."""
     return {"method": "Browser.close", "params": {}}
 
 
-def crash():
+def crash() -> dict:
     """Crashes browser on the main thread.
 
     **Experimental**
@@ -363,7 +361,7 @@ def crash():
     return {"method": "Browser.crash", "params": {}}
 
 
-def crash_gpu_process():
+def crash_gpu_process() -> dict:
     """Crashes GPU process.
 
     **Experimental**
@@ -371,7 +369,7 @@ def crash_gpu_process():
     return {"method": "Browser.crashGpuProcess", "params": {}}
 
 
-def get_version():
+def get_version() -> Generator[dict, dict, dict]:
     """Returns version information.
 
     Returns
@@ -387,10 +385,7 @@ def get_version():
     jsVersion: str
             V8 version.
     """
-    return {"method": "Browser.getVersion", "params": {}}
-
-
-def parse_get_version_response(response):
+    response = yield {"method": "Browser.getVersion", "params": {}}
     return {
         "protocolVersion": response["protocolVersion"],
         "product": response["product"],
@@ -400,7 +395,7 @@ def parse_get_version_response(response):
     }
 
 
-def get_browser_command_line():
+def get_browser_command_line() -> Generator[dict, dict, list[str]]:
     """Returns the command line switches for the browser process if, and only if
     --enable-automation is on the commandline.
 
@@ -411,14 +406,13 @@ def get_browser_command_line():
     arguments: list[str]
             Commandline parameters
     """
-    return {"method": "Browser.getBrowserCommandLine", "params": {}}
-
-
-def parse_get_browser_command_line_response(response):
+    response = yield {"method": "Browser.getBrowserCommandLine", "params": {}}
     return response["arguments"]
 
 
-def get_histograms(query: Optional[str] = None, delta: Optional[bool] = None):
+def get_histograms(
+    query: Optional[str] = None, delta: Optional[bool] = None
+) -> Generator[dict, dict, list[Histogram]]:
     """Get Chrome histograms.
 
     **Experimental**
@@ -437,16 +431,16 @@ def get_histograms(query: Optional[str] = None, delta: Optional[bool] = None):
     histograms: list[Histogram]
             Histograms.
     """
-    return filter_unset_parameters(
-        {"method": "Browser.getHistograms", "params": {"query": query, "delta": delta}}
-    )
-
-
-def parse_get_histograms_response(response):
+    response = yield {
+        "method": "Browser.getHistograms",
+        "params": filter_none({"query": query, "delta": delta}),
+    }
     return [Histogram.from_json(h) for h in response["histograms"]]
 
 
-def get_histogram(name: str, delta: Optional[bool] = None):
+def get_histogram(
+    name: str, delta: Optional[bool] = None
+) -> Generator[dict, dict, Histogram]:
     """Get a Chrome histogram by name.
 
     **Experimental**
@@ -463,16 +457,14 @@ def get_histogram(name: str, delta: Optional[bool] = None):
     histogram: Histogram
             Histogram.
     """
-    return filter_unset_parameters(
-        {"method": "Browser.getHistogram", "params": {"name": name, "delta": delta}}
-    )
-
-
-def parse_get_histogram_response(response):
+    response = yield {
+        "method": "Browser.getHistogram",
+        "params": filter_none({"name": name, "delta": delta}),
+    }
     return Histogram.from_json(response["histogram"])
 
 
-def get_window_bounds(windowId: WindowID):
+def get_window_bounds(windowId: WindowID) -> Generator[dict, dict, Bounds]:
     """Get position and size of the browser window.
 
     **Experimental**
@@ -488,14 +480,16 @@ def get_window_bounds(windowId: WindowID):
             Bounds information of the window. When window state is 'minimized', the restored window
             position and size are returned.
     """
-    return {"method": "Browser.getWindowBounds", "params": {"windowId": int(windowId)}}
-
-
-def parse_get_window_bounds_response(response):
+    response = yield {
+        "method": "Browser.getWindowBounds",
+        "params": {"windowId": int(windowId)},
+    }
     return Bounds.from_json(response["bounds"])
 
 
-def get_window_for_target(targetId: Optional[target.TargetID] = None):
+def get_window_for_target(
+    targetId: Optional[target.TargetID] = None,
+) -> Generator[dict, dict, dict]:
     """Get the browser window that contains the devtools target.
 
     **Experimental**
@@ -513,22 +507,17 @@ def get_window_for_target(targetId: Optional[target.TargetID] = None):
             Bounds information of the window. When window state is 'minimized', the restored window
             position and size are returned.
     """
-    return filter_unset_parameters(
-        {
-            "method": "Browser.getWindowForTarget",
-            "params": {"targetId": str(targetId) if targetId else None},
-        }
-    )
-
-
-def parse_get_window_for_target_response(response):
+    response = yield {
+        "method": "Browser.getWindowForTarget",
+        "params": filter_none({"targetId": str(targetId) if targetId else None}),
+    }
     return {
         "windowId": WindowID(response["windowId"]),
         "bounds": Bounds.from_json(response["bounds"]),
     }
 
 
-def set_window_bounds(windowId: WindowID, bounds: Bounds):
+def set_window_bounds(windowId: WindowID, bounds: Bounds) -> dict:
     """Set position and/or size of the browser window.
 
     **Experimental**
@@ -547,7 +536,9 @@ def set_window_bounds(windowId: WindowID, bounds: Bounds):
     }
 
 
-def set_dock_tile(badgeLabel: Optional[str] = None, image: Optional[str] = None):
+def set_dock_tile(
+    badgeLabel: Optional[str] = None, image: Optional[str] = None
+) -> dict:
     """Set dock tile details, platform-specific.
 
     **Experimental**
@@ -558,15 +549,13 @@ def set_dock_tile(badgeLabel: Optional[str] = None, image: Optional[str] = None)
     image: Optional[str]
             Png encoded image. (Encoded as a base64 string when passed over JSON)
     """
-    return filter_unset_parameters(
-        {
-            "method": "Browser.setDockTile",
-            "params": {"badgeLabel": badgeLabel, "image": image},
-        }
-    )
+    return {
+        "method": "Browser.setDockTile",
+        "params": filter_none({"badgeLabel": badgeLabel, "image": image}),
+    }
 
 
-def execute_browser_command(commandId: BrowserCommandId):
+def execute_browser_command(commandId: BrowserCommandId) -> dict:
     """Invoke custom browser commands used by telemetry.
 
     **Experimental**

@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Optional
+from typing import Generator, Optional
 
 from . import dom, dom_debugger, page
-from .common import filter_none, filter_unset_parameters
+from .common import filter_none
 
 
 @dataclasses.dataclass
@@ -765,12 +765,12 @@ class TextBoxSnapshot:
         }
 
 
-def disable():
+def disable() -> dict:
     """Disables DOM snapshot agent for the given page."""
     return {"method": "DOMSnapshot.disable", "params": {}}
 
 
-def enable():
+def enable() -> dict:
     """Enables DOM snapshot agent for the given page."""
     return {"method": "DOMSnapshot.enable", "params": {}}
 
@@ -780,7 +780,7 @@ def get_snapshot(
     includeEventListeners: Optional[bool] = None,
     includePaintOrder: Optional[bool] = None,
     includeUserAgentShadowTree: Optional[bool] = None,
-):
+) -> Generator[dict, dict, dict]:
     """Returns a document snapshot, including the full DOM tree of the root node (including iframes,
     template contents, and imported documents) in a flattened array, as well as layout and
     white-listed computed style information for the nodes. Shadow DOM in the returned DOM tree is
@@ -808,20 +808,17 @@ def get_snapshot(
     computedStyles: list[ComputedStyle]
             Whitelisted ComputedStyle properties for each node in the layout tree.
     """
-    return filter_unset_parameters(
-        {
-            "method": "DOMSnapshot.getSnapshot",
-            "params": {
+    response = yield {
+        "method": "DOMSnapshot.getSnapshot",
+        "params": filter_none(
+            {
                 "computedStyleWhitelist": computedStyleWhitelist,
                 "includeEventListeners": includeEventListeners,
                 "includePaintOrder": includePaintOrder,
                 "includeUserAgentShadowTree": includeUserAgentShadowTree,
-            },
-        }
-    )
-
-
-def parse_get_snapshot_response(response):
+            }
+        ),
+    }
     return {
         "domNodes": [DOMNode.from_json(d) for d in response["domNodes"]],
         "layoutTreeNodes": [
@@ -837,7 +834,7 @@ def capture_snapshot(
     computedStyles: list[str],
     includePaintOrder: Optional[bool] = None,
     includeDOMRects: Optional[bool] = None,
-):
+) -> Generator[dict, dict, dict]:
     """Returns a document snapshot, including the full DOM tree of the root node (including iframes,
     template contents, and imported documents) in a flattened array, as well as layout and
     white-listed computed style information for the nodes. Shadow DOM in the returned DOM tree is
@@ -859,19 +856,16 @@ def capture_snapshot(
     strings: list[str]
             Shared string table that all string properties refer to with indexes.
     """
-    return filter_unset_parameters(
-        {
-            "method": "DOMSnapshot.captureSnapshot",
-            "params": {
+    response = yield {
+        "method": "DOMSnapshot.captureSnapshot",
+        "params": filter_none(
+            {
                 "computedStyles": computedStyles,
                 "includePaintOrder": includePaintOrder,
                 "includeDOMRects": includeDOMRects,
-            },
-        }
-    )
-
-
-def parse_capture_snapshot_response(response):
+            }
+        ),
+    }
     return {
         "documents": [DocumentSnapshot.from_json(d) for d in response["documents"]],
         "strings": response["strings"],

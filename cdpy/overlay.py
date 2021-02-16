@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import dataclasses
 import enum
-from typing import Optional
+from typing import Generator, Optional
 
 from . import dom, page, runtime
-from .common import filter_none, filter_unset_parameters
+from .common import filter_none
 
 
 @dataclasses.dataclass
@@ -665,12 +665,12 @@ class InspectMode(enum.Enum):
     NONE = "none"
 
 
-def disable():
+def disable() -> dict:
     """Disables domain notifications."""
     return {"method": "Overlay.disable", "params": {}}
 
 
-def enable():
+def enable() -> dict:
     """Enables domain notifications."""
     return {"method": "Overlay.enable", "params": {}}
 
@@ -681,7 +681,7 @@ def get_highlight_object_for_test(
     includeStyle: Optional[bool] = None,
     colorFormat: Optional[ColorFormat] = None,
     showAccessibilityInfo: Optional[bool] = None,
-):
+) -> Generator[dict, dict, dict]:
     """For testing.
 
     Parameters
@@ -702,25 +702,24 @@ def get_highlight_object_for_test(
     highlight: dict
             Highlight data for the node.
     """
-    return filter_unset_parameters(
-        {
-            "method": "Overlay.getHighlightObjectForTest",
-            "params": {
+    response = yield {
+        "method": "Overlay.getHighlightObjectForTest",
+        "params": filter_none(
+            {
                 "nodeId": int(nodeId),
                 "includeDistance": includeDistance,
                 "includeStyle": includeStyle,
                 "colorFormat": colorFormat.value if colorFormat else None,
                 "showAccessibilityInfo": showAccessibilityInfo,
-            },
-        }
-    )
-
-
-def parse_get_highlight_object_for_test_response(response):
+            }
+        ),
+    }
     return response["highlight"]
 
 
-def get_grid_highlight_objects_for_test(nodeIds: list[dom.NodeId]):
+def get_grid_highlight_objects_for_test(
+    nodeIds: list[dom.NodeId],
+) -> Generator[dict, dict, dict]:
     """For Persistent Grid testing.
 
     Parameters
@@ -733,17 +732,16 @@ def get_grid_highlight_objects_for_test(nodeIds: list[dom.NodeId]):
     highlights: dict
             Grid Highlight data for the node ids provided.
     """
-    return {
+    response = yield {
         "method": "Overlay.getGridHighlightObjectsForTest",
         "params": {"nodeIds": [int(n) for n in nodeIds]},
     }
-
-
-def parse_get_grid_highlight_objects_for_test_response(response):
     return response["highlights"]
 
 
-def get_source_order_highlight_object_for_test(nodeId: dom.NodeId):
+def get_source_order_highlight_object_for_test(
+    nodeId: dom.NodeId,
+) -> Generator[dict, dict, dict]:
     """For Source Order Viewer testing.
 
     Parameters
@@ -756,17 +754,14 @@ def get_source_order_highlight_object_for_test(nodeId: dom.NodeId):
     highlight: dict
             Source order highlight data for the node id provided.
     """
-    return {
+    response = yield {
         "method": "Overlay.getSourceOrderHighlightObjectForTest",
         "params": {"nodeId": int(nodeId)},
     }
-
-
-def parse_get_source_order_highlight_object_for_test_response(response):
     return response["highlight"]
 
 
-def hide_highlight():
+def hide_highlight() -> dict:
     """Hides any highlight."""
     return {"method": "Overlay.hideHighlight", "params": {}}
 
@@ -775,7 +770,7 @@ def highlight_frame(
     frameId: page.FrameId,
     contentColor: Optional[dom.RGBA] = None,
     contentOutlineColor: Optional[dom.RGBA] = None,
-):
+) -> dict:
     """Highlights owner element of the frame with given id.
 
     Parameters
@@ -787,18 +782,18 @@ def highlight_frame(
     contentOutlineColor: Optional[dom.RGBA]
             The content box highlight outline color (default: transparent).
     """
-    return filter_unset_parameters(
-        {
-            "method": "Overlay.highlightFrame",
-            "params": {
+    return {
+        "method": "Overlay.highlightFrame",
+        "params": filter_none(
+            {
                 "frameId": str(frameId),
                 "contentColor": contentColor.to_json() if contentColor else None,
                 "contentOutlineColor": contentOutlineColor.to_json()
                 if contentOutlineColor
                 else None,
-            },
-        }
-    )
+            }
+        ),
+    }
 
 
 def highlight_node(
@@ -807,7 +802,7 @@ def highlight_node(
     backendNodeId: Optional[dom.BackendNodeId] = None,
     objectId: Optional[runtime.RemoteObjectId] = None,
     selector: Optional[str] = None,
-):
+) -> dict:
     """Highlights DOM node with given id or with the given JavaScript object wrapper. Either nodeId or
     objectId must be specified.
 
@@ -824,25 +819,25 @@ def highlight_node(
     selector: Optional[str]
             Selectors to highlight relevant nodes.
     """
-    return filter_unset_parameters(
-        {
-            "method": "Overlay.highlightNode",
-            "params": {
+    return {
+        "method": "Overlay.highlightNode",
+        "params": filter_none(
+            {
                 "highlightConfig": highlightConfig.to_json(),
                 "nodeId": int(nodeId) if nodeId else None,
                 "backendNodeId": int(backendNodeId) if backendNodeId else None,
                 "objectId": str(objectId) if objectId else None,
                 "selector": selector,
-            },
-        }
-    )
+            }
+        ),
+    }
 
 
 def highlight_quad(
     quad: dom.Quad,
     color: Optional[dom.RGBA] = None,
     outlineColor: Optional[dom.RGBA] = None,
-):
+) -> dict:
     """Highlights given quad. Coordinates are absolute with respect to the main frame viewport.
 
     Parameters
@@ -854,16 +849,16 @@ def highlight_quad(
     outlineColor: Optional[dom.RGBA]
             The highlight outline color (default: transparent).
     """
-    return filter_unset_parameters(
-        {
-            "method": "Overlay.highlightQuad",
-            "params": {
+    return {
+        "method": "Overlay.highlightQuad",
+        "params": filter_none(
+            {
                 "quad": list(quad),
                 "color": color.to_json() if color else None,
                 "outlineColor": outlineColor.to_json() if outlineColor else None,
-            },
-        }
-    )
+            }
+        ),
+    }
 
 
 def highlight_rect(
@@ -873,7 +868,7 @@ def highlight_rect(
     height: int,
     color: Optional[dom.RGBA] = None,
     outlineColor: Optional[dom.RGBA] = None,
-):
+) -> dict:
     """Highlights given rectangle. Coordinates are absolute with respect to the main frame viewport.
 
     Parameters
@@ -891,19 +886,19 @@ def highlight_rect(
     outlineColor: Optional[dom.RGBA]
             The highlight outline color (default: transparent).
     """
-    return filter_unset_parameters(
-        {
-            "method": "Overlay.highlightRect",
-            "params": {
+    return {
+        "method": "Overlay.highlightRect",
+        "params": filter_none(
+            {
                 "x": x,
                 "y": y,
                 "width": width,
                 "height": height,
                 "color": color.to_json() if color else None,
                 "outlineColor": outlineColor.to_json() if outlineColor else None,
-            },
-        }
-    )
+            }
+        ),
+    }
 
 
 def highlight_source_order(
@@ -911,7 +906,7 @@ def highlight_source_order(
     nodeId: Optional[dom.NodeId] = None,
     backendNodeId: Optional[dom.BackendNodeId] = None,
     objectId: Optional[runtime.RemoteObjectId] = None,
-):
+) -> dict:
     """Highlights the source order of the children of the DOM node with given id or with the given
     JavaScript object wrapper. Either nodeId or objectId must be specified.
 
@@ -926,22 +921,22 @@ def highlight_source_order(
     objectId: Optional[runtime.RemoteObjectId]
             JavaScript object id of the node to be highlighted.
     """
-    return filter_unset_parameters(
-        {
-            "method": "Overlay.highlightSourceOrder",
-            "params": {
+    return {
+        "method": "Overlay.highlightSourceOrder",
+        "params": filter_none(
+            {
                 "sourceOrderConfig": sourceOrderConfig.to_json(),
                 "nodeId": int(nodeId) if nodeId else None,
                 "backendNodeId": int(backendNodeId) if backendNodeId else None,
                 "objectId": str(objectId) if objectId else None,
-            },
-        }
-    )
+            }
+        ),
+    }
 
 
 def set_inspect_mode(
     mode: InspectMode, highlightConfig: Optional[HighlightConfig] = None
-):
+) -> dict:
     """Enters the 'inspect' mode. In this mode, elements that user is hovering over are highlighted.
     Backend then generates 'inspectNodeRequested' event upon element selection.
 
@@ -953,20 +948,20 @@ def set_inspect_mode(
             A descriptor for the highlight appearance of hovered-over nodes. May be omitted if `enabled
             == false`.
     """
-    return filter_unset_parameters(
-        {
-            "method": "Overlay.setInspectMode",
-            "params": {
+    return {
+        "method": "Overlay.setInspectMode",
+        "params": filter_none(
+            {
                 "mode": mode.value,
                 "highlightConfig": highlightConfig.to_json()
                 if highlightConfig
                 else None,
-            },
-        }
-    )
+            }
+        ),
+    }
 
 
-def set_show_ad_highlights(show: bool):
+def set_show_ad_highlights(show: bool) -> dict:
     """Highlights owner element of all frames detected to be ads.
 
     Parameters
@@ -977,19 +972,20 @@ def set_show_ad_highlights(show: bool):
     return {"method": "Overlay.setShowAdHighlights", "params": {"show": show}}
 
 
-def set_paused_in_debugger_message(message: Optional[str] = None):
+def set_paused_in_debugger_message(message: Optional[str] = None) -> dict:
     """
     Parameters
     ----------
     message: Optional[str]
             The message to display, also triggers resume and step over controls.
     """
-    return filter_unset_parameters(
-        {"method": "Overlay.setPausedInDebuggerMessage", "params": {"message": message}}
-    )
+    return {
+        "method": "Overlay.setPausedInDebuggerMessage",
+        "params": filter_none({"message": message}),
+    }
 
 
-def set_show_debug_borders(show: bool):
+def set_show_debug_borders(show: bool) -> dict:
     """Requests that backend shows debug borders on layers
 
     Parameters
@@ -1000,7 +996,7 @@ def set_show_debug_borders(show: bool):
     return {"method": "Overlay.setShowDebugBorders", "params": {"show": show}}
 
 
-def set_show_fps_counter(show: bool):
+def set_show_fps_counter(show: bool) -> dict:
     """Requests that backend shows the FPS counter
 
     Parameters
@@ -1011,7 +1007,9 @@ def set_show_fps_counter(show: bool):
     return {"method": "Overlay.setShowFPSCounter", "params": {"show": show}}
 
 
-def set_show_grid_overlays(gridNodeHighlightConfigs: list[GridNodeHighlightConfig]):
+def set_show_grid_overlays(
+    gridNodeHighlightConfigs: list[GridNodeHighlightConfig],
+) -> dict:
     """Highlight multiple elements with the CSS Grid overlay.
 
     Parameters
@@ -1027,7 +1025,9 @@ def set_show_grid_overlays(gridNodeHighlightConfigs: list[GridNodeHighlightConfi
     }
 
 
-def set_show_flex_overlays(flexNodeHighlightConfigs: list[FlexNodeHighlightConfig]):
+def set_show_flex_overlays(
+    flexNodeHighlightConfigs: list[FlexNodeHighlightConfig],
+) -> dict:
     """
     Parameters
     ----------
@@ -1042,7 +1042,7 @@ def set_show_flex_overlays(flexNodeHighlightConfigs: list[FlexNodeHighlightConfi
     }
 
 
-def set_show_paint_rects(result: bool):
+def set_show_paint_rects(result: bool) -> dict:
     """Requests that backend shows paint rectangles
 
     Parameters
@@ -1053,7 +1053,7 @@ def set_show_paint_rects(result: bool):
     return {"method": "Overlay.setShowPaintRects", "params": {"result": result}}
 
 
-def set_show_layout_shift_regions(result: bool):
+def set_show_layout_shift_regions(result: bool) -> dict:
     """Requests that backend shows layout shift regions
 
     Parameters
@@ -1064,7 +1064,7 @@ def set_show_layout_shift_regions(result: bool):
     return {"method": "Overlay.setShowLayoutShiftRegions", "params": {"result": result}}
 
 
-def set_show_scroll_bottleneck_rects(show: bool):
+def set_show_scroll_bottleneck_rects(show: bool) -> dict:
     """Requests that backend shows scroll bottleneck rects
 
     Parameters
@@ -1075,7 +1075,7 @@ def set_show_scroll_bottleneck_rects(show: bool):
     return {"method": "Overlay.setShowScrollBottleneckRects", "params": {"show": show}}
 
 
-def set_show_hit_test_borders(show: bool):
+def set_show_hit_test_borders(show: bool) -> dict:
     """Requests that backend shows hit-test borders on layers
 
     Parameters
@@ -1086,7 +1086,7 @@ def set_show_hit_test_borders(show: bool):
     return {"method": "Overlay.setShowHitTestBorders", "params": {"show": show}}
 
 
-def set_show_web_vitals(show: bool):
+def set_show_web_vitals(show: bool) -> dict:
     """Request that backend shows an overlay with web vital metrics.
 
     Parameters
@@ -1096,7 +1096,7 @@ def set_show_web_vitals(show: bool):
     return {"method": "Overlay.setShowWebVitals", "params": {"show": show}}
 
 
-def set_show_viewport_size_on_resize(show: bool):
+def set_show_viewport_size_on_resize(show: bool) -> dict:
     """Paints viewport size upon main frame resize.
 
     Parameters
@@ -1107,7 +1107,7 @@ def set_show_viewport_size_on_resize(show: bool):
     return {"method": "Overlay.setShowViewportSizeOnResize", "params": {"show": show}}
 
 
-def set_show_hinge(hingeConfig: Optional[HingeConfig] = None):
+def set_show_hinge(hingeConfig: Optional[HingeConfig] = None) -> dict:
     """Add a dual screen device hinge
 
     Parameters
@@ -1115,12 +1115,12 @@ def set_show_hinge(hingeConfig: Optional[HingeConfig] = None):
     hingeConfig: Optional[HingeConfig]
             hinge data, null means hideHinge
     """
-    return filter_unset_parameters(
-        {
-            "method": "Overlay.setShowHinge",
-            "params": {"hingeConfig": hingeConfig.to_json() if hingeConfig else None},
-        }
-    )
+    return {
+        "method": "Overlay.setShowHinge",
+        "params": filter_none(
+            {"hingeConfig": hingeConfig.to_json() if hingeConfig else None}
+        ),
+    }
 
 
 @dataclasses.dataclass

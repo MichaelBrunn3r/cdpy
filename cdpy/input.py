@@ -4,7 +4,7 @@ import dataclasses
 import enum
 from typing import Optional
 
-from .common import filter_none, filter_unset_parameters
+from .common import filter_none
 
 
 @dataclasses.dataclass
@@ -125,7 +125,7 @@ def dispatch_key_event(
     isSystemKey: Optional[bool] = None,
     location: Optional[int] = None,
     commands: Optional[list[str]] = None,
-):
+) -> dict:
     """Dispatches a key event to the page.
 
     Parameters
@@ -168,10 +168,10 @@ def dispatch_key_event(
             These are related to but not equal the command names used in `document.execCommand` and NSStandardKeyBindingResponding.
             See https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/core/editing/commands/editor_command_names.h for valid command names.
     """
-    return filter_unset_parameters(
-        {
-            "method": "Input.dispatchKeyEvent",
-            "params": {
+    return {
+        "method": "Input.dispatchKeyEvent",
+        "params": filter_none(
+            {
                 "type": type,
                 "modifiers": modifiers,
                 "timestamp": float(timestamp) if timestamp else None,
@@ -187,12 +187,12 @@ def dispatch_key_event(
                 "isSystemKey": isSystemKey,
                 "location": location,
                 "commands": commands,
-            },
-        }
-    )
+            }
+        ),
+    }
 
 
-def insert_text(text: str):
+def insert_text(text: str) -> dict:
     """This method emulates inserting text that doesn't come from a key press,
     for example an emoji keyboard or an IME.
 
@@ -223,7 +223,7 @@ def dispatch_mouse_event(
     deltaX: Optional[float] = None,
     deltaY: Optional[float] = None,
     pointerType: Optional[str] = None,
-):
+) -> dict:
     """Dispatches a mouse event to the page.
 
     Parameters
@@ -264,10 +264,10 @@ def dispatch_mouse_event(
     pointerType: Optional[str]
             Pointer type (default: "mouse").
     """
-    return filter_unset_parameters(
-        {
-            "method": "Input.dispatchMouseEvent",
-            "params": {
+    return {
+        "method": "Input.dispatchMouseEvent",
+        "params": filter_none(
+            {
                 "type": type,
                 "x": x,
                 "y": y,
@@ -284,9 +284,9 @@ def dispatch_mouse_event(
                 "deltaX": deltaX,
                 "deltaY": deltaY,
                 "pointerType": pointerType,
-            },
-        }
-    )
+            }
+        ),
+    }
 
 
 def dispatch_touch_event(
@@ -294,7 +294,7 @@ def dispatch_touch_event(
     touchPoints: list[TouchPoint],
     modifiers: Optional[int] = None,
     timestamp: Optional[TimeSinceEpoch] = None,
-):
+) -> dict:
     """Dispatches a touch event to the page.
 
     Parameters
@@ -312,17 +312,17 @@ def dispatch_touch_event(
     timestamp: Optional[TimeSinceEpoch]
             Time at which the event occurred.
     """
-    return filter_unset_parameters(
-        {
-            "method": "Input.dispatchTouchEvent",
-            "params": {
+    return {
+        "method": "Input.dispatchTouchEvent",
+        "params": filter_none(
+            {
                 "type": type,
                 "touchPoints": [t.to_json() for t in touchPoints],
                 "modifiers": modifiers,
                 "timestamp": float(timestamp) if timestamp else None,
-            },
-        }
-    )
+            }
+        ),
+    }
 
 
 def emulate_touch_from_mouse_event(
@@ -335,7 +335,7 @@ def emulate_touch_from_mouse_event(
     deltaY: Optional[float] = None,
     modifiers: Optional[int] = None,
     clickCount: Optional[int] = None,
-):
+) -> dict:
     """Emulates touch event from the mouse event parameters.
 
     **Experimental**
@@ -362,10 +362,10 @@ def emulate_touch_from_mouse_event(
     clickCount: Optional[int]
             Number of times the mouse button was clicked (default: 0).
     """
-    return filter_unset_parameters(
-        {
-            "method": "Input.emulateTouchFromMouseEvent",
-            "params": {
+    return {
+        "method": "Input.emulateTouchFromMouseEvent",
+        "params": filter_none(
+            {
                 "type": type,
                 "x": x,
                 "y": y,
@@ -375,12 +375,12 @@ def emulate_touch_from_mouse_event(
                 "deltaY": deltaY,
                 "modifiers": modifiers,
                 "clickCount": clickCount,
-            },
-        }
-    )
+            }
+        ),
+    }
 
 
-def set_ignore_input_events(ignore: bool):
+def set_ignore_input_events(ignore: bool) -> dict:
     """Ignores input events (useful while auditing page).
 
     Parameters
@@ -397,7 +397,7 @@ def synthesize_pinch_gesture(
     scaleFactor: float,
     relativeSpeed: Optional[int] = None,
     gestureSourceType: Optional[GestureSourceType] = None,
-):
+) -> dict:
     """Synthesizes a pinch gesture over a time period by issuing appropriate touch events.
 
     **Experimental**
@@ -416,10 +416,10 @@ def synthesize_pinch_gesture(
             Which type of input events to be generated (default: 'default', which queries the platform
             for the preferred input type).
     """
-    return filter_unset_parameters(
-        {
-            "method": "Input.synthesizePinchGesture",
-            "params": {
+    return {
+        "method": "Input.synthesizePinchGesture",
+        "params": filter_none(
+            {
                 "x": x,
                 "y": y,
                 "scaleFactor": scaleFactor,
@@ -427,9 +427,9 @@ def synthesize_pinch_gesture(
                 "gestureSourceType": gestureSourceType.value
                 if gestureSourceType
                 else None,
-            },
-        }
-    )
+            }
+        ),
+    }
 
 
 def synthesize_scroll_gesture(
@@ -445,7 +445,7 @@ def synthesize_scroll_gesture(
     repeatCount: Optional[int] = None,
     repeatDelayMs: Optional[int] = None,
     interactionMarkerName: Optional[str] = None,
-):
+) -> dict:
     """Synthesizes a scroll gesture over a time period by issuing appropriate touch events.
 
     **Experimental**
@@ -480,10 +480,10 @@ def synthesize_scroll_gesture(
     interactionMarkerName: Optional[str]
             The name of the interaction markers to generate, if not empty (default: "").
     """
-    return filter_unset_parameters(
-        {
-            "method": "Input.synthesizeScrollGesture",
-            "params": {
+    return {
+        "method": "Input.synthesizeScrollGesture",
+        "params": filter_none(
+            {
                 "x": x,
                 "y": y,
                 "xDistance": xDistance,
@@ -498,9 +498,9 @@ def synthesize_scroll_gesture(
                 "repeatCount": repeatCount,
                 "repeatDelayMs": repeatDelayMs,
                 "interactionMarkerName": interactionMarkerName,
-            },
-        }
-    )
+            }
+        ),
+    }
 
 
 def synthesize_tap_gesture(
@@ -509,7 +509,7 @@ def synthesize_tap_gesture(
     duration: Optional[int] = None,
     tapCount: Optional[int] = None,
     gestureSourceType: Optional[GestureSourceType] = None,
-):
+) -> dict:
     """Synthesizes a tap gesture over a time period by issuing appropriate touch events.
 
     **Experimental**
@@ -528,10 +528,10 @@ def synthesize_tap_gesture(
             Which type of input events to be generated (default: 'default', which queries the platform
             for the preferred input type).
     """
-    return filter_unset_parameters(
-        {
-            "method": "Input.synthesizeTapGesture",
-            "params": {
+    return {
+        "method": "Input.synthesizeTapGesture",
+        "params": filter_none(
+            {
                 "x": x,
                 "y": y,
                 "duration": duration,
@@ -539,6 +539,6 @@ def synthesize_tap_gesture(
                 "gestureSourceType": gestureSourceType.value
                 if gestureSourceType
                 else None,
-            },
-        }
-    )
+            }
+        ),
+    }

@@ -3,12 +3,12 @@ from __future__ import annotations
 import dataclasses
 
 
-def clear_device_orientation_override():
+def clear_device_orientation_override() -> dict:
     """Clears the overridden Device Orientation."""
     return {"method": "DeviceOrientation.clearDeviceOrientationOverride", "params": {}}
 
 
-def set_device_orientation_override(alpha: float, beta: float, gamma: float):
+def set_device_orientation_override(alpha: float, beta: float, gamma: float) -> dict:
     """Overrides the Device Orientation.
 
     Parameters

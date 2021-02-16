@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import dataclasses
 import enum
-from typing import Optional
+from typing import Generator, Optional
 
 from . import dom, runtime
-from .common import filter_none, filter_unset_parameters
+from .common import filter_none
 
 
 class AXNodeId(str):
@@ -377,12 +377,12 @@ class AXNode:
         )
 
 
-def disable():
+def disable() -> dict:
     """Disables the accessibility domain."""
     return {"method": "Accessibility.disable", "params": {}}
 
 
-def enable():
+def enable() -> dict:
     """Enables the accessibility domain which causes `AXNodeId`s to remain consistent between method calls.
     This turns on accessibility for the page, which can impact performance until accessibility is disabled.
     """
@@ -394,7 +394,7 @@ def get_partial_ax_tree(
     backendNodeId: Optional[dom.BackendNodeId] = None,
     objectId: Optional[runtime.RemoteObjectId] = None,
     fetchRelatives: Optional[bool] = None,
-):
+) -> Generator[dict, dict, list[AXNode]]:
     """Fetches the accessibility node and partial accessibility tree for this DOM node, if it exists.
 
     **Experimental**
@@ -416,24 +416,23 @@ def get_partial_ax_tree(
             The `Accessibility.AXNode` for this DOM node, if it exists, plus its ancestors, siblings and
             children, if requested.
     """
-    return filter_unset_parameters(
-        {
-            "method": "Accessibility.getPartialAXTree",
-            "params": {
+    response = yield {
+        "method": "Accessibility.getPartialAXTree",
+        "params": filter_none(
+            {
                 "nodeId": int(nodeId) if nodeId else None,
                 "backendNodeId": int(backendNodeId) if backendNodeId else None,
                 "objectId": str(objectId) if objectId else None,
                 "fetchRelatives": fetchRelatives,
-            },
-        }
-    )
-
-
-def parse_get_partial_ax_tree_response(response):
+            }
+        ),
+    }
     return [AXNode.from_json(n) for n in response["nodes"]]
 
 
-def get_full_ax_tree(max_depth: Optional[int] = None):
+def get_full_ax_tree(
+    max_depth: Optional[int] = None,
+) -> Generator[dict, dict, list[AXNode]]:
     """Fetches the entire accessibility tree for the root Document
 
     **Experimental**
@@ -448,16 +447,14 @@ def get_full_ax_tree(max_depth: Optional[int] = None):
     -------
     nodes: list[AXNode]
     """
-    return filter_unset_parameters(
-        {"method": "Accessibility.getFullAXTree", "params": {"max_depth": max_depth}}
-    )
-
-
-def parse_get_full_ax_tree_response(response):
+    response = yield {
+        "method": "Accessibility.getFullAXTree",
+        "params": filter_none({"max_depth": max_depth}),
+    }
     return [AXNode.from_json(n) for n in response["nodes"]]
 
 
-def get_child_ax_nodes(id: AXNodeId):
+def get_child_ax_nodes(id: AXNodeId) -> Generator[dict, dict, list[AXNode]]:
     """Fetches a particular accessibility node by AXNodeId.
     Requires `enable()` to have been called previously.
 
@@ -471,10 +468,10 @@ def get_child_ax_nodes(id: AXNodeId):
     -------
     nodes: list[AXNode]
     """
-    return {"method": "Accessibility.getChildAXNodes", "params": {"id": str(id)}}
-
-
-def parse_get_child_ax_nodes_response(response):
+    response = yield {
+        "method": "Accessibility.getChildAXNodes",
+        "params": {"id": str(id)},
+    }
     return [AXNode.from_json(n) for n in response["nodes"]]
 
 
@@ -484,7 +481,7 @@ def query_ax_tree(
     objectId: Optional[runtime.RemoteObjectId] = None,
     accessibleName: Optional[str] = None,
     role: Optional[str] = None,
-):
+) -> Generator[dict, dict, list[AXNode]]:
     """Query a DOM node's accessibility subtree for accessible name and role.
     This command computes the name and role for all nodes in the subtree, including those that are
     ignored for accessibility, and returns those that mactch the specified name and role. If no DOM
@@ -512,19 +509,16 @@ def query_ax_tree(
             A list of `Accessibility.AXNode` matching the specified attributes,
             including nodes that are ignored for accessibility.
     """
-    return filter_unset_parameters(
-        {
-            "method": "Accessibility.queryAXTree",
-            "params": {
+    response = yield {
+        "method": "Accessibility.queryAXTree",
+        "params": filter_none(
+            {
                 "nodeId": int(nodeId) if nodeId else None,
                 "backendNodeId": int(backendNodeId) if backendNodeId else None,
                 "objectId": str(objectId) if objectId else None,
                 "accessibleName": accessibleName,
                 "role": role,
-            },
-        }
-    )
-
-
-def parse_query_ax_tree_response(response):
+            }
+        ),
+    }
     return [AXNode.from_json(n) for n in response["nodes"]]

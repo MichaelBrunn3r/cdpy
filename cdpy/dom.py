@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import dataclasses
 import enum
-from typing import Optional
+from typing import Generator, Optional
 
 from . import page, runtime
-from .common import filter_none, filter_unset_parameters
+from .common import filter_none
 
 
 class NodeId(int):
@@ -460,7 +460,9 @@ class CSSComputedStyleProperty:
         return {"name": self.name, "value": self.value}
 
 
-def collect_class_names_from_subtree(nodeId: NodeId):
+def collect_class_names_from_subtree(
+    nodeId: NodeId,
+) -> Generator[dict, dict, list[str]]:
     """Collects class names for the node with given id and all of it's child nodes.
 
     **Experimental**
@@ -475,19 +477,16 @@ def collect_class_names_from_subtree(nodeId: NodeId):
     classNames: list[str]
             Class name list.
     """
-    return {
+    response = yield {
         "method": "DOM.collectClassNamesFromSubtree",
         "params": {"nodeId": int(nodeId)},
     }
-
-
-def parse_collect_class_names_from_subtree_response(response):
     return response["classNames"]
 
 
 def copy_to(
     nodeId: NodeId, targetNodeId: NodeId, insertBeforeNodeId: Optional[NodeId] = None
-):
+) -> Generator[dict, dict, NodeId]:
     """Creates a deep copy of the specified node and places it into the target container before the
     given anchor.
 
@@ -508,21 +507,18 @@ def copy_to(
     nodeId: NodeId
             Id of the node clone.
     """
-    return filter_unset_parameters(
-        {
-            "method": "DOM.copyTo",
-            "params": {
+    response = yield {
+        "method": "DOM.copyTo",
+        "params": filter_none(
+            {
                 "nodeId": int(nodeId),
                 "targetNodeId": int(targetNodeId),
                 "insertBeforeNodeId": int(insertBeforeNodeId)
                 if insertBeforeNodeId
                 else None,
-            },
-        }
-    )
-
-
-def parse_copy_to_response(response):
+            }
+        ),
+    }
     return NodeId(response["nodeId"])
 
 
@@ -532,7 +528,7 @@ def describe_node(
     objectId: Optional[runtime.RemoteObjectId] = None,
     depth: Optional[int] = None,
     pierce: Optional[bool] = None,
-):
+) -> Generator[dict, dict, Node]:
     """Describes node given its id, does not require domain to be enabled. Does not start tracking any
     objects, can be used for automation.
 
@@ -556,21 +552,18 @@ def describe_node(
     node: Node
             Node description.
     """
-    return filter_unset_parameters(
-        {
-            "method": "DOM.describeNode",
-            "params": {
+    response = yield {
+        "method": "DOM.describeNode",
+        "params": filter_none(
+            {
                 "nodeId": int(nodeId) if nodeId else None,
                 "backendNodeId": int(backendNodeId) if backendNodeId else None,
                 "objectId": str(objectId) if objectId else None,
                 "depth": depth,
                 "pierce": pierce,
-            },
-        }
-    )
-
-
-def parse_describe_node_response(response):
+            }
+        ),
+    }
     return Node.from_json(response["node"])
 
 
@@ -579,7 +572,7 @@ def scroll_into_view_if_needed(
     backendNodeId: Optional[BackendNodeId] = None,
     objectId: Optional[runtime.RemoteObjectId] = None,
     rect: Optional[Rect] = None,
-):
+) -> dict:
     """Scrolls the specified rect of the given node into view if not already visible.
     Note: exactly one between nodeId, backendNodeId and objectId should be passed
     to identify the node.
@@ -598,25 +591,25 @@ def scroll_into_view_if_needed(
             The rect to be scrolled into view, relative to the node's border box, in CSS pixels.
             When omitted, center of the node will be used, similar to Element.scrollIntoView.
     """
-    return filter_unset_parameters(
-        {
-            "method": "DOM.scrollIntoViewIfNeeded",
-            "params": {
+    return {
+        "method": "DOM.scrollIntoViewIfNeeded",
+        "params": filter_none(
+            {
                 "nodeId": int(nodeId) if nodeId else None,
                 "backendNodeId": int(backendNodeId) if backendNodeId else None,
                 "objectId": str(objectId) if objectId else None,
                 "rect": rect.to_json() if rect else None,
-            },
-        }
-    )
+            }
+        ),
+    }
 
 
-def disable():
+def disable() -> dict:
     """Disables DOM agent for the given page."""
     return {"method": "DOM.disable", "params": {}}
 
 
-def discard_search_results(searchId: str):
+def discard_search_results(searchId: str) -> dict:
     """Discards search results from the session with the given id. `getSearchResults` should no longer
     be called for that search.
 
@@ -630,7 +623,7 @@ def discard_search_results(searchId: str):
     return {"method": "DOM.discardSearchResults", "params": {"searchId": searchId}}
 
 
-def enable():
+def enable() -> dict:
     """Enables DOM agent for the given page."""
     return {"method": "DOM.enable", "params": {}}
 
@@ -639,7 +632,7 @@ def focus(
     nodeId: Optional[NodeId] = None,
     backendNodeId: Optional[BackendNodeId] = None,
     objectId: Optional[runtime.RemoteObjectId] = None,
-):
+) -> dict:
     """Focuses the given element.
 
     Parameters
@@ -651,19 +644,19 @@ def focus(
     objectId: Optional[runtime.RemoteObjectId]
             JavaScript object id of the node wrapper.
     """
-    return filter_unset_parameters(
-        {
-            "method": "DOM.focus",
-            "params": {
+    return {
+        "method": "DOM.focus",
+        "params": filter_none(
+            {
                 "nodeId": int(nodeId) if nodeId else None,
                 "backendNodeId": int(backendNodeId) if backendNodeId else None,
                 "objectId": str(objectId) if objectId else None,
-            },
-        }
-    )
+            }
+        ),
+    }
 
 
-def get_attributes(nodeId: NodeId):
+def get_attributes(nodeId: NodeId) -> Generator[dict, dict, list[str]]:
     """Returns attributes for the specified node.
 
     Parameters
@@ -676,10 +669,7 @@ def get_attributes(nodeId: NodeId):
     attributes: list[str]
             An interleaved array of node attribute names and values.
     """
-    return {"method": "DOM.getAttributes", "params": {"nodeId": int(nodeId)}}
-
-
-def parse_get_attributes_response(response):
+    response = yield {"method": "DOM.getAttributes", "params": {"nodeId": int(nodeId)}}
     return response["attributes"]
 
 
@@ -687,7 +677,7 @@ def get_box_model(
     nodeId: Optional[NodeId] = None,
     backendNodeId: Optional[BackendNodeId] = None,
     objectId: Optional[runtime.RemoteObjectId] = None,
-):
+) -> Generator[dict, dict, BoxModel]:
     """Returns boxes for the given node.
 
     Parameters
@@ -704,19 +694,16 @@ def get_box_model(
     model: BoxModel
             Box model for the node.
     """
-    return filter_unset_parameters(
-        {
-            "method": "DOM.getBoxModel",
-            "params": {
+    response = yield {
+        "method": "DOM.getBoxModel",
+        "params": filter_none(
+            {
                 "nodeId": int(nodeId) if nodeId else None,
                 "backendNodeId": int(backendNodeId) if backendNodeId else None,
                 "objectId": str(objectId) if objectId else None,
-            },
-        }
-    )
-
-
-def parse_get_box_model_response(response):
+            }
+        ),
+    }
     return BoxModel.from_json(response["model"])
 
 
@@ -724,7 +711,7 @@ def get_content_quads(
     nodeId: Optional[NodeId] = None,
     backendNodeId: Optional[BackendNodeId] = None,
     objectId: Optional[runtime.RemoteObjectId] = None,
-):
+) -> Generator[dict, dict, list[Quad]]:
     """Returns quads that describe node position on the page. This method
     might return multiple quads for inline nodes.
 
@@ -744,23 +731,22 @@ def get_content_quads(
     quads: list[Quad]
             Quads that describe node layout relative to viewport.
     """
-    return filter_unset_parameters(
-        {
-            "method": "DOM.getContentQuads",
-            "params": {
+    response = yield {
+        "method": "DOM.getContentQuads",
+        "params": filter_none(
+            {
                 "nodeId": int(nodeId) if nodeId else None,
                 "backendNodeId": int(backendNodeId) if backendNodeId else None,
                 "objectId": str(objectId) if objectId else None,
-            },
-        }
-    )
-
-
-def parse_get_content_quads_response(response):
+            }
+        ),
+    }
     return [Quad(q) for q in response["quads"]]
 
 
-def get_document(depth: Optional[int] = None, pierce: Optional[bool] = None):
+def get_document(
+    depth: Optional[int] = None, pierce: Optional[bool] = None
+) -> Generator[dict, dict, Node]:
     """Returns the root DOM node (and optionally the subtree) to the caller.
 
     Parameters
@@ -777,16 +763,16 @@ def get_document(depth: Optional[int] = None, pierce: Optional[bool] = None):
     root: Node
             Resulting node.
     """
-    return filter_unset_parameters(
-        {"method": "DOM.getDocument", "params": {"depth": depth, "pierce": pierce}}
-    )
-
-
-def parse_get_document_response(response):
+    response = yield {
+        "method": "DOM.getDocument",
+        "params": filter_none({"depth": depth, "pierce": pierce}),
+    }
     return Node.from_json(response["root"])
 
 
-def get_flattened_document(depth: Optional[int] = None, pierce: Optional[bool] = None):
+def get_flattened_document(
+    depth: Optional[int] = None, pierce: Optional[bool] = None
+) -> Generator[dict, dict, list[Node]]:
     """Returns the root DOM node (and optionally the subtree) to the caller.
     Deprecated, as it is not designed to work well with the rest of the DOM agent.
     Use DOMSnapshot.captureSnapshot instead.
@@ -807,15 +793,10 @@ def get_flattened_document(depth: Optional[int] = None, pierce: Optional[bool] =
     nodes: list[Node]
             Resulting node.
     """
-    return filter_unset_parameters(
-        {
-            "method": "DOM.getFlattenedDocument",
-            "params": {"depth": depth, "pierce": pierce},
-        }
-    )
-
-
-def parse_get_flattened_document_response(response):
+    response = yield {
+        "method": "DOM.getFlattenedDocument",
+        "params": filter_none({"depth": depth, "pierce": pierce}),
+    }
     return [Node.from_json(n) for n in response["nodes"]]
 
 
@@ -823,7 +804,7 @@ def get_nodes_for_subtree_by_style(
     nodeId: NodeId,
     computedStyles: list[CSSComputedStyleProperty],
     pierce: Optional[bool] = None,
-):
+) -> Generator[dict, dict, list[NodeId]]:
     """Finds nodes with a given computed style in a subtree.
 
     **Experimental**
@@ -843,19 +824,16 @@ def get_nodes_for_subtree_by_style(
     nodeIds: list[NodeId]
             Resulting nodes.
     """
-    return filter_unset_parameters(
-        {
-            "method": "DOM.getNodesForSubtreeByStyle",
-            "params": {
+    response = yield {
+        "method": "DOM.getNodesForSubtreeByStyle",
+        "params": filter_none(
+            {
                 "nodeId": int(nodeId),
                 "computedStyles": [c.to_json() for c in computedStyles],
                 "pierce": pierce,
-            },
-        }
-    )
-
-
-def parse_get_nodes_for_subtree_by_style_response(response):
+            }
+        ),
+    }
     return [NodeId(n) for n in response["nodeIds"]]
 
 
@@ -864,7 +842,7 @@ def get_node_for_location(
     y: int,
     includeUserAgentShadowDOM: Optional[bool] = None,
     ignorePointerEventsNone: Optional[bool] = None,
-):
+) -> Generator[dict, dict, dict]:
     """Returns node id at given location. Depending on whether DOM domain is enabled, nodeId is
     either returned or not.
 
@@ -888,20 +866,17 @@ def get_node_for_location(
     nodeId: Optional[NodeId]
             Id of the node at given coordinates, only when enabled and requested document.
     """
-    return filter_unset_parameters(
-        {
-            "method": "DOM.getNodeForLocation",
-            "params": {
+    response = yield {
+        "method": "DOM.getNodeForLocation",
+        "params": filter_none(
+            {
                 "x": x,
                 "y": y,
                 "includeUserAgentShadowDOM": includeUserAgentShadowDOM,
                 "ignorePointerEventsNone": ignorePointerEventsNone,
-            },
-        }
-    )
-
-
-def parse_get_node_for_location_response(response):
+            }
+        ),
+    }
     return {
         "backendNodeId": BackendNodeId(response["backendNodeId"]),
         "frameId": page.FrameId(response["frameId"]),
@@ -913,7 +888,7 @@ def get_outer_html(
     nodeId: Optional[NodeId] = None,
     backendNodeId: Optional[BackendNodeId] = None,
     objectId: Optional[runtime.RemoteObjectId] = None,
-):
+) -> Generator[dict, dict, str]:
     """Returns node's HTML markup.
 
     Parameters
@@ -930,23 +905,20 @@ def get_outer_html(
     outerHTML: str
             Outer HTML markup.
     """
-    return filter_unset_parameters(
-        {
-            "method": "DOM.getOuterHTML",
-            "params": {
+    response = yield {
+        "method": "DOM.getOuterHTML",
+        "params": filter_none(
+            {
                 "nodeId": int(nodeId) if nodeId else None,
                 "backendNodeId": int(backendNodeId) if backendNodeId else None,
                 "objectId": str(objectId) if objectId else None,
-            },
-        }
-    )
-
-
-def parse_get_outer_html_response(response):
+            }
+        ),
+    }
     return response["outerHTML"]
 
 
-def get_relayout_boundary(nodeId: NodeId):
+def get_relayout_boundary(nodeId: NodeId) -> Generator[dict, dict, NodeId]:
     """Returns the id of the nearest ancestor that is a relayout boundary.
 
     **Experimental**
@@ -961,14 +933,16 @@ def get_relayout_boundary(nodeId: NodeId):
     nodeId: NodeId
             Relayout boundary node id for the given node.
     """
-    return {"method": "DOM.getRelayoutBoundary", "params": {"nodeId": int(nodeId)}}
-
-
-def parse_get_relayout_boundary_response(response):
+    response = yield {
+        "method": "DOM.getRelayoutBoundary",
+        "params": {"nodeId": int(nodeId)},
+    }
     return NodeId(response["nodeId"])
 
 
-def get_search_results(searchId: str, fromIndex: int, toIndex: int):
+def get_search_results(
+    searchId: str, fromIndex: int, toIndex: int
+) -> Generator[dict, dict, list[NodeId]]:
     """Returns search results from given `fromIndex` to given `toIndex` from the search with the given
     identifier.
 
@@ -988,32 +962,29 @@ def get_search_results(searchId: str, fromIndex: int, toIndex: int):
     nodeIds: list[NodeId]
             Ids of the search result nodes.
     """
-    return {
+    response = yield {
         "method": "DOM.getSearchResults",
         "params": {"searchId": searchId, "fromIndex": fromIndex, "toIndex": toIndex},
     }
-
-
-def parse_get_search_results_response(response):
     return [NodeId(n) for n in response["nodeIds"]]
 
 
-def hide_highlight():
+def hide_highlight() -> dict:
     """Hides any highlight."""
     return {"method": "DOM.hideHighlight", "params": {}}
 
 
-def highlight_node():
+def highlight_node() -> dict:
     """Highlights DOM node."""
     return {"method": "DOM.highlightNode", "params": {}}
 
 
-def highlight_rect():
+def highlight_rect() -> dict:
     """Highlights given rectangle."""
     return {"method": "DOM.highlightRect", "params": {}}
 
 
-def mark_undoable_state():
+def mark_undoable_state() -> dict:
     """Marks last undoable state.
 
     **Experimental**
@@ -1023,7 +994,7 @@ def mark_undoable_state():
 
 def move_to(
     nodeId: NodeId, targetNodeId: NodeId, insertBeforeNodeId: Optional[NodeId] = None
-):
+) -> Generator[dict, dict, NodeId]:
     """Moves node into the new container, places it before the given anchor.
 
     Parameters
@@ -1041,25 +1012,24 @@ def move_to(
     nodeId: NodeId
             New id of the moved node.
     """
-    return filter_unset_parameters(
-        {
-            "method": "DOM.moveTo",
-            "params": {
+    response = yield {
+        "method": "DOM.moveTo",
+        "params": filter_none(
+            {
                 "nodeId": int(nodeId),
                 "targetNodeId": int(targetNodeId),
                 "insertBeforeNodeId": int(insertBeforeNodeId)
                 if insertBeforeNodeId
                 else None,
-            },
-        }
-    )
-
-
-def parse_move_to_response(response):
+            }
+        ),
+    }
     return NodeId(response["nodeId"])
 
 
-def perform_search(query: str, includeUserAgentShadowDOM: Optional[bool] = None):
+def perform_search(
+    query: str, includeUserAgentShadowDOM: Optional[bool] = None
+) -> Generator[dict, dict, dict]:
     """Searches for a given string in the DOM tree. Use `getSearchResults` to access search results or
     `cancelSearch` to end this search session.
 
@@ -1079,22 +1049,16 @@ def perform_search(query: str, includeUserAgentShadowDOM: Optional[bool] = None)
     resultCount: int
             Number of search results.
     """
-    return filter_unset_parameters(
-        {
-            "method": "DOM.performSearch",
-            "params": {
-                "query": query,
-                "includeUserAgentShadowDOM": includeUserAgentShadowDOM,
-            },
-        }
-    )
-
-
-def parse_perform_search_response(response):
+    response = yield {
+        "method": "DOM.performSearch",
+        "params": filter_none(
+            {"query": query, "includeUserAgentShadowDOM": includeUserAgentShadowDOM}
+        ),
+    }
     return {"searchId": response["searchId"], "resultCount": response["resultCount"]}
 
 
-def push_node_by_path_to_frontend(path: str):
+def push_node_by_path_to_frontend(path: str) -> Generator[dict, dict, NodeId]:
     """Requests that the node is sent to the caller given its path. // FIXME, use XPath
 
     **Experimental**
@@ -1109,14 +1073,16 @@ def push_node_by_path_to_frontend(path: str):
     nodeId: NodeId
             Id of the node for given path.
     """
-    return {"method": "DOM.pushNodeByPathToFrontend", "params": {"path": path}}
-
-
-def parse_push_node_by_path_to_frontend_response(response):
+    response = yield {
+        "method": "DOM.pushNodeByPathToFrontend",
+        "params": {"path": path},
+    }
     return NodeId(response["nodeId"])
 
 
-def push_nodes_by_backend_ids_to_frontend(backendNodeIds: list[BackendNodeId]):
+def push_nodes_by_backend_ids_to_frontend(
+    backendNodeIds: list[BackendNodeId],
+) -> Generator[dict, dict, list[NodeId]]:
     """Requests that a batch of nodes is sent to the caller given their backend node ids.
 
     **Experimental**
@@ -1132,17 +1098,14 @@ def push_nodes_by_backend_ids_to_frontend(backendNodeIds: list[BackendNodeId]):
             The array of ids of pushed nodes that correspond to the backend ids specified in
             backendNodeIds.
     """
-    return {
+    response = yield {
         "method": "DOM.pushNodesByBackendIdsToFrontend",
         "params": {"backendNodeIds": [int(b) for b in backendNodeIds]},
     }
-
-
-def parse_push_nodes_by_backend_ids_to_frontend_response(response):
     return [NodeId(n) for n in response["nodeIds"]]
 
 
-def query_selector(nodeId: NodeId, selector: str):
+def query_selector(nodeId: NodeId, selector: str) -> Generator[dict, dict, NodeId]:
     """Executes `querySelector` on a given node.
 
     Parameters
@@ -1157,17 +1120,16 @@ def query_selector(nodeId: NodeId, selector: str):
     nodeId: NodeId
             Query selector result.
     """
-    return {
+    response = yield {
         "method": "DOM.querySelector",
         "params": {"nodeId": int(nodeId), "selector": selector},
     }
-
-
-def parse_query_selector_response(response):
     return NodeId(response["nodeId"])
 
 
-def query_selector_all(nodeId: NodeId, selector: str):
+def query_selector_all(
+    nodeId: NodeId, selector: str
+) -> Generator[dict, dict, list[NodeId]]:
     """Executes `querySelectorAll` on a given node.
 
     Parameters
@@ -1182,17 +1144,14 @@ def query_selector_all(nodeId: NodeId, selector: str):
     nodeIds: list[NodeId]
             Query selector result.
     """
-    return {
+    response = yield {
         "method": "DOM.querySelectorAll",
         "params": {"nodeId": int(nodeId), "selector": selector},
     }
-
-
-def parse_query_selector_all_response(response):
     return [NodeId(n) for n in response["nodeIds"]]
 
 
-def redo():
+def redo() -> dict:
     """Re-does the last undone action.
 
     **Experimental**
@@ -1200,7 +1159,7 @@ def redo():
     return {"method": "DOM.redo", "params": {}}
 
 
-def remove_attribute(nodeId: NodeId, name: str):
+def remove_attribute(nodeId: NodeId, name: str) -> dict:
     """Removes attribute with given name from an element with given id.
 
     Parameters
@@ -1216,7 +1175,7 @@ def remove_attribute(nodeId: NodeId, name: str):
     }
 
 
-def remove_node(nodeId: NodeId):
+def remove_node(nodeId: NodeId) -> dict:
     """Removes node with given id.
 
     Parameters
@@ -1229,7 +1188,7 @@ def remove_node(nodeId: NodeId):
 
 def request_child_nodes(
     nodeId: NodeId, depth: Optional[int] = None, pierce: Optional[bool] = None
-):
+) -> dict:
     """Requests that children of the node with given id are returned to the caller in form of
     `setChildNodes` events where not only immediate children are retrieved, but all children down to
     the specified depth.
@@ -1245,15 +1204,15 @@ def request_child_nodes(
             Whether or not iframes and shadow roots should be traversed when returning the sub-tree
             (default is false).
     """
-    return filter_unset_parameters(
-        {
-            "method": "DOM.requestChildNodes",
-            "params": {"nodeId": int(nodeId), "depth": depth, "pierce": pierce},
-        }
-    )
+    return {
+        "method": "DOM.requestChildNodes",
+        "params": filter_none(
+            {"nodeId": int(nodeId), "depth": depth, "pierce": pierce}
+        ),
+    }
 
 
-def request_node(objectId: runtime.RemoteObjectId):
+def request_node(objectId: runtime.RemoteObjectId) -> Generator[dict, dict, NodeId]:
     """Requests that the node is sent to the caller given the JavaScript node object reference. All
     nodes that form the path from the node to the root are also sent to the client as a series of
     `setChildNodes` notifications.
@@ -1268,10 +1227,10 @@ def request_node(objectId: runtime.RemoteObjectId):
     nodeId: NodeId
             Node id for given object.
     """
-    return {"method": "DOM.requestNode", "params": {"objectId": str(objectId)}}
-
-
-def parse_request_node_response(response):
+    response = yield {
+        "method": "DOM.requestNode",
+        "params": {"objectId": str(objectId)},
+    }
     return NodeId(response["nodeId"])
 
 
@@ -1280,7 +1239,7 @@ def resolve_node(
     backendNodeId: Optional[BackendNodeId] = None,
     objectGroup: Optional[str] = None,
     executionContextId: Optional[runtime.ExecutionContextId] = None,
-):
+) -> Generator[dict, dict, runtime.RemoteObject]:
     """Resolves the JavaScript node object for a given NodeId or BackendNodeId.
 
     Parameters
@@ -1299,26 +1258,23 @@ def resolve_node(
     object: runtime.RemoteObject
             JavaScript object wrapper for given node.
     """
-    return filter_unset_parameters(
-        {
-            "method": "DOM.resolveNode",
-            "params": {
+    response = yield {
+        "method": "DOM.resolveNode",
+        "params": filter_none(
+            {
                 "nodeId": int(nodeId) if nodeId else None,
                 "backendNodeId": int(backendNodeId) if backendNodeId else None,
                 "objectGroup": objectGroup,
                 "executionContextId": int(executionContextId)
                 if executionContextId
                 else None,
-            },
-        }
-    )
-
-
-def parse_resolve_node_response(response):
+            }
+        ),
+    }
     return runtime.RemoteObject.from_json(response["object"])
 
 
-def set_attribute_value(nodeId: NodeId, name: str, value: str):
+def set_attribute_value(nodeId: NodeId, name: str, value: str) -> dict:
     """Sets attribute for an element with given id.
 
     Parameters
@@ -1336,7 +1292,9 @@ def set_attribute_value(nodeId: NodeId, name: str, value: str):
     }
 
 
-def set_attributes_as_text(nodeId: NodeId, text: str, name: Optional[str] = None):
+def set_attributes_as_text(
+    nodeId: NodeId, text: str, name: Optional[str] = None
+) -> dict:
     """Sets attributes on element with given id. This method is useful when user edits some existing
     attribute value and types in several attribute name/value pairs.
 
@@ -1350,12 +1308,10 @@ def set_attributes_as_text(nodeId: NodeId, text: str, name: Optional[str] = None
             Attribute name to replace with new attributes derived from text in case text parsed
             successfully.
     """
-    return filter_unset_parameters(
-        {
-            "method": "DOM.setAttributesAsText",
-            "params": {"nodeId": int(nodeId), "text": text, "name": name},
-        }
-    )
+    return {
+        "method": "DOM.setAttributesAsText",
+        "params": filter_none({"nodeId": int(nodeId), "text": text, "name": name}),
+    }
 
 
 def set_file_input_files(
@@ -1363,7 +1319,7 @@ def set_file_input_files(
     nodeId: Optional[NodeId] = None,
     backendNodeId: Optional[BackendNodeId] = None,
     objectId: Optional[runtime.RemoteObjectId] = None,
-):
+) -> dict:
     """Sets files for the given file input element.
 
     Parameters
@@ -1377,20 +1333,20 @@ def set_file_input_files(
     objectId: Optional[runtime.RemoteObjectId]
             JavaScript object id of the node wrapper.
     """
-    return filter_unset_parameters(
-        {
-            "method": "DOM.setFileInputFiles",
-            "params": {
+    return {
+        "method": "DOM.setFileInputFiles",
+        "params": filter_none(
+            {
                 "files": files,
                 "nodeId": int(nodeId) if nodeId else None,
                 "backendNodeId": int(backendNodeId) if backendNodeId else None,
                 "objectId": str(objectId) if objectId else None,
-            },
-        }
-    )
+            }
+        ),
+    }
 
 
-def set_node_stack_traces_enabled(enable: bool):
+def set_node_stack_traces_enabled(enable: bool) -> dict:
     """Sets if stack traces should be captured for Nodes. See `Node.getNodeStackTraces`. Default is disabled.
 
     **Experimental**
@@ -1403,7 +1359,9 @@ def set_node_stack_traces_enabled(enable: bool):
     return {"method": "DOM.setNodeStackTracesEnabled", "params": {"enable": enable}}
 
 
-def get_node_stack_traces(nodeId: NodeId):
+def get_node_stack_traces(
+    nodeId: NodeId,
+) -> Generator[dict, dict, Optional[runtime.StackTrace]]:
     """Gets stack traces associated with a Node. As of now, only provides stack trace for Node creation.
 
     **Experimental**
@@ -1418,10 +1376,10 @@ def get_node_stack_traces(nodeId: NodeId):
     creation: Optional[runtime.StackTrace]
             Creation stack trace, if available.
     """
-    return {"method": "DOM.getNodeStackTraces", "params": {"nodeId": int(nodeId)}}
-
-
-def parse_get_node_stack_traces_response(response):
+    response = yield {
+        "method": "DOM.getNodeStackTraces",
+        "params": {"nodeId": int(nodeId)},
+    }
     return (
         runtime.StackTrace.from_json(response["creation"])
         if "creation" in response
@@ -1429,7 +1387,7 @@ def parse_get_node_stack_traces_response(response):
     )
 
 
-def get_file_info(objectId: runtime.RemoteObjectId):
+def get_file_info(objectId: runtime.RemoteObjectId) -> Generator[dict, dict, str]:
     """Returns file information for the given
     File wrapper.
 
@@ -1444,14 +1402,14 @@ def get_file_info(objectId: runtime.RemoteObjectId):
     -------
     path: str
     """
-    return {"method": "DOM.getFileInfo", "params": {"objectId": str(objectId)}}
-
-
-def parse_get_file_info_response(response):
+    response = yield {
+        "method": "DOM.getFileInfo",
+        "params": {"objectId": str(objectId)},
+    }
     return response["path"]
 
 
-def set_inspected_node(nodeId: NodeId):
+def set_inspected_node(nodeId: NodeId) -> dict:
     """Enables console to refer to the node with given id via $x (see Command Line API for more details
     $x functions).
 
@@ -1465,7 +1423,7 @@ def set_inspected_node(nodeId: NodeId):
     return {"method": "DOM.setInspectedNode", "params": {"nodeId": int(nodeId)}}
 
 
-def set_node_name(nodeId: NodeId, name: str):
+def set_node_name(nodeId: NodeId, name: str) -> Generator[dict, dict, NodeId]:
     """Sets node name for a node with given id.
 
     Parameters
@@ -1480,17 +1438,14 @@ def set_node_name(nodeId: NodeId, name: str):
     nodeId: NodeId
             New node's id.
     """
-    return {
+    response = yield {
         "method": "DOM.setNodeName",
         "params": {"nodeId": int(nodeId), "name": name},
     }
-
-
-def parse_set_node_name_response(response):
     return NodeId(response["nodeId"])
 
 
-def set_node_value(nodeId: NodeId, value: str):
+def set_node_value(nodeId: NodeId, value: str) -> dict:
     """Sets node value for a node with given id.
 
     Parameters
@@ -1506,7 +1461,7 @@ def set_node_value(nodeId: NodeId, value: str):
     }
 
 
-def set_outer_html(nodeId: NodeId, outerHTML: str):
+def set_outer_html(nodeId: NodeId, outerHTML: str) -> dict:
     """Sets node HTML markup, returns new node id.
 
     Parameters
@@ -1522,7 +1477,7 @@ def set_outer_html(nodeId: NodeId, outerHTML: str):
     }
 
 
-def undo():
+def undo() -> dict:
     """Undoes the last performed action.
 
     **Experimental**
@@ -1530,7 +1485,7 @@ def undo():
     return {"method": "DOM.undo", "params": {}}
 
 
-def get_frame_owner(frameId: page.FrameId):
+def get_frame_owner(frameId: page.FrameId) -> Generator[dict, dict, dict]:
     """Returns iframe node that owns iframe with the given domain.
 
     **Experimental**
@@ -1546,10 +1501,10 @@ def get_frame_owner(frameId: page.FrameId):
     nodeId: Optional[NodeId]
             Id of the node at given coordinates, only when enabled and requested document.
     """
-    return {"method": "DOM.getFrameOwner", "params": {"frameId": str(frameId)}}
-
-
-def parse_get_frame_owner_response(response):
+    response = yield {
+        "method": "DOM.getFrameOwner",
+        "params": {"frameId": str(frameId)},
+    }
     return {
         "backendNodeId": BackendNodeId(response["backendNodeId"]),
         "nodeId": NodeId(response["nodeId"]) if "nodeId" in response else None,

@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Optional
+from typing import Generator, Optional
 
 from . import runtime
-from .common import filter_unset_parameters
+from .common import filter_none
 
 
 class HeapSnapshotObjectId(str):
@@ -107,7 +107,7 @@ class SamplingHeapProfile:
         }
 
 
-def add_inspected_heap_object(heapObjectId: HeapSnapshotObjectId):
+def add_inspected_heap_object(heapObjectId: HeapSnapshotObjectId) -> dict:
     """Enables console to refer to the node with given id via $x (see Command Line API for more details
     $x functions).
 
@@ -122,22 +122,24 @@ def add_inspected_heap_object(heapObjectId: HeapSnapshotObjectId):
     }
 
 
-def collect_garbage():
+def collect_garbage() -> dict:
     """"""
     return {"method": "HeapProfiler.collectGarbage", "params": {}}
 
 
-def disable():
+def disable() -> dict:
     """"""
     return {"method": "HeapProfiler.disable", "params": {}}
 
 
-def enable():
+def enable() -> dict:
     """"""
     return {"method": "HeapProfiler.enable", "params": {}}
 
 
-def get_heap_object_id(objectId: runtime.RemoteObjectId):
+def get_heap_object_id(
+    objectId: runtime.RemoteObjectId,
+) -> Generator[dict, dict, HeapSnapshotObjectId]:
     """
     Parameters
     ----------
@@ -149,19 +151,16 @@ def get_heap_object_id(objectId: runtime.RemoteObjectId):
     heapSnapshotObjectId: HeapSnapshotObjectId
             Id of the heap snapshot object corresponding to the passed remote object id.
     """
-    return {
+    response = yield {
         "method": "HeapProfiler.getHeapObjectId",
         "params": {"objectId": str(objectId)},
     }
-
-
-def parse_get_heap_object_id_response(response):
     return HeapSnapshotObjectId(response["heapSnapshotObjectId"])
 
 
 def get_object_by_heap_object_id(
     objectId: HeapSnapshotObjectId, objectGroup: Optional[str] = None
-):
+) -> Generator[dict, dict, runtime.RemoteObject]:
     """
     Parameters
     ----------
@@ -174,33 +173,25 @@ def get_object_by_heap_object_id(
     result: runtime.RemoteObject
             Evaluation result.
     """
-    return filter_unset_parameters(
-        {
-            "method": "HeapProfiler.getObjectByHeapObjectId",
-            "params": {"objectId": str(objectId), "objectGroup": objectGroup},
-        }
-    )
-
-
-def parse_get_object_by_heap_object_id_response(response):
+    response = yield {
+        "method": "HeapProfiler.getObjectByHeapObjectId",
+        "params": filter_none({"objectId": str(objectId), "objectGroup": objectGroup}),
+    }
     return runtime.RemoteObject.from_json(response["result"])
 
 
-def get_sampling_profile():
+def get_sampling_profile() -> Generator[dict, dict, SamplingHeapProfile]:
     """
     Returns
     -------
     profile: SamplingHeapProfile
             Return the sampling profile being collected.
     """
-    return {"method": "HeapProfiler.getSamplingProfile", "params": {}}
-
-
-def parse_get_sampling_profile_response(response):
+    response = yield {"method": "HeapProfiler.getSamplingProfile", "params": {}}
     return SamplingHeapProfile.from_json(response["profile"])
 
 
-def start_sampling(samplingInterval: Optional[float] = None):
+def start_sampling(samplingInterval: Optional[float] = None) -> dict:
     """
     Parameters
     ----------
@@ -208,46 +199,39 @@ def start_sampling(samplingInterval: Optional[float] = None):
             Average sample interval in bytes. Poisson distribution is used for the intervals. The
             default value is 32768 bytes.
     """
-    return filter_unset_parameters(
-        {
-            "method": "HeapProfiler.startSampling",
-            "params": {"samplingInterval": samplingInterval},
-        }
-    )
+    return {
+        "method": "HeapProfiler.startSampling",
+        "params": filter_none({"samplingInterval": samplingInterval}),
+    }
 
 
-def start_tracking_heap_objects(trackAllocations: Optional[bool] = None):
+def start_tracking_heap_objects(trackAllocations: Optional[bool] = None) -> dict:
     """
     Parameters
     ----------
     trackAllocations: Optional[bool]
     """
-    return filter_unset_parameters(
-        {
-            "method": "HeapProfiler.startTrackingHeapObjects",
-            "params": {"trackAllocations": trackAllocations},
-        }
-    )
+    return {
+        "method": "HeapProfiler.startTrackingHeapObjects",
+        "params": filter_none({"trackAllocations": trackAllocations}),
+    }
 
 
-def stop_sampling():
+def stop_sampling() -> Generator[dict, dict, SamplingHeapProfile]:
     """
     Returns
     -------
     profile: SamplingHeapProfile
             Recorded sampling heap profile.
     """
-    return {"method": "HeapProfiler.stopSampling", "params": {}}
-
-
-def parse_stop_sampling_response(response):
+    response = yield {"method": "HeapProfiler.stopSampling", "params": {}}
     return SamplingHeapProfile.from_json(response["profile"])
 
 
 def stop_tracking_heap_objects(
     reportProgress: Optional[bool] = None,
     treatGlobalObjectsAsRoots: Optional[bool] = None,
-):
+) -> dict:
     """
     Parameters
     ----------
@@ -256,21 +240,21 @@ def stop_tracking_heap_objects(
             when the tracking is stopped.
     treatGlobalObjectsAsRoots: Optional[bool]
     """
-    return filter_unset_parameters(
-        {
-            "method": "HeapProfiler.stopTrackingHeapObjects",
-            "params": {
+    return {
+        "method": "HeapProfiler.stopTrackingHeapObjects",
+        "params": filter_none(
+            {
                 "reportProgress": reportProgress,
                 "treatGlobalObjectsAsRoots": treatGlobalObjectsAsRoots,
-            },
-        }
-    )
+            }
+        ),
+    }
 
 
 def take_heap_snapshot(
     reportProgress: Optional[bool] = None,
     treatGlobalObjectsAsRoots: Optional[bool] = None,
-):
+) -> dict:
     """
     Parameters
     ----------
@@ -279,15 +263,15 @@ def take_heap_snapshot(
     treatGlobalObjectsAsRoots: Optional[bool]
             If true, a raw snapshot without artifical roots will be generated
     """
-    return filter_unset_parameters(
-        {
-            "method": "HeapProfiler.takeHeapSnapshot",
-            "params": {
+    return {
+        "method": "HeapProfiler.takeHeapSnapshot",
+        "params": filter_none(
+            {
                 "reportProgress": reportProgress,
                 "treatGlobalObjectsAsRoots": treatGlobalObjectsAsRoots,
-            },
-        }
-    )
+            }
+        ),
+    }
 
 
 @dataclasses.dataclass

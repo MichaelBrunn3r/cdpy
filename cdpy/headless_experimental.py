@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Optional
+from typing import Generator, Optional
 
-from .common import filter_none, filter_unset_parameters
+from .common import filter_none
 
 
 @dataclasses.dataclass
@@ -34,7 +34,7 @@ def begin_frame(
     interval: Optional[float] = None,
     noDisplayUpdates: Optional[bool] = None,
     screenshot: Optional[ScreenshotParams] = None,
-):
+) -> Generator[dict, dict, dict]:
     """Sends a BeginFrame to the target and returns when the frame was completed. Optionally captures a
     screenshot from the resulting frame. Requires that the target was created with enabled
     BeginFrameControl. Designed for use with --run-all-compositor-stages-before-draw, see also
@@ -65,32 +65,29 @@ def begin_frame(
     screenshotData: Optional[str]
             Base64-encoded image data of the screenshot, if one was requested and successfully taken. (Encoded as a base64 string when passed over JSON)
     """
-    return filter_unset_parameters(
-        {
-            "method": "HeadlessExperimental.beginFrame",
-            "params": {
+    response = yield {
+        "method": "HeadlessExperimental.beginFrame",
+        "params": filter_none(
+            {
                 "frameTimeTicks": frameTimeTicks,
                 "interval": interval,
                 "noDisplayUpdates": noDisplayUpdates,
                 "screenshot": screenshot.to_json() if screenshot else None,
-            },
-        }
-    )
-
-
-def parse_begin_frame_response(response):
+            }
+        ),
+    }
     return {
         "hasDamage": response["hasDamage"],
         "screenshotData": response.get("screenshotData"),
     }
 
 
-def disable():
+def disable() -> dict:
     """Disables headless events for the target."""
     return {"method": "HeadlessExperimental.disable", "params": {}}
 
 
-def enable():
+def enable() -> dict:
     """Enables headless events for the target."""
     return {"method": "HeadlessExperimental.enable", "params": {}}
 
