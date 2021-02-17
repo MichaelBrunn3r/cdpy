@@ -4,6 +4,8 @@ import dataclasses
 import enum
 from typing import Generator, Optional
 
+from deprecated.sphinx import deprecated
+
 from . import page, runtime
 from .common import filter_none
 
@@ -465,8 +467,6 @@ def collect_class_names_from_subtree(
 ) -> Generator[dict, dict, list[str]]:
     """Collects class names for the node with given id and all of it's child nodes.
 
-    **Experimental**
-
     Parameters
     ----------
     nodeId: NodeId
@@ -476,6 +476,8 @@ def collect_class_names_from_subtree(
     -------
     classNames: list[str]
             Class name list.
+
+    **Experimental**
     """
     response = yield {
         "method": "DOM.collectClassNamesFromSubtree",
@@ -489,8 +491,6 @@ def copy_to(
 ) -> Generator[dict, dict, NodeId]:
     """Creates a deep copy of the specified node and places it into the target container before the
     given anchor.
-
-    **Experimental**
 
     Parameters
     ----------
@@ -506,6 +506,8 @@ def copy_to(
     -------
     nodeId: NodeId
             Id of the node clone.
+
+    **Experimental**
     """
     response = yield {
         "method": "DOM.copyTo",
@@ -577,8 +579,6 @@ def scroll_into_view_if_needed(
     Note: exactly one between nodeId, backendNodeId and objectId should be passed
     to identify the node.
 
-    **Experimental**
-
     Parameters
     ----------
     nodeId: Optional[NodeId]
@@ -590,6 +590,8 @@ def scroll_into_view_if_needed(
     rect: Optional[Rect]
             The rect to be scrolled into view, relative to the node's border box, in CSS pixels.
             When omitted, center of the node will be used, similar to Element.scrollIntoView.
+
+    **Experimental**
     """
     return {
         "method": "DOM.scrollIntoViewIfNeeded",
@@ -613,12 +615,12 @@ def discard_search_results(searchId: str) -> dict:
     """Discards search results from the session with the given id. `getSearchResults` should no longer
     be called for that search.
 
-    **Experimental**
-
     Parameters
     ----------
     searchId: str
             Unique search session identifier.
+
+    **Experimental**
     """
     return {"method": "DOM.discardSearchResults", "params": {"searchId": searchId}}
 
@@ -715,8 +717,6 @@ def get_content_quads(
     """Returns quads that describe node position on the page. This method
     might return multiple quads for inline nodes.
 
-    **Experimental**
-
     Parameters
     ----------
     nodeId: Optional[NodeId]
@@ -730,6 +730,8 @@ def get_content_quads(
     -------
     quads: list[Quad]
             Quads that describe node layout relative to viewport.
+
+    **Experimental**
     """
     response = yield {
         "method": "DOM.getContentQuads",
@@ -770,14 +772,13 @@ def get_document(
     return Node.from_json(response["root"])
 
 
+@deprecated(version=1.3)
 def get_flattened_document(
     depth: Optional[int] = None, pierce: Optional[bool] = None
 ) -> Generator[dict, dict, list[Node]]:
     """Returns the root DOM node (and optionally the subtree) to the caller.
     Deprecated, as it is not designed to work well with the rest of the DOM agent.
     Use DOMSnapshot.captureSnapshot instead.
-
-    **Deprectated**
 
     Parameters
     ----------
@@ -807,8 +808,6 @@ def get_nodes_for_subtree_by_style(
 ) -> Generator[dict, dict, list[NodeId]]:
     """Finds nodes with a given computed style in a subtree.
 
-    **Experimental**
-
     Parameters
     ----------
     nodeId: NodeId
@@ -823,6 +822,8 @@ def get_nodes_for_subtree_by_style(
     -------
     nodeIds: list[NodeId]
             Resulting nodes.
+
+    **Experimental**
     """
     response = yield {
         "method": "DOM.getNodesForSubtreeByStyle",
@@ -921,8 +922,6 @@ def get_outer_html(
 def get_relayout_boundary(nodeId: NodeId) -> Generator[dict, dict, NodeId]:
     """Returns the id of the nearest ancestor that is a relayout boundary.
 
-    **Experimental**
-
     Parameters
     ----------
     nodeId: NodeId
@@ -932,6 +931,8 @@ def get_relayout_boundary(nodeId: NodeId) -> Generator[dict, dict, NodeId]:
     -------
     nodeId: NodeId
             Relayout boundary node id for the given node.
+
+    **Experimental**
     """
     response = yield {
         "method": "DOM.getRelayoutBoundary",
@@ -946,8 +947,6 @@ def get_search_results(
     """Returns search results from given `fromIndex` to given `toIndex` from the search with the given
     identifier.
 
-    **Experimental**
-
     Parameters
     ----------
     searchId: str
@@ -961,6 +960,8 @@ def get_search_results(
     -------
     nodeIds: list[NodeId]
             Ids of the search result nodes.
+
+    **Experimental**
     """
     response = yield {
         "method": "DOM.getSearchResults",
@@ -1033,8 +1034,6 @@ def perform_search(
     """Searches for a given string in the DOM tree. Use `getSearchResults` to access search results or
     `cancelSearch` to end this search session.
 
-    **Experimental**
-
     Parameters
     ----------
     query: str
@@ -1048,6 +1047,8 @@ def perform_search(
             Unique search session identifier.
     resultCount: int
             Number of search results.
+
+    **Experimental**
     """
     response = yield {
         "method": "DOM.performSearch",
@@ -1061,8 +1062,6 @@ def perform_search(
 def push_node_by_path_to_frontend(path: str) -> Generator[dict, dict, NodeId]:
     """Requests that the node is sent to the caller given its path. // FIXME, use XPath
 
-    **Experimental**
-
     Parameters
     ----------
     path: str
@@ -1072,6 +1071,8 @@ def push_node_by_path_to_frontend(path: str) -> Generator[dict, dict, NodeId]:
     -------
     nodeId: NodeId
             Id of the node for given path.
+
+    **Experimental**
     """
     response = yield {
         "method": "DOM.pushNodeByPathToFrontend",
@@ -1085,8 +1086,6 @@ def push_nodes_by_backend_ids_to_frontend(
 ) -> Generator[dict, dict, list[NodeId]]:
     """Requests that a batch of nodes is sent to the caller given their backend node ids.
 
-    **Experimental**
-
     Parameters
     ----------
     backendNodeIds: list[BackendNodeId]
@@ -1097,6 +1096,8 @@ def push_nodes_by_backend_ids_to_frontend(
     nodeIds: list[NodeId]
             The array of ids of pushed nodes that correspond to the backend ids specified in
             backendNodeIds.
+
+    **Experimental**
     """
     response = yield {
         "method": "DOM.pushNodesByBackendIdsToFrontend",
@@ -1349,12 +1350,12 @@ def set_file_input_files(
 def set_node_stack_traces_enabled(enable: bool) -> dict:
     """Sets if stack traces should be captured for Nodes. See `Node.getNodeStackTraces`. Default is disabled.
 
-    **Experimental**
-
     Parameters
     ----------
     enable: bool
             Enable or disable.
+
+    **Experimental**
     """
     return {"method": "DOM.setNodeStackTracesEnabled", "params": {"enable": enable}}
 
@@ -1363,8 +1364,6 @@ def get_node_stack_traces(
     nodeId: NodeId,
 ) -> Generator[dict, dict, Optional[runtime.StackTrace]]:
     """Gets stack traces associated with a Node. As of now, only provides stack trace for Node creation.
-
-    **Experimental**
 
     Parameters
     ----------
@@ -1375,6 +1374,8 @@ def get_node_stack_traces(
     -------
     creation: Optional[runtime.StackTrace]
             Creation stack trace, if available.
+
+    **Experimental**
     """
     response = yield {
         "method": "DOM.getNodeStackTraces",
@@ -1391,8 +1392,6 @@ def get_file_info(objectId: runtime.RemoteObjectId) -> Generator[dict, dict, str
     """Returns file information for the given
     File wrapper.
 
-    **Experimental**
-
     Parameters
     ----------
     objectId: runtime.RemoteObjectId
@@ -1401,6 +1400,8 @@ def get_file_info(objectId: runtime.RemoteObjectId) -> Generator[dict, dict, str
     Returns
     -------
     path: str
+
+    **Experimental**
     """
     response = yield {
         "method": "DOM.getFileInfo",
@@ -1413,12 +1414,12 @@ def set_inspected_node(nodeId: NodeId) -> dict:
     """Enables console to refer to the node with given id via $x (see Command Line API for more details
     $x functions).
 
-    **Experimental**
-
     Parameters
     ----------
     nodeId: NodeId
             DOM node id to be accessible by means of $x command line API.
+
+    **Experimental**
     """
     return {"method": "DOM.setInspectedNode", "params": {"nodeId": int(nodeId)}}
 
@@ -1488,8 +1489,6 @@ def undo() -> dict:
 def get_frame_owner(frameId: page.FrameId) -> Generator[dict, dict, dict]:
     """Returns iframe node that owns iframe with the given domain.
 
-    **Experimental**
-
     Parameters
     ----------
     frameId: page.FrameId
@@ -1500,6 +1499,8 @@ def get_frame_owner(frameId: page.FrameId) -> Generator[dict, dict, dict]:
             Resulting node.
     nodeId: Optional[NodeId]
             Id of the node at given coordinates, only when enabled and requested document.
+
+    **Experimental**
     """
     response = yield {
         "method": "DOM.getFrameOwner",

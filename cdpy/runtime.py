@@ -996,12 +996,12 @@ def evaluate(
 def get_isolate_id() -> Generator[dict, dict, str]:
     """Returns the isolate id.
 
-    **Experimental**
-
     Returns
     -------
     id: str
             The isolate id.
+
+    **Experimental**
     """
     response = yield {"method": "Runtime.getIsolateId", "params": {}}
     return response["id"]
@@ -1011,14 +1011,14 @@ def get_heap_usage() -> Generator[dict, dict, dict]:
     """Returns the JavaScript heap usage.
     It is the total usage of the corresponding isolate not scoped to a particular Runtime.
 
-    **Experimental**
-
     Returns
     -------
     usedSize: float
             Used heap size in bytes.
     totalSize: float
             Allocated heap size in bytes.
+
+    **Experimental**
     """
     response = yield {"method": "Runtime.getHeapUsage", "params": {}}
     return {"usedSize": response["usedSize"], "totalSize": response["totalSize"]}
@@ -1253,11 +1253,11 @@ def set_async_call_stack_depth(maxDepth: int) -> dict:
 
 def set_custom_object_formatter_enabled(enabled: bool) -> dict:
     """
-    **Experimental**
-
     Parameters
     ----------
     enabled: bool
+
+    **Experimental**
     """
     return {
         "method": "Runtime.setCustomObjectFormatterEnabled",
@@ -1267,11 +1267,11 @@ def set_custom_object_formatter_enabled(enabled: bool) -> dict:
 
 def set_max_call_stack_size_to_capture(size: int) -> dict:
     """
-    **Experimental**
-
     Parameters
     ----------
     size: int
+
+    **Experimental**
     """
     return {"method": "Runtime.setMaxCallStackSizeToCapture", "params": {"size": size}}
 
@@ -1297,12 +1297,12 @@ def add_binding(
     in case of any other input, function throws an exception.
     Each binding function call produces Runtime.bindingCalled notification.
 
-    **Experimental**
-
     Parameters
     ----------
     name: str
     executionContextId: Optional[ExecutionContextId]
+
+    **Experimental**
     """
     return {
         "method": "Runtime.addBinding",
@@ -1321,11 +1321,11 @@ def remove_binding(name: str) -> dict:
     """This method does not remove binding function from global object but
     unsubscribes current runtime agent from Runtime.bindingCalled notifications.
 
-    **Experimental**
-
     Parameters
     ----------
     name: str
+
+    **Experimental**
     """
     return {"method": "Runtime.removeBinding", "params": {"name": name}}
 

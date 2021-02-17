@@ -37,8 +37,9 @@ logger = logging.getLogger(__name__)
 
 
 class GlobalContext:
-    def __init__(self):
+    def __init__(self, protocol_version: str):
         self.domains: dict[str, Domain] = {}
+        self.protocol_version = protocol_version
 
     def get_type_by_ref(self, reference: str) -> Type | None:
         domain_name, type_name = get_reference_parts(reference)
@@ -614,8 +615,21 @@ class Method:
             body.append(ast_from_str(f"return {self.method_json_ast()}"))
             function_type = "dict"
 
+        decorators = []
+        if self.deprecated:
+            self.context.require("deprecated.sphinx", "deprecated")
+            decorators.append(
+                ast_from_str(
+                    f"deprecated(version={self.context.global_context.protocol_version})"
+                )
+            )
+
         return ast_function(
-            snake_case(self.name), args, body, returns=ast.Name(function_type)
+            snake_case(self.name),
+            args,
+            body,
+            returns=ast.Name(function_type),
+            decorators=decorators,
         )
 
     def method_json_ast(self):
@@ -634,12 +648,6 @@ class Method:
     def create_docstring(self):
         docstr = DocstringBuilder(self.description)
 
-        if self.experimental:
-            docstr.line("\n**Experimental**")
-
-        if self.deprecated:
-            docstr.line("\n**Deprectated**")
-
         if len(self.parameters) > 0:
             docstr.section(
                 "Parameters", map(lambda p: p.to_docstring(), self.parameters)
@@ -647,6 +655,9 @@ class Method:
 
         if self.returns:
             docstr.section("Returns", map(lambda r: r.to_docstring(), self.returns))
+
+        if self.experimental:
+            docstr.line("\n**Experimental**")
 
         return docstr.build()
 
@@ -826,7 +837,7 @@ def generate(
     logger.info(f"Generating protocol version {major}.{minor}")
 
     # Parse protocol
-    global_context = GlobalContext()
+    global_context = GlobalContext(f"{major}.{minor}")
     for domain_json in domains:
         domain_name = domain_json["domain"]
         module_context = ModuleContext(

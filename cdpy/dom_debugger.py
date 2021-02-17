@@ -173,12 +173,12 @@ def remove_event_listener_breakpoint(
 def remove_instrumentation_breakpoint(eventName: str) -> dict:
     """Removes breakpoint on particular native event.
 
-    **Experimental**
-
     Parameters
     ----------
     eventName: str
             Instrumentation name to stop on.
+
+    **Experimental**
     """
     return {
         "method": "DOMDebugger.removeInstrumentationBreakpoint",
@@ -200,12 +200,12 @@ def remove_xhr_breakpoint(url: str) -> dict:
 def set_break_on_csp_violation(violationTypes: list[CSPViolationType]) -> dict:
     """Sets breakpoint on particular CSP violations.
 
-    **Experimental**
-
     Parameters
     ----------
     violationTypes: list[CSPViolationType]
             CSP Violations to stop upon.
+
+    **Experimental**
     """
     return {
         "method": "DOMDebugger.setBreakOnCSPViolation",
@@ -251,12 +251,12 @@ def set_event_listener_breakpoint(
 def set_instrumentation_breakpoint(eventName: str) -> dict:
     """Sets breakpoint on particular native event.
 
-    **Experimental**
-
     Parameters
     ----------
     eventName: str
             Instrumentation name to stop on.
+
+    **Experimental**
     """
     return {
         "method": "DOMDebugger.setInstrumentationBreakpoint",

@@ -242,8 +242,6 @@ def set_permission(
 ) -> dict:
     """Set permission settings for given origin.
 
-    **Experimental**
-
     Parameters
     ----------
     permission: PermissionDescriptor
@@ -254,6 +252,8 @@ def set_permission(
             Origin the permission applies to, all origins if not specified.
     browserContextId: Optional[BrowserContextID]
             Context to override. When omitted, default browser context is used.
+
+    **Experimental**
     """
     return {
         "method": "Browser.setPermission",
@@ -275,8 +275,6 @@ def grant_permissions(
 ) -> dict:
     """Grant specific permissions to the given origin and reject all others.
 
-    **Experimental**
-
     Parameters
     ----------
     permissions: list[PermissionType]
@@ -284,6 +282,8 @@ def grant_permissions(
             Origin the permission applies to, all origins if not specified.
     browserContextId: Optional[BrowserContextID]
             BrowserContext to override permissions. When omitted, default browser context is used.
+
+    **Experimental**
     """
     return {
         "method": "Browser.grantPermissions",
@@ -300,12 +300,12 @@ def grant_permissions(
 def reset_permissions(browserContextId: Optional[BrowserContextID] = None) -> dict:
     """Reset all permission management for all origins.
 
-    **Experimental**
-
     Parameters
     ----------
     browserContextId: Optional[BrowserContextID]
             BrowserContext to reset permissions. When omitted, default browser context is used.
+
+    **Experimental**
     """
     return {
         "method": "Browser.resetPermissions",
@@ -322,8 +322,6 @@ def set_download_behavior(
 ) -> dict:
     """Set the behavior when downloading a file.
 
-    **Experimental**
-
     Parameters
     ----------
     behavior: str
@@ -335,6 +333,8 @@ def set_download_behavior(
     downloadPath: Optional[str]
             The default path to save downloaded files to. This is requred if behavior is set to 'allow'
             or 'allowAndName'.
+
+    **Experimental**
     """
     return {
         "method": "Browser.setDownloadBehavior",
@@ -399,12 +399,12 @@ def get_browser_command_line() -> Generator[dict, dict, list[str]]:
     """Returns the command line switches for the browser process if, and only if
     --enable-automation is on the commandline.
 
-    **Experimental**
-
     Returns
     -------
     arguments: list[str]
             Commandline parameters
+
+    **Experimental**
     """
     response = yield {"method": "Browser.getBrowserCommandLine", "params": {}}
     return response["arguments"]
@@ -414,8 +414,6 @@ def get_histograms(
     query: Optional[str] = None, delta: Optional[bool] = None
 ) -> Generator[dict, dict, list[Histogram]]:
     """Get Chrome histograms.
-
-    **Experimental**
 
     Parameters
     ----------
@@ -430,6 +428,8 @@ def get_histograms(
     -------
     histograms: list[Histogram]
             Histograms.
+
+    **Experimental**
     """
     response = yield {
         "method": "Browser.getHistograms",
@@ -443,8 +443,6 @@ def get_histogram(
 ) -> Generator[dict, dict, Histogram]:
     """Get a Chrome histogram by name.
 
-    **Experimental**
-
     Parameters
     ----------
     name: str
@@ -456,6 +454,8 @@ def get_histogram(
     -------
     histogram: Histogram
             Histogram.
+
+    **Experimental**
     """
     response = yield {
         "method": "Browser.getHistogram",
@@ -467,8 +467,6 @@ def get_histogram(
 def get_window_bounds(windowId: WindowID) -> Generator[dict, dict, Bounds]:
     """Get position and size of the browser window.
 
-    **Experimental**
-
     Parameters
     ----------
     windowId: WindowID
@@ -479,6 +477,8 @@ def get_window_bounds(windowId: WindowID) -> Generator[dict, dict, Bounds]:
     bounds: Bounds
             Bounds information of the window. When window state is 'minimized', the restored window
             position and size are returned.
+
+    **Experimental**
     """
     response = yield {
         "method": "Browser.getWindowBounds",
@@ -492,8 +492,6 @@ def get_window_for_target(
 ) -> Generator[dict, dict, dict]:
     """Get the browser window that contains the devtools target.
 
-    **Experimental**
-
     Parameters
     ----------
     targetId: Optional[target.TargetID]
@@ -506,6 +504,8 @@ def get_window_for_target(
     bounds: Bounds
             Bounds information of the window. When window state is 'minimized', the restored window
             position and size are returned.
+
+    **Experimental**
     """
     response = yield {
         "method": "Browser.getWindowForTarget",
@@ -520,8 +520,6 @@ def get_window_for_target(
 def set_window_bounds(windowId: WindowID, bounds: Bounds) -> dict:
     """Set position and/or size of the browser window.
 
-    **Experimental**
-
     Parameters
     ----------
     windowId: WindowID
@@ -529,6 +527,8 @@ def set_window_bounds(windowId: WindowID, bounds: Bounds) -> dict:
     bounds: Bounds
             New window bounds. The 'minimized', 'maximized' and 'fullscreen' states cannot be combined
             with 'left', 'top', 'width' or 'height'. Leaves unspecified fields unchanged.
+
+    **Experimental**
     """
     return {
         "method": "Browser.setWindowBounds",
@@ -541,13 +541,13 @@ def set_dock_tile(
 ) -> dict:
     """Set dock tile details, platform-specific.
 
-    **Experimental**
-
     Parameters
     ----------
     badgeLabel: Optional[str]
     image: Optional[str]
             Png encoded image. (Encoded as a base64 string when passed over JSON)
+
+    **Experimental**
     """
     return {
         "method": "Browser.setDockTile",
@@ -558,11 +558,11 @@ def set_dock_tile(
 def execute_browser_command(commandId: BrowserCommandId) -> dict:
     """Invoke custom browser commands used by telemetry.
 
-    **Experimental**
-
     Parameters
     ----------
     commandId: BrowserCommandId
+
+    **Experimental**
     """
     return {
         "method": "Browser.executeBrowserCommand",

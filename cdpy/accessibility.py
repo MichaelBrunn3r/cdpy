@@ -397,8 +397,6 @@ def get_partial_ax_tree(
 ) -> Generator[dict, dict, list[AXNode]]:
     """Fetches the accessibility node and partial accessibility tree for this DOM node, if it exists.
 
-    **Experimental**
-
     Parameters
     ----------
     nodeId: Optional[dom.NodeId]
@@ -415,6 +413,8 @@ def get_partial_ax_tree(
     nodes: list[AXNode]
             The `Accessibility.AXNode` for this DOM node, if it exists, plus its ancestors, siblings and
             children, if requested.
+
+    **Experimental**
     """
     response = yield {
         "method": "Accessibility.getPartialAXTree",
@@ -435,8 +435,6 @@ def get_full_ax_tree(
 ) -> Generator[dict, dict, list[AXNode]]:
     """Fetches the entire accessibility tree for the root Document
 
-    **Experimental**
-
     Parameters
     ----------
     max_depth: Optional[int]
@@ -446,6 +444,8 @@ def get_full_ax_tree(
     Returns
     -------
     nodes: list[AXNode]
+
+    **Experimental**
     """
     response = yield {
         "method": "Accessibility.getFullAXTree",
@@ -458,8 +458,6 @@ def get_child_ax_nodes(id: AXNodeId) -> Generator[dict, dict, list[AXNode]]:
     """Fetches a particular accessibility node by AXNodeId.
     Requires `enable()` to have been called previously.
 
-    **Experimental**
-
     Parameters
     ----------
     id: AXNodeId
@@ -467,6 +465,8 @@ def get_child_ax_nodes(id: AXNodeId) -> Generator[dict, dict, list[AXNode]]:
     Returns
     -------
     nodes: list[AXNode]
+
+    **Experimental**
     """
     response = yield {
         "method": "Accessibility.getChildAXNodes",
@@ -488,8 +488,6 @@ def query_ax_tree(
     node is specified, or the DOM node does not exist, the command returns an error. If neither
     `accessibleName` or `role` is specified, it returns all the accessibility nodes in the subtree.
 
-    **Experimental**
-
     Parameters
     ----------
     nodeId: Optional[dom.NodeId]
@@ -508,6 +506,8 @@ def query_ax_tree(
     nodes: list[AXNode]
             A list of `Accessibility.AXNode` matching the specified attributes,
             including nodes that are ignored for accessibility.
+
+    **Experimental**
     """
     response = yield {
         "method": "Accessibility.queryAXTree",

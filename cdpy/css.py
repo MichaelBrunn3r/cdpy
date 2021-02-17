@@ -1234,11 +1234,11 @@ def track_computed_style_updates(
     by the DOM agent. If no changes to the tracked properties occur after the node has been pushed
     to the front-end, no updates will be issued for the node.
 
-    **Experimental**
-
     Parameters
     ----------
     propertiesToTrack: list[CSSComputedStyleProperty]
+
+    **Experimental**
     """
     return {
         "method": "CSS.trackComputedStyleUpdates",
@@ -1249,12 +1249,12 @@ def track_computed_style_updates(
 def take_computed_style_updates() -> Generator[dict, dict, list[dom.NodeId]]:
     """Polls the next batch of computed style updates.
 
-    **Experimental**
-
     Returns
     -------
     nodeIds: list[dom.NodeId]
             The list of node Ids that have their tracked computed styles updated
+
+    **Experimental**
     """
     response = yield {"method": "CSS.takeComputedStyleUpdates", "params": {}}
     return [dom.NodeId(n) for n in response["nodeIds"]]
@@ -1440,12 +1440,12 @@ def take_coverage_delta() -> Generator[dict, dict, dict]:
 def set_local_fonts_enabled(enabled: bool) -> dict:
     """Enables/disables rendering of local CSS fonts (enabled by default).
 
-    **Experimental**
-
     Parameters
     ----------
     enabled: bool
             Whether rendering of local fonts is enabled.
+
+    **Experimental**
     """
     return {"method": "CSS.setLocalFontsEnabled", "params": {"enabled": enabled}}
 

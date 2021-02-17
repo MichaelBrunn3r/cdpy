@@ -3,6 +3,8 @@ from __future__ import annotations
 import dataclasses
 from typing import Generator, Optional
 
+from deprecated.sphinx import deprecated
+
 from .common import filter_none
 
 
@@ -48,19 +50,18 @@ def enable(timeDomain: Optional[str] = None) -> dict:
     }
 
 
+@deprecated(version=1.3)
 def set_time_domain(timeDomain: str) -> dict:
     """Sets time domain to use for collecting and reporting duration metrics.
     Note that this must be called before enabling metrics collection. Calling
     this method while metrics collection is enabled returns an error.
 
-    **Experimental**
-
-    **Deprectated**
-
     Parameters
     ----------
     timeDomain: str
             Time domain
+
+    **Experimental**
     """
     return {"method": "Performance.setTimeDomain", "params": {"timeDomain": timeDomain}}
 

@@ -4,6 +4,8 @@ import dataclasses
 import enum
 from typing import Generator, Optional
 
+from deprecated.sphinx import deprecated
+
 from . import dom, network, page
 from .common import filter_none
 
@@ -208,12 +210,12 @@ def reset_page_scale_factor() -> dict:
 def set_focus_emulation_enabled(enabled: bool) -> dict:
     """Enables or disables simulating a focused and active page.
 
-    **Experimental**
-
     Parameters
     ----------
     enabled: bool
             Whether to enable to disable focus emulation.
+
+    **Experimental**
     """
     return {
         "method": "Emulation.setFocusEmulationEnabled",
@@ -224,12 +226,12 @@ def set_focus_emulation_enabled(enabled: bool) -> dict:
 def set_cpu_throttling_rate(rate: float) -> dict:
     """Enables CPU throttling to emulate slow CPUs.
 
-    **Experimental**
-
     Parameters
     ----------
     rate: float
             Throttling rate as a slowdown factor (1 is no throttle, 2 is 2x slowdown, etc).
+
+    **Experimental**
     """
     return {"method": "Emulation.setCPUThrottlingRate", "params": {"rate": rate}}
 
@@ -327,24 +329,24 @@ def set_device_metrics_override(
 
 def set_scrollbars_hidden(hidden: bool) -> dict:
     """
-    **Experimental**
-
     Parameters
     ----------
     hidden: bool
             Whether scrollbars should be always hidden.
+
+    **Experimental**
     """
     return {"method": "Emulation.setScrollbarsHidden", "params": {"hidden": hidden}}
 
 
 def set_document_cookie_disabled(disabled: bool) -> dict:
     """
-    **Experimental**
-
     Parameters
     ----------
     disabled: bool
             Whether document.coookie API should be disabled.
+
+    **Experimental**
     """
     return {
         "method": "Emulation.setDocumentCookieDisabled",
@@ -356,14 +358,14 @@ def set_emit_touch_events_for_mouse(
     enabled: bool, configuration: Optional[str] = None
 ) -> dict:
     """
-    **Experimental**
-
     Parameters
     ----------
     enabled: bool
             Whether touch emulation based on mouse input should be enabled.
     configuration: Optional[str]
             Touch/gesture events configuration. Default: current platform.
+
+    **Experimental**
     """
     return {
         "method": "Emulation.setEmitTouchEventsForMouse",
@@ -397,12 +399,12 @@ def set_emulated_media(
 def set_emulated_vision_deficiency(type: str) -> dict:
     """Emulates the given vision deficiency.
 
-    **Experimental**
-
     Parameters
     ----------
     type: str
             Vision deficiency to emulate.
+
+    **Experimental**
     """
     return {"method": "Emulation.setEmulatedVisionDeficiency", "params": {"type": type}}
 
@@ -435,14 +437,14 @@ def set_geolocation_override(
 def set_idle_override(isUserActive: bool, isScreenUnlocked: bool) -> dict:
     """Overrides the Idle state.
 
-    **Experimental**
-
     Parameters
     ----------
     isUserActive: bool
             Mock isUserActive
     isScreenUnlocked: bool
             Mock isScreenUnlocked
+
+    **Experimental**
     """
     return {
         "method": "Emulation.setIdleOverride",
@@ -458,17 +460,16 @@ def clear_idle_override() -> dict:
     return {"method": "Emulation.clearIdleOverride", "params": {}}
 
 
+@deprecated(version=1.3)
 def set_navigator_overrides(platform: str) -> dict:
     """Overrides value returned by the javascript navigator object.
-
-    **Experimental**
-
-    **Deprectated**
 
     Parameters
     ----------
     platform: str
             The platform navigator.platform should return.
+
+    **Experimental**
     """
     return {
         "method": "Emulation.setNavigatorOverrides",
@@ -479,12 +480,12 @@ def set_navigator_overrides(platform: str) -> dict:
 def set_page_scale_factor(pageScaleFactor: float) -> dict:
     """Sets a specified page scale factor.
 
-    **Experimental**
-
     Parameters
     ----------
     pageScaleFactor: float
             Page scale factor.
+
+    **Experimental**
     """
     return {
         "method": "Emulation.setPageScaleFactor",
@@ -534,8 +535,6 @@ def set_virtual_time_policy(
     """Turns on virtual time for all frames (replacing real-time with a synthetic time source) and sets
     the current virtual time policy.  Note this supersedes any previous time budget.
 
-    **Experimental**
-
     Parameters
     ----------
     policy: VirtualTimePolicy
@@ -555,6 +554,8 @@ def set_virtual_time_policy(
     -------
     virtualTimeTicksBase: float
             Absolute timestamp at which virtual time was first enabled (up time in milliseconds).
+
+    **Experimental**
     """
     response = yield {
         "method": "Emulation.setVirtualTimePolicy",
@@ -576,13 +577,13 @@ def set_virtual_time_policy(
 def set_locale_override(locale: Optional[str] = None) -> dict:
     """Overrides default host system locale with the specified one.
 
-    **Experimental**
-
     Parameters
     ----------
     locale: Optional[str]
             ICU style C locale (e.g. "en_US"). If not specified or empty, disables the override and
             restores default host system locale.
+
+    **Experimental**
     """
     return {
         "method": "Emulation.setLocaleOverride",
@@ -593,13 +594,13 @@ def set_locale_override(locale: Optional[str] = None) -> dict:
 def set_timezone_override(timezoneId: str) -> dict:
     """Overrides default host system timezone with the specified one.
 
-    **Experimental**
-
     Parameters
     ----------
     timezoneId: str
             The timezone identifier. If empty, disables the override and
             restores default host system timezone.
+
+    **Experimental**
     """
     return {
         "method": "Emulation.setTimezoneOverride",
@@ -607,14 +608,11 @@ def set_timezone_override(timezoneId: str) -> dict:
     }
 
 
+@deprecated(version=1.3)
 def set_visible_size(width: int, height: int) -> dict:
     """Resizes the frame/viewport of the page. Note that this does not affect the frame's container
     (e.g. browser window). Can be used to produce screenshots of the specified size. Not supported
     on Android.
-
-    **Experimental**
-
-    **Deprectated**
 
     Parameters
     ----------
@@ -622,6 +620,8 @@ def set_visible_size(width: int, height: int) -> dict:
             Frame width (DIP).
     height: int
             Frame height (DIP).
+
+    **Experimental**
     """
     return {
         "method": "Emulation.setVisibleSize",
@@ -631,12 +631,12 @@ def set_visible_size(width: int, height: int) -> dict:
 
 def set_disabled_image_types(imageTypes: list[DisabledImageType]) -> dict:
     """
-    **Experimental**
-
     Parameters
     ----------
     imageTypes: list[DisabledImageType]
             Image types to disable.
+
+    **Experimental**
     """
     return {
         "method": "Emulation.setDisabledImageTypes",

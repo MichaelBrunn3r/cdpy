@@ -196,12 +196,12 @@ def insert_text(text: str) -> dict:
     """This method emulates inserting text that doesn't come from a key press,
     for example an emoji keyboard or an IME.
 
-    **Experimental**
-
     Parameters
     ----------
     text: str
             The text to insert.
+
+    **Experimental**
     """
     return {"method": "Input.insertText", "params": {"text": text}}
 
@@ -338,8 +338,6 @@ def emulate_touch_from_mouse_event(
 ) -> dict:
     """Emulates touch event from the mouse event parameters.
 
-    **Experimental**
-
     Parameters
     ----------
     type: str
@@ -361,6 +359,8 @@ def emulate_touch_from_mouse_event(
             (default: 0).
     clickCount: Optional[int]
             Number of times the mouse button was clicked (default: 0).
+
+    **Experimental**
     """
     return {
         "method": "Input.emulateTouchFromMouseEvent",
@@ -400,8 +400,6 @@ def synthesize_pinch_gesture(
 ) -> dict:
     """Synthesizes a pinch gesture over a time period by issuing appropriate touch events.
 
-    **Experimental**
-
     Parameters
     ----------
     x: float
@@ -415,6 +413,8 @@ def synthesize_pinch_gesture(
     gestureSourceType: Optional[GestureSourceType]
             Which type of input events to be generated (default: 'default', which queries the platform
             for the preferred input type).
+
+    **Experimental**
     """
     return {
         "method": "Input.synthesizePinchGesture",
@@ -448,8 +448,6 @@ def synthesize_scroll_gesture(
 ) -> dict:
     """Synthesizes a scroll gesture over a time period by issuing appropriate touch events.
 
-    **Experimental**
-
     Parameters
     ----------
     x: float
@@ -479,6 +477,8 @@ def synthesize_scroll_gesture(
             The number of milliseconds delay between each repeat. (default: 250).
     interactionMarkerName: Optional[str]
             The name of the interaction markers to generate, if not empty (default: "").
+
+    **Experimental**
     """
     return {
         "method": "Input.synthesizeScrollGesture",
@@ -512,8 +512,6 @@ def synthesize_tap_gesture(
 ) -> dict:
     """Synthesizes a tap gesture over a time period by issuing appropriate touch events.
 
-    **Experimental**
-
     Parameters
     ----------
     x: float
@@ -527,6 +525,8 @@ def synthesize_tap_gesture(
     gestureSourceType: Optional[GestureSourceType]
             Which type of input events to be generated (default: 'default', which queries the platform
             for the preferred input type).
+
+    **Experimental**
     """
     return {
         "method": "Input.synthesizeTapGesture",

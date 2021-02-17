@@ -185,8 +185,6 @@ def get_usage_and_quota(origin: str) -> Generator[dict, dict, dict]:
 def override_quota_for_origin(origin: str, quotaSize: Optional[float] = None) -> dict:
     """Override quota for the specified origin
 
-    **Experimental**
-
     Parameters
     ----------
     origin: str
@@ -199,6 +197,8 @@ def override_quota_for_origin(origin: str, quotaSize: Optional[float] = None) ->
             the specified origin. If this is called multiple times with different
             origins, the override will be maintained for each origin until it is
             disabled (called without a quotaSize).
+
+    **Experimental**
     """
     return {
         "method": "Storage.overrideQuotaForOrigin",
@@ -260,11 +260,11 @@ def get_trust_tokens() -> Generator[dict, dict, list[TrustTokens]]:
     """Returns the number of stored Trust Tokens per issuer for the
     current browsing context.
 
-    **Experimental**
-
     Returns
     -------
     tokens: list[TrustTokens]
+
+    **Experimental**
     """
     response = yield {"method": "Storage.getTrustTokens", "params": {}}
     return [TrustTokens.from_json(t) for t in response["tokens"]]

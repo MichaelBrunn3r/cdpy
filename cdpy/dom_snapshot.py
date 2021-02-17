@@ -3,6 +3,8 @@ from __future__ import annotations
 import dataclasses
 from typing import Generator, Optional
 
+from deprecated.sphinx import deprecated
+
 from . import dom, dom_debugger, page
 from .common import filter_none
 
@@ -775,6 +777,7 @@ def enable() -> dict:
     return {"method": "DOMSnapshot.enable", "params": {}}
 
 
+@deprecated(version=1.3)
 def get_snapshot(
     computedStyleWhitelist: list[str],
     includeEventListeners: Optional[bool] = None,
@@ -785,8 +788,6 @@ def get_snapshot(
     template contents, and imported documents) in a flattened array, as well as layout and
     white-listed computed style information for the nodes. Shadow DOM in the returned DOM tree is
     flattened.
-
-    **Deprectated**
 
     Parameters
     ----------

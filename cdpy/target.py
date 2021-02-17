@@ -3,6 +3,8 @@ from __future__ import annotations
 import dataclasses
 from typing import Generator, Optional
 
+from deprecated.sphinx import deprecated
+
 from . import browser, page
 from .common import filter_none
 
@@ -145,12 +147,12 @@ def attach_to_target(
 def attach_to_browser_target() -> Generator[dict, dict, SessionID]:
     """Attaches to the browser target, only uses flat sessionId mode.
 
-    **Experimental**
-
     Returns
     -------
     sessionId: SessionID
             Id assigned to the session.
+
+    **Experimental**
     """
     response = yield {"method": "Target.attachToBrowserTarget", "params": {}}
     return SessionID(response["sessionId"])
@@ -187,13 +189,13 @@ def expose_dev_tools_protocol(
     - `binding.send(json)` - a method to send messages over the remote debugging protocol
     - `binding.onmessage = json => handleMessage(json)` - a callback that will be called for the protocol notifications and command responses.
 
-    **Experimental**
-
     Parameters
     ----------
     targetId: TargetID
     bindingName: Optional[str]
             Binding name, 'cdp' if not specified.
+
+    **Experimental**
     """
     return {
         "method": "Target.exposeDevToolsProtocol",
@@ -209,8 +211,6 @@ def create_browser_context(
     """Creates a new empty BrowserContext. Similar to an incognito profile but you can have more than
     one.
 
-    **Experimental**
-
     Parameters
     ----------
     disposeOnDetach: Optional[bool]
@@ -224,6 +224,8 @@ def create_browser_context(
     -------
     browserContextId: browser.BrowserContextID
             The id of the context created.
+
+    **Experimental**
     """
     response = yield {
         "method": "Target.createBrowserContext",
@@ -241,12 +243,12 @@ def create_browser_context(
 def get_browser_contexts() -> Generator[dict, dict, list[browser.BrowserContextID]]:
     """Returns all browser contexts created with `Target.createBrowserContext` method.
 
-    **Experimental**
-
     Returns
     -------
     browserContextIds: list[browser.BrowserContextID]
             An array of browser context ids.
+
+    **Experimental**
     """
     response = yield {"method": "Target.getBrowserContexts", "params": {}}
     return [browser.BrowserContextID(b) for b in response["browserContextIds"]]
@@ -331,11 +333,11 @@ def dispose_browser_context(browserContextId: browser.BrowserContextID) -> dict:
     """Deletes a BrowserContext. All the belonging pages will be closed without calling their
     beforeunload hooks.
 
-    **Experimental**
-
     Parameters
     ----------
     browserContextId: browser.BrowserContextID
+
+    **Experimental**
     """
     return {
         "method": "Target.disposeBrowserContext",
@@ -348,8 +350,6 @@ def get_target_info(
 ) -> Generator[dict, dict, TargetInfo]:
     """Returns information about a target.
 
-    **Experimental**
-
     Parameters
     ----------
     targetId: Optional[TargetID]
@@ -357,6 +357,8 @@ def get_target_info(
     Returns
     -------
     targetInfo: TargetInfo
+
+    **Experimental**
     """
     response = yield {
         "method": "Target.getTargetInfo",
@@ -377,6 +379,7 @@ def get_targets() -> Generator[dict, dict, list[TargetInfo]]:
     return [TargetInfo.from_json(t) for t in response["targetInfos"]]
 
 
+@deprecated(version=1.3)
 def send_message_to_target(
     message: str,
     sessionId: Optional[SessionID] = None,
@@ -385,8 +388,6 @@ def send_message_to_target(
     """Sends protocol message over session with given id.
     Consider using flat mode instead; see commands attachToTarget, setAutoAttach,
     and crbug.com/991325.
-
-    **Deprectated**
 
     Parameters
     ----------
@@ -415,8 +416,6 @@ def set_auto_attach(
     this one. When turned on, attaches to all existing related targets as well. When turned off,
     automatically detaches from all currently attached targets.
 
-    **Experimental**
-
     Parameters
     ----------
     autoAttach: bool
@@ -428,6 +427,8 @@ def set_auto_attach(
             Enables "flat" access to the session via specifying sessionId attribute in the commands.
             We plan to make this the default, deprecate non-flattened mode,
             and eventually retire it. See crbug.com/991325.
+
+    **Experimental**
     """
     return {
         "method": "Target.setAutoAttach",
@@ -457,12 +458,12 @@ def set_remote_locations(locations: list[RemoteLocation]) -> dict:
     """Enables target discovery for the specified locations, when `setDiscoverTargets` was set to
     `true`.
 
-    **Experimental**
-
     Parameters
     ----------
     locations: list[RemoteLocation]
             List of remote locations.
+
+    **Experimental**
     """
     return {
         "method": "Target.setRemoteLocations",

@@ -4,6 +4,8 @@ import dataclasses
 import enum
 from typing import Generator, Optional
 
+from deprecated.sphinx import deprecated
+
 from . import runtime
 from .common import filter_none
 
@@ -445,8 +447,6 @@ def execute_wasm_evaluator(
 ) -> Generator[dict, dict, dict]:
     """Execute a Wasm Evaluator module on a given call frame.
 
-    **Experimental**
-
     Parameters
     ----------
     callFrameId: CallFrameId
@@ -462,6 +462,8 @@ def execute_wasm_evaluator(
             Object wrapper for the evaluation result.
     exceptionDetails: Optional[runtime.ExceptionDetails]
             Exception details.
+
+    **Experimental**
     """
     response = yield {
         "method": "Debugger.executeWasmEvaluator",
@@ -544,10 +546,9 @@ def get_script_source(scriptId: runtime.ScriptId) -> Generator[dict, dict, dict]
     }
 
 
+@deprecated(version=1.3)
 def get_wasm_bytecode(scriptId: runtime.ScriptId) -> Generator[dict, dict, str]:
     """This command is deprecated. Use getScriptSource instead.
-
-    **Deprectated**
 
     Parameters
     ----------
@@ -571,8 +572,6 @@ def get_stack_trace(
 ) -> Generator[dict, dict, runtime.StackTrace]:
     """Returns stack trace with given `stackTraceId`.
 
-    **Experimental**
-
     Parameters
     ----------
     stackTraceId: runtime.StackTraceId
@@ -580,6 +579,8 @@ def get_stack_trace(
     Returns
     -------
     stackTrace: runtime.StackTrace
+
+    **Experimental**
     """
     response = yield {
         "method": "Debugger.getStackTrace",
@@ -593,16 +594,15 @@ def pause() -> dict:
     return {"method": "Debugger.pause", "params": {}}
 
 
+@deprecated(version=1.3)
 def pause_on_async_call(parentStackTraceId: runtime.StackTraceId) -> dict:
     """
-    **Experimental**
-
-    **Deprectated**
-
     Parameters
     ----------
     parentStackTraceId: runtime.StackTraceId
             Debugger will pause when async call with given stack trace is started.
+
+    **Experimental**
     """
     return {
         "method": "Debugger.pauseOnAsyncCall",
@@ -733,12 +733,12 @@ def set_blackbox_patterns(patterns: list[str]) -> dict:
     scripts with url matching one of the patterns. VM will try to leave blackboxed script by
     performing 'step in' several times, finally resorting to 'step out' if unsuccessful.
 
-    **Experimental**
-
     Parameters
     ----------
     patterns: list[str]
             Array of regexps that will be used to check script url for blackbox state.
+
+    **Experimental**
     """
     return {"method": "Debugger.setBlackboxPatterns", "params": {"patterns": patterns}}
 
@@ -751,13 +751,13 @@ def set_blackboxed_ranges(
     Positions array contains positions where blackbox state is changed. First interval isn't
     blackboxed. Array should be sorted.
 
-    **Experimental**
-
     Parameters
     ----------
     scriptId: runtime.ScriptId
             Id of the script.
     positions: list[ScriptPosition]
+
+    **Experimental**
     """
     return {
         "method": "Debugger.setBlackboxedRanges",
@@ -883,8 +883,6 @@ def set_breakpoint_on_function_call(
     If another function was created from the same source as a given one,
     calling it will also trigger the breakpoint.
 
-    **Experimental**
-
     Parameters
     ----------
     objectId: runtime.RemoteObjectId
@@ -897,6 +895,8 @@ def set_breakpoint_on_function_call(
     -------
     breakpointId: BreakpointId
             Id of the created breakpoint for further reference.
+
+    **Experimental**
     """
     response = yield {
         "method": "Debugger.setBreakpointOnFunctionCall",
@@ -931,12 +931,12 @@ def set_pause_on_exceptions(state: str) -> dict:
 def set_return_value(newValue: runtime.CallArgument) -> dict:
     """Changes return value in top frame. Available only at return break position.
 
-    **Experimental**
-
     Parameters
     ----------
     newValue: runtime.CallArgument
             New return value.
+
+    **Experimental**
     """
     return {
         "method": "Debugger.setReturnValue",

@@ -4,6 +4,8 @@ import dataclasses
 import enum
 from typing import Generator, Optional
 
+from deprecated.sphinx import deprecated
+
 from . import debugger, emulation, io, page, runtime, security
 from .common import filter_none
 
@@ -1830,10 +1832,9 @@ class LoadNetworkResourceOptions:
         }
 
 
+@deprecated(version=1.3)
 def can_clear_browser_cache() -> Generator[dict, dict, bool]:
     """Tells whether clearing browser cache is supported.
-
-    **Deprectated**
 
     Returns
     -------
@@ -1844,10 +1845,9 @@ def can_clear_browser_cache() -> Generator[dict, dict, bool]:
     return response["result"]
 
 
+@deprecated(version=1.3)
 def can_clear_browser_cookies() -> Generator[dict, dict, bool]:
     """Tells whether clearing browser cookies is supported.
-
-    **Deprectated**
 
     Returns
     -------
@@ -1858,10 +1858,9 @@ def can_clear_browser_cookies() -> Generator[dict, dict, bool]:
     return response["result"]
 
 
+@deprecated(version=1.3)
 def can_emulate_network_conditions() -> Generator[dict, dict, bool]:
     """Tells whether emulation of network conditions is supported.
-
-    **Deprectated**
 
     Returns
     -------
@@ -1882,6 +1881,7 @@ def clear_browser_cookies() -> dict:
     return {"method": "Network.clearBrowserCookies", "params": {}}
 
 
+@deprecated(version=1.3)
 def continue_intercepted_request(
     interceptionId: InterceptionId,
     errorReason: Optional[ErrorReason] = None,
@@ -1897,10 +1897,6 @@ def continue_intercepted_request(
     fetch occurs as a result which encounters a redirect an additional Network.requestIntercepted
     event will be sent with the same InterceptionId.
     Deprecated, use Fetch.continueRequest, Fetch.fulfillRequest and Fetch.failRequest instead.
-
-    **Experimental**
-
-    **Deprectated**
 
     Parameters
     ----------
@@ -1925,6 +1921,8 @@ def continue_intercepted_request(
             authChallenge.
     authChallengeResponse: Optional[AuthChallengeResponse]
             Response to a requestIntercepted with an authChallenge. Must not be set otherwise.
+
+    **Experimental**
     """
     return {
         "method": "Network.continueInterceptedRequest",
@@ -2058,8 +2056,6 @@ def get_all_cookies() -> Generator[dict, dict, list[Cookie]]:
 def get_certificate(origin: str) -> Generator[dict, dict, list[str]]:
     """Returns the DER-encoded certificate.
 
-    **Experimental**
-
     Parameters
     ----------
     origin: str
@@ -2068,6 +2064,8 @@ def get_certificate(origin: str) -> Generator[dict, dict, list[str]]:
     Returns
     -------
     tableNames: list[str]
+
+    **Experimental**
     """
     response = yield {"method": "Network.getCertificate", "params": {"origin": origin}}
     return response["tableNames"]
@@ -2145,8 +2143,6 @@ def get_response_body_for_interception(
 ) -> Generator[dict, dict, dict]:
     """Returns content served for the given currently intercepted request.
 
-    **Experimental**
-
     Parameters
     ----------
     interceptionId: InterceptionId
@@ -2158,6 +2154,8 @@ def get_response_body_for_interception(
             Response body.
     base64Encoded: bool
             True, if content was sent as base64.
+
+    **Experimental**
     """
     response = yield {
         "method": "Network.getResponseBodyForInterception",
@@ -2174,8 +2172,6 @@ def take_response_body_for_interception_as_stream(
     the response body. The stream only supports sequential read, IO.read will fail if the position
     is specified.
 
-    **Experimental**
-
     Parameters
     ----------
     interceptionId: InterceptionId
@@ -2183,6 +2179,8 @@ def take_response_body_for_interception_as_stream(
     Returns
     -------
     stream: io.StreamHandle
+
+    **Experimental**
     """
     response = yield {
         "method": "Network.takeResponseBodyForInterceptionAsStream",
@@ -2196,12 +2194,12 @@ def replay_xhr(requestId: RequestId) -> dict:
     parameters should be identical: method, url, async, request body, extra headers, withCredentials
     attribute, user, password.
 
-    **Experimental**
-
     Parameters
     ----------
     requestId: RequestId
             Identifier of XHR to replay.
+
+    **Experimental**
     """
     return {"method": "Network.replayXHR", "params": {"requestId": str(requestId)}}
 
@@ -2213,8 +2211,6 @@ def search_in_response_body(
     isRegex: Optional[bool] = None,
 ) -> Generator[dict, dict, list[debugger.SearchMatch]]:
     """Searches for given string in response content.
-
-    **Experimental**
 
     Parameters
     ----------
@@ -2231,6 +2227,8 @@ def search_in_response_body(
     -------
     result: list[debugger.SearchMatch]
             List of search matches.
+
+    **Experimental**
     """
     response = yield {
         "method": "Network.searchInResponseBody",
@@ -2249,12 +2247,12 @@ def search_in_response_body(
 def set_blocked_ur_ls(urls: list[str]) -> dict:
     """Blocks URLs from loading.
 
-    **Experimental**
-
     Parameters
     ----------
     urls: list[str]
             URL patterns to block. Wildcards ('*') are allowed.
+
+    **Experimental**
     """
     return {"method": "Network.setBlockedURLs", "params": {"urls": urls}}
 
@@ -2262,12 +2260,12 @@ def set_blocked_ur_ls(urls: list[str]) -> dict:
 def set_bypass_service_worker(bypass: bool) -> dict:
     """Toggles ignoring of service worker for each request.
 
-    **Experimental**
-
     Parameters
     ----------
     bypass: bool
             Bypass service worker and load from network.
+
+    **Experimental**
     """
     return {"method": "Network.setBypassServiceWorker", "params": {"bypass": bypass}}
 
@@ -2366,14 +2364,14 @@ def set_cookies(cookies: list[CookieParam]) -> dict:
 def set_data_size_limits_for_test(maxTotalSize: int, maxResourceSize: int) -> dict:
     """For testing.
 
-    **Experimental**
-
     Parameters
     ----------
     maxTotalSize: int
             Maximum total buffer size.
     maxResourceSize: int
             Maximum per-resource size.
+
+    **Experimental**
     """
     return {
         "method": "Network.setDataSizeLimitsForTest",
@@ -2398,29 +2396,28 @@ def set_extra_http_headers(headers: Headers) -> dict:
 def set_attach_debug_stack(enabled: bool) -> dict:
     """Specifies whether to attach a page script stack id in requests
 
-    **Experimental**
-
     Parameters
     ----------
     enabled: bool
             Whether to attach a page script stack for debugging purpose.
+
+    **Experimental**
     """
     return {"method": "Network.setAttachDebugStack", "params": {"enabled": enabled}}
 
 
+@deprecated(version=1.3)
 def set_request_interception(patterns: list[RequestPattern]) -> dict:
     """Sets the requests to intercept that match the provided patterns and optionally resource types.
     Deprecated, please use Fetch.enable instead.
-
-    **Experimental**
-
-    **Deprectated**
 
     Parameters
     ----------
     patterns: list[RequestPattern]
             Requests matching any of these patterns will be forwarded and wait for the corresponding
             continueInterceptedRequest call.
+
+    **Experimental**
     """
     return {
         "method": "Network.setRequestInterception",
@@ -2467,8 +2464,6 @@ def get_security_isolation_status(
 ) -> Generator[dict, dict, SecurityIsolationStatus]:
     """Returns information about the COEP/COOP isolation status.
 
-    **Experimental**
-
     Parameters
     ----------
     frameId: Optional[page.FrameId]
@@ -2477,6 +2472,8 @@ def get_security_isolation_status(
     Returns
     -------
     status: SecurityIsolationStatus
+
+    **Experimental**
     """
     response = yield {
         "method": "Network.getSecurityIsolationStatus",
@@ -2490,8 +2487,6 @@ def load_network_resource(
 ) -> Generator[dict, dict, LoadNetworkResourcePageResult]:
     """Fetches the resource and returns the content.
 
-    **Experimental**
-
     Parameters
     ----------
     frameId: page.FrameId
@@ -2504,6 +2499,8 @@ def load_network_resource(
     Returns
     -------
     resource: LoadNetworkResourcePageResult
+
+    **Experimental**
     """
     response = yield {
         "method": "Network.loadNetworkResource",

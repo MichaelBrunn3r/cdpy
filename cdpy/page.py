@@ -4,6 +4,8 @@ import dataclasses
 import enum
 from typing import Generator, Optional
 
+from deprecated.sphinx import deprecated
+
 from . import debugger, dom, emulation, io, network, runtime
 from .common import filter_none
 
@@ -764,14 +766,11 @@ class ReferrerPolicy(enum.Enum):
     UNSAFE_URL = "unsafeUrl"
 
 
+@deprecated(version=1.3)
 def add_script_to_evaluate_on_load(
     scriptSource: str,
 ) -> Generator[dict, dict, ScriptIdentifier]:
     """Deprecated, please use addScriptToEvaluateOnNewDocument instead.
-
-    **Experimental**
-
-    **Deprectated**
 
     Parameters
     ----------
@@ -781,6 +780,8 @@ def add_script_to_evaluate_on_load(
     -------
     identifier: ScriptIdentifier
             Identifier of the added script.
+
+    **Experimental**
     """
     response = yield {
         "method": "Page.addScriptToEvaluateOnLoad",
@@ -865,8 +866,6 @@ def capture_snapshot(format: Optional[str] = None) -> Generator[dict, dict, str]
     """Returns a snapshot of the page as a string. For MHTML format, the serialization includes
     iframes, shadow DOM, external resources, and element-inline styles.
 
-    **Experimental**
-
     Parameters
     ----------
     format: Optional[str]
@@ -876,6 +875,8 @@ def capture_snapshot(format: Optional[str] = None) -> Generator[dict, dict, str]
     -------
     data: str
             Serialized page data.
+
+    **Experimental**
     """
     response = yield {
         "method": "Page.captureSnapshot",
@@ -884,31 +885,27 @@ def capture_snapshot(format: Optional[str] = None) -> Generator[dict, dict, str]
     return response["data"]
 
 
+@deprecated(version=1.3)
 def clear_device_metrics_override() -> dict:
     """Clears the overriden device metrics.
 
     **Experimental**
-
-    **Deprectated**
     """
     return {"method": "Page.clearDeviceMetricsOverride", "params": {}}
 
 
+@deprecated(version=1.3)
 def clear_device_orientation_override() -> dict:
     """Clears the overridden Device Orientation.
 
     **Experimental**
-
-    **Deprectated**
     """
     return {"method": "Page.clearDeviceOrientationOverride", "params": {}}
 
 
+@deprecated(version=1.3)
 def clear_geolocation_override() -> dict:
-    """Clears the overriden Geolocation Position and Error.
-
-    **Deprectated**
-    """
+    """Clears the overriden Geolocation Position and Error."""
     return {"method": "Page.clearGeolocationOverride", "params": {}}
 
 
@@ -947,12 +944,9 @@ def create_isolated_world(
     return runtime.ExecutionContextId(response["executionContextId"])
 
 
+@deprecated(version=1.3)
 def delete_cookie(cookieName: str, url: str) -> dict:
     """Deletes browser cookie with given name, domain and path.
-
-    **Experimental**
-
-    **Deprectated**
 
     Parameters
     ----------
@@ -960,6 +954,8 @@ def delete_cookie(cookieName: str, url: str) -> dict:
             Name of the cookie to remove.
     url: str
             URL to match cooke domain and path.
+
+    **Experimental**
     """
     return {
         "method": "Page.deleteCookie",
@@ -1002,11 +998,11 @@ def get_app_manifest() -> Generator[dict, dict, dict]:
 
 def get_installability_errors() -> Generator[dict, dict, list[InstallabilityError]]:
     """
-    **Experimental**
-
     Returns
     -------
     installabilityErrors: list[InstallabilityError]
+
+    **Experimental**
     """
     response = yield {"method": "Page.getInstallabilityErrors", "params": {}}
     return [InstallabilityError.from_json(i) for i in response["installabilityErrors"]]
@@ -1014,28 +1010,27 @@ def get_installability_errors() -> Generator[dict, dict, list[InstallabilityErro
 
 def get_manifest_icons() -> Generator[dict, dict, Optional[str]]:
     """
-    **Experimental**
-
     Returns
     -------
     primaryIcon: Optional[str]
+
+    **Experimental**
     """
     response = yield {"method": "Page.getManifestIcons", "params": {}}
     return response.get("primaryIcon")
 
 
+@deprecated(version=1.3)
 def get_cookies() -> Generator[dict, dict, list[network.Cookie]]:
     """Returns all browser cookies. Depending on the backend support, will return detailed cookie
     information in the `cookies` field.
-
-    **Experimental**
-
-    **Deprectated**
 
     Returns
     -------
     cookies: list[network.Cookie]
             Array of cookie objects.
+
+    **Experimental**
     """
     response = yield {"method": "Page.getCookies", "params": {}}
     return [network.Cookie.from_json(c) for c in response["cookies"]]
@@ -1098,8 +1093,6 @@ def reset_navigation_history() -> dict:
 def get_resource_content(frameId: FrameId, url: str) -> Generator[dict, dict, dict]:
     """Returns content of the given resource.
 
-    **Experimental**
-
     Parameters
     ----------
     frameId: FrameId
@@ -1113,6 +1106,8 @@ def get_resource_content(frameId: FrameId, url: str) -> Generator[dict, dict, di
             Resource content.
     base64Encoded: bool
             True, if content was served as base64.
+
+    **Experimental**
     """
     response = yield {
         "method": "Page.getResourceContent",
@@ -1124,12 +1119,12 @@ def get_resource_content(frameId: FrameId, url: str) -> Generator[dict, dict, di
 def get_resource_tree() -> Generator[dict, dict, FrameResourceTree]:
     """Returns present frame / resource tree structure.
 
-    **Experimental**
-
     Returns
     -------
     frameTree: FrameResourceTree
             Present frame / resource tree structure.
+
+    **Experimental**
     """
     response = yield {"method": "Page.getResourceTree", "params": {}}
     return FrameResourceTree.from_json(response["frameTree"])
@@ -1341,16 +1336,15 @@ def reload(
     }
 
 
+@deprecated(version=1.3)
 def remove_script_to_evaluate_on_load(identifier: ScriptIdentifier) -> dict:
     """Deprecated, please use removeScriptToEvaluateOnNewDocument instead.
-
-    **Experimental**
-
-    **Deprectated**
 
     Parameters
     ----------
     identifier: ScriptIdentifier
+
+    **Experimental**
     """
     return {
         "method": "Page.removeScriptToEvaluateOnLoad",
@@ -1374,12 +1368,12 @@ def remove_script_to_evaluate_on_new_document(identifier: ScriptIdentifier) -> d
 def screencast_frame_ack(sessionId: int) -> dict:
     """Acknowledges that a screencast frame has been received by the frontend.
 
-    **Experimental**
-
     Parameters
     ----------
     sessionId: int
             Frame number.
+
+    **Experimental**
     """
     return {"method": "Page.screencastFrameAck", "params": {"sessionId": sessionId}}
 
@@ -1392,8 +1386,6 @@ def search_in_resource(
     isRegex: Optional[bool] = None,
 ) -> Generator[dict, dict, list[debugger.SearchMatch]]:
     """Searches for given string in resource content.
-
-    **Experimental**
 
     Parameters
     ----------
@@ -1412,6 +1404,8 @@ def search_in_resource(
     -------
     result: list[debugger.SearchMatch]
             List of search matches.
+
+    **Experimental**
     """
     response = yield {
         "method": "Page.searchInResource",
@@ -1431,12 +1425,12 @@ def search_in_resource(
 def set_ad_blocking_enabled(enabled: bool) -> dict:
     """Enable Chrome's experimental ad filter on all sites.
 
-    **Experimental**
-
     Parameters
     ----------
     enabled: bool
             Whether to block ads.
+
+    **Experimental**
     """
     return {"method": "Page.setAdBlockingEnabled", "params": {"enabled": enabled}}
 
@@ -1444,16 +1438,17 @@ def set_ad_blocking_enabled(enabled: bool) -> dict:
 def set_bypass_csp(enabled: bool) -> dict:
     """Enable page Content Security Policy by-passing.
 
-    **Experimental**
-
     Parameters
     ----------
     enabled: bool
             Whether to bypass page CSP.
+
+    **Experimental**
     """
     return {"method": "Page.setBypassCSP", "params": {"enabled": enabled}}
 
 
+@deprecated(version=1.3)
 def set_device_metrics_override(
     width: int,
     height: int,
@@ -1471,10 +1466,6 @@ def set_device_metrics_override(
     """Overrides the values of device screen dimensions (window.screen.width, window.screen.height,
     window.innerWidth, window.innerHeight, and "device-width"/"device-height"-related CSS media
     query results).
-
-    **Experimental**
-
-    **Deprectated**
 
     Parameters
     ----------
@@ -1503,6 +1494,8 @@ def set_device_metrics_override(
             Screen orientation override.
     viewport: Optional[Viewport]
             The viewport dimensions and scale. If not set, the override is cleared.
+
+    **Experimental**
     """
     return {
         "method": "Page.setDeviceMetricsOverride",
@@ -1527,12 +1520,9 @@ def set_device_metrics_override(
     }
 
 
+@deprecated(version=1.3)
 def set_device_orientation_override(alpha: float, beta: float, gamma: float) -> dict:
     """Overrides the Device Orientation.
-
-    **Experimental**
-
-    **Deprectated**
 
     Parameters
     ----------
@@ -1542,6 +1532,8 @@ def set_device_orientation_override(alpha: float, beta: float, gamma: float) -> 
             Mock beta
     gamma: float
             Mock gamma
+
+    **Experimental**
     """
     return {
         "method": "Page.setDeviceOrientationOverride",
@@ -1552,12 +1544,12 @@ def set_device_orientation_override(alpha: float, beta: float, gamma: float) -> 
 def set_font_families(fontFamilies: FontFamilies) -> dict:
     """Set generic font families.
 
-    **Experimental**
-
     Parameters
     ----------
     fontFamilies: FontFamilies
             Specifies font families to set. If a font family is not specified, it won't be changed.
+
+    **Experimental**
     """
     return {
         "method": "Page.setFontFamilies",
@@ -1568,12 +1560,12 @@ def set_font_families(fontFamilies: FontFamilies) -> dict:
 def set_font_sizes(fontSizes: FontSizes) -> dict:
     """Set default font sizes.
 
-    **Experimental**
-
     Parameters
     ----------
     fontSizes: FontSizes
             Specifies font sizes to set. If a font size is not specified, it won't be changed.
+
+    **Experimental**
     """
     return {"method": "Page.setFontSizes", "params": {"fontSizes": fontSizes.to_json()}}
 
@@ -1594,12 +1586,9 @@ def set_document_content(frameId: FrameId, html: str) -> dict:
     }
 
 
+@deprecated(version=1.3)
 def set_download_behavior(behavior: str, downloadPath: Optional[str] = None) -> dict:
     """Set the behavior when downloading a file.
-
-    **Experimental**
-
-    **Deprectated**
 
     Parameters
     ----------
@@ -1608,6 +1597,8 @@ def set_download_behavior(behavior: str, downloadPath: Optional[str] = None) -> 
             available (otherwise deny).
     downloadPath: Optional[str]
             The default path to save downloaded files to. This is requred if behavior is set to 'allow'
+
+    **Experimental**
     """
     return {
         "method": "Page.setDownloadBehavior",
@@ -1615,6 +1606,7 @@ def set_download_behavior(behavior: str, downloadPath: Optional[str] = None) -> 
     }
 
 
+@deprecated(version=1.3)
 def set_geolocation_override(
     latitude: Optional[float] = None,
     longitude: Optional[float] = None,
@@ -1622,8 +1614,6 @@ def set_geolocation_override(
 ) -> dict:
     """Overrides the Geolocation Position or Error. Omitting any of the parameters emulates position
     unavailable.
-
-    **Deprectated**
 
     Parameters
     ----------
@@ -1645,24 +1635,21 @@ def set_geolocation_override(
 def set_lifecycle_events_enabled(enabled: bool) -> dict:
     """Controls whether page will emit lifecycle events.
 
-    **Experimental**
-
     Parameters
     ----------
     enabled: bool
             If true, starts emitting lifecycle events.
+
+    **Experimental**
     """
     return {"method": "Page.setLifecycleEventsEnabled", "params": {"enabled": enabled}}
 
 
+@deprecated(version=1.3)
 def set_touch_emulation_enabled(
     enabled: bool, configuration: Optional[str] = None
 ) -> dict:
     """Toggles mouse event-based touch event emulation.
-
-    **Experimental**
-
-    **Deprectated**
 
     Parameters
     ----------
@@ -1670,6 +1657,8 @@ def set_touch_emulation_enabled(
             Whether the touch event emulation should be enabled.
     configuration: Optional[str]
             Touch/gesture events configuration. Default: current platform.
+
+    **Experimental**
     """
     return {
         "method": "Page.setTouchEmulationEnabled",
@@ -1686,8 +1675,6 @@ def start_screencast(
 ) -> dict:
     """Starts sending each frame using the `screencastFrame` event.
 
-    **Experimental**
-
     Parameters
     ----------
     format: Optional[str]
@@ -1700,6 +1687,8 @@ def start_screencast(
             Maximum screenshot height.
     everyNthFrame: Optional[int]
             Send every n-th frame.
+
+    **Experimental**
     """
     return {
         "method": "Page.startScreencast",
@@ -1741,12 +1730,12 @@ def set_web_lifecycle_state(state: str) -> dict:
     It will transition the page to the given state according to:
     https://github.com/WICG/web-lifecycle/
 
-    **Experimental**
-
     Parameters
     ----------
     state: str
             Target lifecycle state
+
+    **Experimental**
     """
     return {"method": "Page.setWebLifecycleState", "params": {"state": state}}
 
@@ -1762,11 +1751,11 @@ def stop_screencast() -> dict:
 def set_produce_compilation_cache(enabled: bool) -> dict:
     """Forces compilation cache to be generated for every subresource script.
 
-    **Experimental**
-
     Parameters
     ----------
     enabled: bool
+
+    **Experimental**
     """
     return {"method": "Page.setProduceCompilationCache", "params": {"enabled": enabled}}
 
@@ -1775,13 +1764,13 @@ def add_compilation_cache(url: str, data: str) -> dict:
     """Seeds compilation cache for given url. Compilation cache does not survive
     cross-process navigation.
 
-    **Experimental**
-
     Parameters
     ----------
     url: str
     data: str
             Base64-encoded data (Encoded as a base64 string when passed over JSON)
+
+    **Experimental**
     """
     return {"method": "Page.addCompilationCache", "params": {"url": url, "data": data}}
 
@@ -1797,14 +1786,14 @@ def clear_compilation_cache() -> dict:
 def generate_test_report(message: str, group: Optional[str] = None) -> dict:
     """Generates a report for testing.
 
-    **Experimental**
-
     Parameters
     ----------
     message: str
             Message to be displayed in the report.
     group: Optional[str]
             Specifies the endpoint group to deliver the report to.
+
+    **Experimental**
     """
     return {
         "method": "Page.generateTestReport",
@@ -1825,11 +1814,11 @@ def set_intercept_file_chooser_dialog(enabled: bool) -> dict:
     When file chooser interception is enabled, native file chooser dialog is not shown.
     Instead, a protocol event `Page.fileChooserOpened` is emitted.
 
-    **Experimental**
-
     Parameters
     ----------
     enabled: bool
+
+    **Experimental**
     """
     return {
         "method": "Page.setInterceptFileChooserDialog",

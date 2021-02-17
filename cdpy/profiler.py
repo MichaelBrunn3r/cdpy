@@ -487,12 +487,12 @@ def take_precise_coverage() -> Generator[dict, dict, dict]:
 def take_type_profile() -> Generator[dict, dict, list[ScriptTypeProfile]]:
     """Collect type profile.
 
-    **Experimental**
-
     Returns
     -------
     result: list[ScriptTypeProfile]
             Type profile for all scripts since startTypeProfile() was turned on.
+
+    **Experimental**
     """
     response = yield {"method": "Profiler.takeTypeProfile", "params": {}}
     return [ScriptTypeProfile.from_json(r) for r in response["result"]]
@@ -517,12 +517,12 @@ def disable_counters() -> dict:
 def get_counters() -> Generator[dict, dict, list[CounterInfo]]:
     """Retrieve counters.
 
-    **Experimental**
-
     Returns
     -------
     result: list[CounterInfo]
             Collected counters information.
+
+    **Experimental**
     """
     response = yield {"method": "Profiler.getCounters", "params": {}}
     return [CounterInfo.from_json(r) for r in response["result"]]
@@ -547,12 +547,12 @@ def disable_runtime_call_stats() -> dict:
 def get_runtime_call_stats() -> Generator[dict, dict, list[RuntimeCallCounterInfo]]:
     """Retrieve run time call stats.
 
-    **Experimental**
-
     Returns
     -------
     result: list[RuntimeCallCounterInfo]
             Collected runtime call counter information.
+
+    **Experimental**
     """
     response = yield {"method": "Profiler.getRuntimeCallStats", "params": {}}
     return [RuntimeCallCounterInfo.from_json(r) for r in response["result"]]
