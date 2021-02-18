@@ -47,7 +47,16 @@ from . import (
     web_authn,
 )
 from .cdpy import EventParserError, parse_event
-from .http_endpoints import Target, TargetType, get_targets
+from .http_endpoints import (
+    Target,
+    TargetType,
+    activate_page,
+    close_page,
+    get_protocol,
+    get_targets,
+    get_version,
+    open_new_tab,
+)
 
 __all__ = [
     "accessibility",
@@ -101,4 +110,9 @@ __all__ = [
     "Target",
     "TargetType",
     "get_targets",
+    "get_version",
+    "open_new_tab",
+    "activate_page",
+    "close_page",
+    "get_protocol",
 ]

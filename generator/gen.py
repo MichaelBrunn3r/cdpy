@@ -838,6 +838,11 @@ def create_init_module(global_context: GlobalContext):
         "Target",
         "TargetType",
         "get_targets",
+        "get_version",
+        "open_new_tab",
+        "activate_page",
+        "close_page",
+        "get_protocol",
     ]
     body.append(ast_import_from(".http_endpoints", *http_endpoints_imports))
     all += map(lambda i: f'"{i}"', http_endpoints_imports)
