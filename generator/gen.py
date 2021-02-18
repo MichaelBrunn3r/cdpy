@@ -829,7 +829,13 @@ def create_init_module(global_context: GlobalContext):
     all += [f'"{d.context.module_name}"' for d in global_context.domains.values()]
 
     # Imports from cdpy
-    cdpy_module_imports = ["parse_event", "EventParserError"]
+    cdpy_module_imports = [
+        "parse_event",
+        "EventParserError",
+        "Target",
+        "TargetType",
+        "get_targets",
+    ]
     body.append(ast_import_from("._cdpy", *cdpy_module_imports))
     all += map(lambda i: f'"{i}"', cdpy_module_imports)
 
