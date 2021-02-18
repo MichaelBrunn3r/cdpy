@@ -829,15 +829,18 @@ def create_init_module(global_context: GlobalContext):
     all += [f'"{d.context.module_name}"' for d in global_context.domains.values()]
 
     # Imports from cdpy
-    cdpy_module_imports = [
-        "parse_event",
-        "EventParserError",
+    cdpy_module_imports = ["parse_event", "EventParserError"]
+    body.append(ast_import_from(".cdpy", *cdpy_module_imports))
+    all += map(lambda i: f'"{i}"', cdpy_module_imports)
+
+    # Imports from http_endpoints
+    http_endpoints_imports = [
         "Target",
         "TargetType",
         "get_targets",
     ]
-    body.append(ast_import_from("._cdpy", *cdpy_module_imports))
-    all += map(lambda i: f'"{i}"', cdpy_module_imports)
+    body.append(ast_import_from(".http_endpoints", *http_endpoints_imports))
+    all += map(lambda i: f'"{i}"', http_endpoints_imports)
 
     # Add __all__ assignment
     body.append(ast_from_str(f"__all__ = [{','.join(all)}]"))
