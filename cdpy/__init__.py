@@ -46,6 +46,7 @@ from . import (
     web_audio,
     web_authn,
 )
+from ._cdpy import EventParserError, parse_event
 
 __all__ = [
     "accessibility",
@@ -94,4 +95,6 @@ __all__ = [
     "profiler",
     "runtime",
     "schema",
+    "parse_event",
+    "EventParserError",
 ]

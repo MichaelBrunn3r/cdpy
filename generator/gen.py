@@ -689,6 +689,10 @@ class Event:
             context,
         )
 
+    @property
+    def classname(self):
+        return self.name[0].capitalize() + self.name[1:]
+
     def to_ast(self):
         body = [self.create_docstring()]
 
@@ -699,7 +703,7 @@ class Event:
 
         self.context.require("dataclasses", None)
         return ast_classdef(
-            self.name[0].capitalize() + self.name[1:],
+            self.classname,
             body,
             decorators=["dataclasses.dataclass"],
         )
@@ -713,7 +717,7 @@ class Event:
             "from_json",
             ast_args([ast.arg("cls", None), ast.arg("json", ast.Name("dict"))]),
             [ast.Return(ast_call("cls", cls_args))],
-            returns=ast.Name(self.name[0].capitalize() + self.name[1:]),
+            returns=ast.Name(self.classname),
             decorators=["classmethod"],
         )
 
@@ -813,14 +817,48 @@ def load_domains(major: int, minor: int):
 
 
 def create_init_module(global_context: GlobalContext):
-    body = [
+    body = []
+    all = []
+
+    # Import domain modules
+    body.append(
         ast_import_from(
             ".", *[d.context.module_name for d in global_context.domains.values()]
         )
-    ]
+    )
+    all += [f'"{d.context.module_name}"' for d in global_context.domains.values()]
 
-    all = [f'"{d.context.module_name}"' for d in global_context.domains.values()]
+    # Imports from cdpy
+    cdpy_module_imports = ["parse_event", "EventParserError"]
+    body.append(ast_import_from("._cdpy", *cdpy_module_imports))
+    all += map(lambda i: f'"{i}"', cdpy_module_imports)
+
+    # Add __all__ assignment
     body.append(ast_from_str(f"__all__ = [{','.join(all)}]"))
+
+    return ast_module(body)
+
+
+def create_event_parsers_module(global_context: GlobalContext):
+    referenced_domain_modules = set()
+    event_names = []
+    event_parsers = []
+    for domain in global_context.domains.values():
+        for event in domain.events:
+            event_names.append(
+                ast.Constant(f"{event.context.domain_name}.{event.name}")
+            )
+            event_parsers.append(
+                ast.Name(f"{event.context.module_name}.{event.classname}")
+            )
+            referenced_domain_modules.add(event.context.module_name)
+
+    body = [
+        ast_import_from(".", *list(referenced_domain_modules)),
+        ast.Assign(
+            [ast.Name("event_parsers")], ast.Dict(event_names, event_parsers), lineno=0
+        ),
+    ]
 
     return ast_module(body)
 
@@ -846,22 +884,25 @@ def generate(
         domain = Domain.from_json(domain_json, module_context)
         global_context.register_domain(domain_name, domain)
 
-    generated_files: dict[str, str] = {}
+    module_files: dict[str, str] = {}
 
     # Generate domain modules
     for domain in global_context.domains.values():
-        generated_files[domain.context.module_name + ".py"] = ast.unparse(
-            domain.to_ast()
-        )
+        module_files[domain.context.module_name + ".py"] = ast.unparse(domain.to_ast())
     logger.info(f"Generated {len(global_context.domains)} domains")
 
     # Generate Init module
-    generated_files["__init__.py"] = ast.unparse(create_init_module(global_context))
+    module_files["__init__.py"] = ast.unparse(create_init_module(global_context))
+
+    # Generate event_parsers module
+    module_files["_event_parsers.py"] = ast.unparse(
+        create_event_parsers_module(global_context)
+    )
 
     # Write files to disk
     if not dry:
-        logger.info(f"Writing {len(generated_files)} files ...")
-        for path, content in generated_files.items():
+        logger.info(f"Writing {len(module_files)} files ...")
+        for path, content in module_files.items():
             with Path(GENERATE_DIR.parent, "cdpy", path).open("w") as f:
                 f.write(content)
 
