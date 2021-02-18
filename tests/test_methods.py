@@ -213,6 +213,7 @@ class TestReturn:
             assert type(response) == str
             assert response == "some-data"
 
+    @pytest.mark.filterwarnings("ignore:Call to deprecated function")
     def test_simple(self, executed_add_script_method):
         response_json = {"id": 87634, "identifier": "anidentfier"}
 
@@ -282,11 +283,13 @@ class TestReturn:
             assert "base64Encoded" in response
             assert response["base64Encoded"] == False
 
-    def test_pass_empty_response(self, executed_add_script_method):
+    @pytest.mark.filterwarnings("ignore:Call to deprecated function")
+    def test_send_empty_response(self, executed_add_script_method):
         with pytest.raises(KeyError, match=".*identifier.*"):
             response = executed_add_script_method.send({})
 
-    def test_pass_no_id(self, executed_add_script_method):
+    @pytest.mark.filterwarnings("ignore:Call to deprecated function")
+    def test_send_response_without_id(self, executed_add_script_method):
         response_json = {"identifier": "anidentfier"}
 
         with pytest.raises(StopIteration):
@@ -294,3 +297,9 @@ class TestReturn:
 
             assert type(response) == cdpy.page.ScriptIdentifier
             assert response == "anidentfier"
+
+
+class TestMisc:
+    def test_deprecation_warning(self):
+        with pytest.deprecated_call():
+            cdpy.page.add_script_to_evaluate_on_load("abcdef")
