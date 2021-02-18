@@ -7,7 +7,7 @@ from typing import Optional
 from deprecated.sphinx import deprecated
 
 from . import network
-from .common import filter_none
+from ._utils import filter_none
 
 
 class CertificateId(int):

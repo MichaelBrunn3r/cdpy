@@ -4,7 +4,7 @@ import dataclasses
 from typing import Generator, Optional
 
 from . import runtime
-from .common import filter_none
+from ._utils import filter_none
 
 
 class StreamHandle(str):

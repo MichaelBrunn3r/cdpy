@@ -5,7 +5,7 @@ import enum
 from typing import Generator, Optional
 
 from . import io, network, page
-from .common import filter_none
+from ._utils import filter_none
 
 
 class RequestId(str):

@@ -6,7 +6,7 @@ from typing import Generator, Optional
 from deprecated.sphinx import deprecated
 
 from . import dom, dom_debugger, page
-from .common import filter_none
+from ._utils import filter_none
 
 
 @dataclasses.dataclass

@@ -5,7 +5,7 @@ import enum
 from typing import Generator, Optional
 
 from . import io
-from .common import filter_none
+from ._utils import filter_none
 
 
 class MemoryDumpConfig(dict):

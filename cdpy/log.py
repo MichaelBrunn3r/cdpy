@@ -4,7 +4,7 @@ import dataclasses
 from typing import Optional
 
 from . import network, runtime
-from .common import filter_none
+from ._utils import filter_none
 
 
 @dataclasses.dataclass

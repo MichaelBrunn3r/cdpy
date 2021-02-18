@@ -5,7 +5,7 @@ import enum
 from typing import Generator, Optional
 
 from . import dom, runtime
-from .common import filter_none
+from ._utils import filter_none
 
 
 class DOMBreakpointType(enum.Enum):

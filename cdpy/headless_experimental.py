@@ -3,7 +3,7 @@ from __future__ import annotations
 import dataclasses
 from typing import Generator, Optional
 
-from .common import filter_none
+from ._utils import filter_none
 
 
 @dataclasses.dataclass

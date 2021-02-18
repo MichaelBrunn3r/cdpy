@@ -7,7 +7,7 @@ from typing import Generator, Optional
 from deprecated.sphinx import deprecated
 
 from . import runtime
-from .common import filter_none
+from ._utils import filter_none
 
 
 class BreakpointId(str):
