@@ -1,43 +1,5 @@
-import enum
-from dataclasses import dataclass
 from typing import Callable, Iterable, Iterator, Optional
-
-
-# from https://source.chromium.org/chromium/chromium/src/+/master:content/browser/devtools/devtools_agent_host_impl.cc
-class TargetType(enum.Enum):
-    PAGE = "page"
-    IFRAME = "iframe"
-    WORKER = "worker"
-    SHARED_WORKER = "shared_worker"
-    SERVICE_WORKER = "service_worker"
-    BROWSER = "browser"
-    WEBVIEW = "webview"
-    OTHER = "other"
-
-
-@dataclass
-class Target:
-    description: str
-    devtools_frontend_url: str
-    id: str
-    title: str
-    type: TargetType
-    url: str
-    websocket_debugg_url: str
-    parentId: Optional[str]
-
-    @classmethod
-    def from_json(cls, json):
-        return cls(
-            json["description"],
-            json["devtoolsFrontendUrl"],
-            json["id"],
-            json["title"],
-            TargetType(json["type"]),
-            json["url"],
-            json["webSocketDebuggerUrl"],
-            json.get("parentId"),
-        )
+from .cdpy import Target, TargetType
 
 
 def get_targets(

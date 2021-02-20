@@ -1,4 +1,45 @@
+from typing import Optional
 from ._event_parsers import event_parsers
+from dataclasses import dataclass
+import enum
+
+
+class TargetType(enum.Enum):
+    """reference: https://source.chromium.org/chromium/chromium/src/+/master:content/browser/devtools/devtools_agent_host_impl.cc"""
+
+    PAGE = "page"
+    IFRAME = "iframe"
+    WORKER = "worker"
+    SHARED_WORKER = "shared_worker"
+    SERVICE_WORKER = "service_worker"
+    BROWSER = "browser"
+    WEBVIEW = "webview"
+    OTHER = "other"
+
+
+@dataclass
+class Target:
+    description: str
+    devtools_frontend_url: str
+    id: str
+    title: str
+    type: TargetType
+    url: str
+    websocket_debugg_url: str
+    parentId: Optional[str]
+
+    @classmethod
+    def from_json(cls, json):
+        return cls(
+            json["description"],
+            json["devtoolsFrontendUrl"],
+            json["id"],
+            json["title"],
+            TargetType(json["type"]),
+            json["url"],
+            json["webSocketDebuggerUrl"],
+            json.get("parentId"),
+        )
 
 
 class EventParserError(Exception):
