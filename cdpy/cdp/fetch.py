@@ -4,8 +4,8 @@ import dataclasses
 import enum
 from typing import Generator, Optional
 
-from .._utils import filter_none
 from . import io, network, page
+from ._utils import filter_none
 
 
 class RequestId(str):

@@ -3,8 +3,8 @@ from __future__ import annotations
 import dataclasses
 from typing import Optional
 
-from .._utils import filter_none
 from . import network, runtime
+from ._utils import filter_none
 
 
 @dataclasses.dataclass

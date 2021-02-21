@@ -3,8 +3,8 @@ from __future__ import annotations
 import dataclasses
 from typing import Generator, Optional
 
-from .._utils import filter_none
 from . import runtime
+from ._utils import filter_none
 
 
 class StreamHandle(str):

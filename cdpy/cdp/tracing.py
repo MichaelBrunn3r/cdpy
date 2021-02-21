@@ -4,8 +4,8 @@ import dataclasses
 import enum
 from typing import Generator, Optional
 
-from .._utils import filter_none
 from . import io
+from ._utils import filter_none
 
 
 class MemoryDumpConfig(dict):

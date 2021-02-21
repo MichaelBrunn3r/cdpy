@@ -4,8 +4,8 @@ import dataclasses
 import enum
 from typing import Generator, Optional
 
-from .._utils import filter_none
 from . import browser, network
+from ._utils import filter_none
 
 
 class StorageType(enum.Enum):

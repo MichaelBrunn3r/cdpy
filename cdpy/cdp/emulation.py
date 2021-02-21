@@ -6,8 +6,8 @@ from typing import Generator, Optional
 
 from deprecated.sphinx import deprecated
 
-from .._utils import filter_none
 from . import dom, network, page
+from ._utils import filter_none
 
 
 @dataclasses.dataclass

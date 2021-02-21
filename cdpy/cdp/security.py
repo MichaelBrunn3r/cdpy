@@ -6,8 +6,8 @@ from typing import Optional
 
 from deprecated.sphinx import deprecated
 
-from .._utils import filter_none
 from . import network
+from ._utils import filter_none
 
 
 class CertificateId(int):

@@ -492,7 +492,7 @@ class Type:
         )
 
         if self.has_optional_attributes:
-            self.context.require(".._utils", "filter_none")
+            self.context.require("._utils", "filter_none")
             json = ast_call("filter_none", [json])
 
         return ast_function(
@@ -640,7 +640,7 @@ class Method:
 
         # Remove unset optional parameters
         if self.has_optional_params:
-            self.context.require(".._utils", "filter_none")
+            self.context.require("._utils", "filter_none")
             params = f"filter_none({params})"
 
         return f'{{"method": "{self.context.domain_name}.{self.name}", "params": {params}}}'

@@ -6,8 +6,8 @@ from typing import Generator, Optional
 
 from deprecated.sphinx import deprecated
 
-from .._utils import filter_none
 from . import debugger, emulation, io, page, runtime, security
+from ._utils import filter_none
 
 
 class ResourceType(enum.Enum):

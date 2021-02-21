@@ -5,8 +5,8 @@ from typing import Generator, Optional
 
 from deprecated.sphinx import deprecated
 
-from .._utils import filter_none
 from . import browser, page
+from ._utils import filter_none
 
 
 class TargetID(str):
