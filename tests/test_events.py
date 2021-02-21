@@ -1,42 +1,42 @@
 import pytest
 
-import cdpy
+from cdpy import cdp
 
 
 class TestFromJson:
     def test_builtin(self):
-        e = cdpy.animation.AnimationCanceled.from_json({"id": "someid"})
+        e = cdp.animation.AnimationCanceled.from_json({"id": "someid"})
 
-        assert type(e) == cdpy.animation.AnimationCanceled
+        assert type(e) == cdp.animation.AnimationCanceled
         assert e.id == "someid"
 
     def test_simple(self):
-        e = cdpy.application_cache.ApplicationCacheStatusUpdated.from_json(
+        e = cdp.application_cache.ApplicationCacheStatusUpdated.from_json(
             {"frameId": "someid", "manifestURL": "url", "status": 42}
         )
 
-        assert type(e) == cdpy.application_cache.ApplicationCacheStatusUpdated
-        assert type(e.frameId) == cdpy.page.FrameId
+        assert type(e) == cdp.application_cache.ApplicationCacheStatusUpdated
+        assert type(e.frameId) == cdp.page.FrameId
         assert e.frameId == "someid"
 
     def test_object(self):
-        e = cdpy.audits.IssueAdded.from_json(
+        e = cdp.audits.IssueAdded.from_json(
             {"issue": {"code": "HeavyAdIssue", "details": {}}}
         )
 
-        assert type(e) == cdpy.audits.IssueAdded
-        assert type(e.issue) == cdpy.audits.InspectorIssue
-        assert type(e.issue.code) == cdpy.audits.InspectorIssueCode
-        assert type(e.issue.details) == cdpy.audits.InspectorIssueDetails
+        assert type(e) == cdp.audits.IssueAdded
+        assert type(e.issue) == cdp.audits.InspectorIssue
+        assert type(e.issue.code) == cdp.audits.InspectorIssueCode
+        assert type(e.issue.details) == cdp.audits.InspectorIssueDetails
 
     def test_object_list(self):
-        e = cdpy.cast.SinksUpdated.from_json(
+        e = cdp.cast.SinksUpdated.from_json(
             {"sinks": [{"name": "a", "id": "ida"}, {"name": "b", "id": "idb"}]}
         )
 
-        assert type(e) == cdpy.cast.SinksUpdated
+        assert type(e) == cdp.cast.SinksUpdated
         assert len(e.sinks) == 2
-        assert type(e.sinks[0]) == cdpy.cast.Sink
-        assert type(e.sinks[1]) == cdpy.cast.Sink
+        assert type(e.sinks[0]) == cdp.cast.Sink
+        assert type(e.sinks[1]) == cdp.cast.Sink
         assert e.sinks[0].name == "a"
         assert e.sinks[1].name == "b"

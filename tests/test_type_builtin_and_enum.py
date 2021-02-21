@@ -3,32 +3,32 @@ from enum import Enum
 import pytest
 from pytest import approx
 
-import cdpy
+from cdpy import cdp
 
 
 @pytest.fixture
 def node_id():
-    return cdpy.dom.NodeId(123)
+    return cdp.dom.NodeId(123)
 
 
 @pytest.fixture
 def timestamp():
-    return cdpy.runtime.Timestamp(9.123)
+    return cdp.runtime.Timestamp(9.123)
 
 
 @pytest.fixture
 def style_sheet_id():
-    return cdpy.css.StyleSheetId("c001")
+    return cdp.css.StyleSheetId("c001")
 
 
 @pytest.fixture
 def pseudo_type():
-    return cdpy.dom.PseudoType("before")
+    return cdp.dom.PseudoType("before")
 
 
 @pytest.fixture
 def quad():
-    return cdpy.dom.Quad([3, 2, 1])
+    return cdp.dom.Quad([3, 2, 1])
 
 
 class TestSubclass:
@@ -65,7 +65,7 @@ class TestEquality:
         assert quad == [3, 2, 1]
 
     def test_enum(self, pseudo_type):
-        assert pseudo_type == cdpy.dom.PseudoType.BEFORE
+        assert pseudo_type == cdp.dom.PseudoType.BEFORE
 
 
 class TestStr:

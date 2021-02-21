@@ -861,6 +861,7 @@ def create_event_parsers_module(global_context: GlobalContext):
 @app.command()
 def generate(
     version: str,
+    outdir: str,
     dry: bool = typer.Option(False, help="Do a dry run, don't generate anything"),
 ):
     # Load protocol
@@ -897,7 +898,7 @@ def generate(
     # Write files to disk
     if not dry:
         logger.info(f"Writing {len(module_files)} files ...")
-        dir = Path(GENERATE_DIR.parent, "cdpy", "protocol")
+        dir = Path(GENERATE_DIR.parent, outdir)
         dir.mkdir(parents=True, exist_ok=True)
         for file, content in module_files.items():
             with Path(dir, file).open("w") as f:

@@ -2,6 +2,7 @@ import pytest
 from requests.exceptions import InvalidURL
 
 import cdpy
+from cdpy import cdp
 
 
 class TestGetTargets:

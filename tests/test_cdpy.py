@@ -1,6 +1,7 @@
 import pytest
 
 import cdpy
+from cdpy import cdp
 
 
 class TestParseEvent:
@@ -24,4 +25,4 @@ class TestParseEvent:
             }
         )
 
-        assert type(e) == cdpy.audits.IssueAdded
+        assert type(e) == cdp.audits.IssueAdded
