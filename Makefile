@@ -33,6 +33,7 @@ test:
 .PHONY: coverage
 coverage:
 	$(PYTHON) -m pytest --cov=cdpy
+	poetry run coverage-badge -o coverage.svg -f
 
 .PHONY: format
 format:
