@@ -23,7 +23,7 @@ class StorageId:
     def from_json(cls, json: dict) -> StorageId:
         return cls(json["securityOrigin"], json["isLocalStorage"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "securityOrigin": self.securityOrigin,
             "isLocalStorage": self.isLocalStorage,

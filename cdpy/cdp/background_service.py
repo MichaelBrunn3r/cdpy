@@ -37,7 +37,7 @@ class EventMetadata:
     def from_json(cls, json: dict) -> EventMetadata:
         return cls(json["key"], json["value"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"key": self.key, "value": self.value}
 
 
@@ -82,7 +82,7 @@ class BackgroundServiceEvent:
             [EventMetadata.from_json(e) for e in json["eventMetadata"]],
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "timestamp": float(self.timestamp),
             "origin": self.origin,

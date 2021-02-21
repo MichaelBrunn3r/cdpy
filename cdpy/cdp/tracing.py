@@ -62,7 +62,7 @@ class TraceConfig:
             else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "recordMode": self.recordMode,

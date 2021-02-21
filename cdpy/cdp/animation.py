@@ -62,7 +62,7 @@ class Animation:
             json.get("cssId"),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "id": self.id,
@@ -137,7 +137,7 @@ class AnimationEffect:
             else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "delay": self.delay,
@@ -179,7 +179,7 @@ class KeyframesRule:
             [KeyframeStyle.from_json(k) for k in json["keyframes"]], json.get("name")
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {"keyframes": [k.to_json() for k in self.keyframes], "name": self.name}
         )
@@ -204,7 +204,7 @@ class KeyframeStyle:
     def from_json(cls, json: dict) -> KeyframeStyle:
         return cls(json["offset"], json["easing"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"offset": self.offset, "easing": self.easing}
 
 

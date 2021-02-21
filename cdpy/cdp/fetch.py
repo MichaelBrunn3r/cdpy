@@ -53,7 +53,7 @@ class RequestPattern:
             RequestStage(json["requestStage"]) if "requestStage" in json else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "urlPattern": self.urlPattern,
@@ -80,7 +80,7 @@ class HeaderEntry:
     def from_json(cls, json: dict) -> HeaderEntry:
         return cls(json["name"], json["value"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"name": self.name, "value": self.value}
 
 
@@ -109,7 +109,7 @@ class AuthChallenge:
     def from_json(cls, json: dict) -> AuthChallenge:
         return cls(json["origin"], json["scheme"], json["realm"], json.get("source"))
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "origin": self.origin,
@@ -146,7 +146,7 @@ class AuthChallengeResponse:
     def from_json(cls, json: dict) -> AuthChallengeResponse:
         return cls(json["response"], json.get("username"), json.get("password"))
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "response": self.response,

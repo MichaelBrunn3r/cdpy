@@ -510,7 +510,6 @@ class Type:
             "to_json",
             ast_args([ast.arg("self", None)]),
             [ast.Return(json)],
-            returns=ast.Name("dict"),
         )
 
     def create_object_list_from_json_function(self):
@@ -546,7 +545,6 @@ class Type:
             "to_json",
             ast_args([ast.arg("self", None)]),
             [ast_from_str(f"return {items}")],
-            returns=ast.Name("dict"),
         )
 
     def create_docstring(self):

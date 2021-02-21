@@ -40,7 +40,7 @@ class ScrollRect:
     def from_json(cls, json: dict) -> ScrollRect:
         return cls(dom.Rect.from_json(json["rect"]), json["type"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"rect": self.rect.to_json(), "type": self.type}
 
 
@@ -78,7 +78,7 @@ class StickyPositionConstraint:
             else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "stickyBoxRect": self.stickyBoxRect.to_json(),
@@ -117,7 +117,7 @@ class PictureTile:
     def from_json(cls, json: dict) -> PictureTile:
         return cls(json["x"], json["y"], json["picture"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"x": self.x, "y": self.y, "picture": self.picture}
 
 
@@ -206,7 +206,7 @@ class Layer:
             else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "layerId": str(self.layerId),

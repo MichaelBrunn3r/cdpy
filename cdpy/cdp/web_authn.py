@@ -85,7 +85,7 @@ class VirtualAuthenticatorOptions:
             json.get("isUserVerified"),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "protocol": self.protocol.value,
@@ -144,7 +144,7 @@ class Credential:
             json.get("largeBlob"),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "credentialId": self.credentialId,

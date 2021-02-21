@@ -29,7 +29,7 @@ class ScreenOrientation:
     def from_json(cls, json: dict) -> ScreenOrientation:
         return cls(json["type"], json["angle"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"type": self.type, "angle": self.angle}
 
 
@@ -57,7 +57,7 @@ class DisplayFeature:
     def from_json(cls, json: dict) -> DisplayFeature:
         return cls(json["orientation"], json["offset"], json["maskLength"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "orientation": self.orientation,
             "offset": self.offset,
@@ -81,7 +81,7 @@ class MediaFeature:
     def from_json(cls, json: dict) -> MediaFeature:
         return cls(json["name"], json["value"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"name": self.name, "value": self.value}
 
 
@@ -114,7 +114,7 @@ class UserAgentBrandVersion:
     def from_json(cls, json: dict) -> UserAgentBrandVersion:
         return cls(json["brand"], json["version"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"brand": self.brand, "version": self.version}
 
 
@@ -156,7 +156,7 @@ class UserAgentMetadata:
             json.get("fullVersion"),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "platform": self.platform,

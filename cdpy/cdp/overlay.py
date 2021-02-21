@@ -30,7 +30,7 @@ class SourceOrderConfig:
             dom.RGBA.from_json(json["childOutlineColor"]),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "parentOutlineColor": self.parentOutlineColor.to_json(),
             "childOutlineColor": self.childOutlineColor.to_json(),
@@ -149,7 +149,7 @@ class GridHighlightConfig:
             else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "showGridExtensionLines": self.showGridExtensionLines,
@@ -254,7 +254,7 @@ class FlexContainerHighlightConfig:
             else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "containerBorder": self.containerBorder.to_json()
@@ -313,7 +313,7 @@ class FlexItemHighlightConfig:
             else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "baseSizeBox": self.baseSizeBox.to_json() if self.baseSizeBox else None,
@@ -349,7 +349,7 @@ class LineStyle:
             json.get("pattern"),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "color": self.color.to_json() if self.color else None,
@@ -380,7 +380,7 @@ class BoxStyle:
             dom.RGBA.from_json(json["hatchColor"]) if "hatchColor" in json else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "fillColor": self.fillColor.to_json() if self.fillColor else None,
@@ -501,7 +501,7 @@ class HighlightConfig:
             else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "showInfo": self.showInfo,
@@ -574,7 +574,7 @@ class GridNodeHighlightConfig:
             dom.NodeId(json["nodeId"]),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "gridHighlightConfig": self.gridHighlightConfig.to_json(),
             "nodeId": int(self.nodeId),
@@ -604,7 +604,7 @@ class FlexNodeHighlightConfig:
             dom.NodeId(json["nodeId"]),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "flexContainerHighlightConfig": self.flexContainerHighlightConfig.to_json(),
             "nodeId": int(self.nodeId),
@@ -641,7 +641,7 @@ class HingeConfig:
             else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "rect": self.rect.to_json(),

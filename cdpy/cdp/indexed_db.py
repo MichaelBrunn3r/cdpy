@@ -34,7 +34,7 @@ class DatabaseWithObjectStores:
             [ObjectStore.from_json(o) for o in json["objectStores"]],
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "name": self.name,
             "version": self.version,
@@ -72,7 +72,7 @@ class ObjectStore:
             [ObjectStoreIndex.from_json(i) for i in json["indexes"]],
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "name": self.name,
             "keyPath": self.keyPath.to_json(),
@@ -111,7 +111,7 @@ class ObjectStoreIndex:
             json["multiEntry"],
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "name": self.name,
             "keyPath": self.keyPath.to_json(),
@@ -154,7 +154,7 @@ class Key:
             [Key.from_json(a) for a in json["array"]] if "array" in json else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "type": self.type,
@@ -196,7 +196,7 @@ class KeyRange:
             Key.from_json(json["upper"]) if "upper" in json else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "lowerOpen": self.lowerOpen,
@@ -233,7 +233,7 @@ class DataEntry:
             runtime.RemoteObject.from_json(json["value"]),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "key": self.key.to_json(),
             "primaryKey": self.primaryKey.to_json(),
@@ -263,7 +263,7 @@ class KeyPath:
     def from_json(cls, json: dict) -> KeyPath:
         return cls(json["type"], json.get("string"), json.get("array"))
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {"type": self.type, "string": self.string, "array": self.array}
         )

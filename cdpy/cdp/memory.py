@@ -36,7 +36,7 @@ class SamplingProfileNode:
     def from_json(cls, json: dict) -> SamplingProfileNode:
         return cls(json["size"], json["total"], json["stack"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"size": self.size, "total": self.total, "stack": self.stack}
 
 
@@ -60,7 +60,7 @@ class SamplingProfile:
             [Module.from_json(m) for m in json["modules"]],
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "samples": [s.to_json() for s in self.samples],
             "modules": [m.to_json() for m in self.modules],
@@ -93,7 +93,7 @@ class Module:
     def from_json(cls, json: dict) -> Module:
         return cls(json["name"], json["uuid"], json["baseAddress"], json["size"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "name": self.name,
             "uuid": self.uuid,

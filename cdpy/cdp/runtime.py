@@ -83,7 +83,7 @@ class RemoteObject:
             else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "type": self.type,
@@ -127,7 +127,7 @@ class CustomPreview:
             RemoteObjectId(json["bodyGetterId"]) if "bodyGetterId" in json else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "header": self.header,
@@ -176,7 +176,7 @@ class ObjectPreview:
             else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "type": self.type,
@@ -226,7 +226,7 @@ class PropertyPreview:
             json.get("subtype"),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "name": self.name,
@@ -261,7 +261,7 @@ class EntryPreview:
             ObjectPreview.from_json(json["key"]) if "key" in json else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "value": self.value.to_json(),
@@ -328,7 +328,7 @@ class PropertyDescriptor:
             RemoteObject.from_json(json["symbol"]) if "symbol" in json else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "name": self.name,
@@ -367,7 +367,7 @@ class InternalPropertyDescriptor:
             RemoteObject.from_json(json["value"]) if "value" in json else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {"name": self.name, "value": self.value.to_json() if self.value else None}
         )
@@ -405,7 +405,7 @@ class PrivatePropertyDescriptor:
             RemoteObject.from_json(json["set"]) if "set" in json else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "name": self.name,
@@ -445,7 +445,7 @@ class CallArgument:
             RemoteObjectId(json["objectId"]) if "objectId" in json else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "value": self.value,
@@ -495,7 +495,7 @@ class ExecutionContextDescription:
             json.get("auxData"),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "id": int(self.id),
@@ -559,7 +559,7 @@ class ExceptionDetails:
             else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "exceptionId": self.exceptionId,
@@ -625,7 +625,7 @@ class CallFrame:
             json["columnNumber"],
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "functionName": self.functionName,
             "scriptId": str(self.scriptId),
@@ -666,7 +666,7 @@ class StackTrace:
             StackTraceId.from_json(json["parentId"]) if "parentId" in json else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "callFrames": [c.to_json() for c in self.callFrames],
@@ -705,7 +705,7 @@ class StackTraceId:
             UniqueDebuggerId(json["debuggerId"]) if "debuggerId" in json else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "id": self.id,

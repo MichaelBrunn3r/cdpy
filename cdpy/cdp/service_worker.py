@@ -36,7 +36,7 @@ class ServiceWorkerRegistration:
             RegistrationID(json["registrationId"]), json["scopeURL"], json["isDeleted"]
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "registrationId": str(self.registrationId),
             "scopeURL": self.scopeURL,
@@ -110,7 +110,7 @@ class ServiceWorkerVersion:
             target.TargetID(json["targetId"]) if "targetId" in json else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "versionId": self.versionId,
@@ -160,7 +160,7 @@ class ServiceWorkerErrorMessage:
             json["columnNumber"],
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "errorMessage": self.errorMessage,
             "registrationId": str(self.registrationId),

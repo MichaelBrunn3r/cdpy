@@ -124,7 +124,7 @@ class CertificateSecurityState:
             json.get("certificateNetworkError"),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "protocol": self.protocol,
@@ -174,7 +174,7 @@ class SafetyTipInfo:
     def from_json(cls, json: dict) -> SafetyTipInfo:
         return cls(SafetyTipStatus(json["safetyTipStatus"]), json.get("safeUrl"))
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {"safetyTipStatus": self.safetyTipStatus.value, "safeUrl": self.safeUrl}
         )
@@ -214,7 +214,7 @@ class VisibleSecurityState:
             else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "securityState": self.securityState.value,
@@ -271,7 +271,7 @@ class SecurityStateExplanation:
             json.get("recommendations"),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "securityState": self.securityState.value,
@@ -327,7 +327,7 @@ class InsecureContentStatus:
             SecurityState(json["displayedInsecureContentStyle"]),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "ranMixedContent": self.ranMixedContent,
             "displayedMixedContent": self.displayedMixedContent,

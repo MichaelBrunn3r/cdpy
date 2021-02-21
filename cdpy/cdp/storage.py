@@ -43,7 +43,7 @@ class UsageForType:
     def from_json(cls, json: dict) -> UsageForType:
         return cls(StorageType(json["storageType"]), json["usage"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"storageType": self.storageType.value, "usage": self.usage}
 
 
@@ -65,7 +65,7 @@ class TrustTokens:
     def from_json(cls, json: dict) -> TrustTokens:
         return cls(json["issuerOrigin"], json["count"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"issuerOrigin": self.issuerOrigin, "count": self.count}
 
 

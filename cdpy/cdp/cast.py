@@ -26,7 +26,7 @@ class Sink:
     def from_json(cls, json: dict) -> Sink:
         return cls(json["name"], json["id"], json.get("session"))
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none({"name": self.name, "id": self.id, "session": self.session})
 
 

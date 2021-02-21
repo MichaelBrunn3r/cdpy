@@ -38,7 +38,7 @@ class Database:
             DatabaseId(json["id"]), json["domain"], json["name"], json["version"]
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "id": str(self.id),
             "domain": self.domain,
@@ -66,7 +66,7 @@ class Error:
     def from_json(cls, json: dict) -> Error:
         return cls(json["message"], json["code"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"message": self.message, "code": self.code}
 
 

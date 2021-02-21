@@ -50,7 +50,7 @@ class Location:
             json.get("columnNumber"),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "scriptId": str(self.scriptId),
@@ -77,7 +77,7 @@ class ScriptPosition:
     def from_json(cls, json: dict) -> ScriptPosition:
         return cls(json["lineNumber"], json["columnNumber"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"lineNumber": self.lineNumber, "columnNumber": self.columnNumber}
 
 
@@ -104,7 +104,7 @@ class LocationRange:
             ScriptPosition.from_json(json["end"]),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "scriptId": str(self.scriptId),
             "start": self.start.to_json(),
@@ -162,7 +162,7 @@ class CallFrame:
             else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "callFrameId": str(self.callFrameId),
@@ -216,7 +216,7 @@ class Scope:
             Location.from_json(json["endLocation"]) if "endLocation" in json else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "type": self.type,
@@ -249,7 +249,7 @@ class SearchMatch:
     def from_json(cls, json: dict) -> SearchMatch:
         return cls(json["lineNumber"], json["lineContent"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"lineNumber": self.lineNumber, "lineContent": self.lineContent}
 
 
@@ -281,7 +281,7 @@ class BreakLocation:
             json.get("type"),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "scriptId": str(self.scriptId),
@@ -318,7 +318,7 @@ class DebugSymbols:
     def from_json(cls, json: dict) -> DebugSymbols:
         return cls(json["type"], json.get("externalURL"))
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none({"type": self.type, "externalURL": self.externalURL})
 
 

@@ -69,7 +69,7 @@ class TargetInfo:
             else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "targetId": str(self.targetId),
@@ -105,7 +105,7 @@ class RemoteLocation:
     def from_json(cls, json: dict) -> RemoteLocation:
         return cls(json["host"], json["port"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"host": self.host, "port": self.port}
 
 

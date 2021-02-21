@@ -118,7 +118,7 @@ class AXValueSource:
             json.get("invalidReason"),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "type": self.type.value,
@@ -163,7 +163,7 @@ class AXRelatedNode:
             json.get("text"),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "backendDOMNodeId": int(self.backendDOMNodeId),
@@ -191,7 +191,7 @@ class AXProperty:
     def from_json(cls, json: dict) -> AXProperty:
         return cls(AXPropertyName(json["name"]), AXValue.from_json(json["value"]))
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"name": self.name.value, "value": self.value.to_json()}
 
 
@@ -229,7 +229,7 @@ class AXValue:
             else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "type": self.type.value,
@@ -354,7 +354,7 @@ class AXNode:
             else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "nodeId": str(self.nodeId),

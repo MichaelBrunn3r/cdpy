@@ -97,7 +97,7 @@ class ContextRealtimeData:
             json["callbackIntervalVariance"],
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "currentTime": self.currentTime,
             "renderCapacity": self.renderCapacity,
@@ -146,7 +146,7 @@ class BaseAudioContext:
             else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "contextId": str(self.contextId),
@@ -179,7 +179,7 @@ class AudioListener:
     def from_json(cls, json: dict) -> AudioListener:
         return cls(GraphObjectId(json["listenerId"]), GraphObjectId(json["contextId"]))
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"listenerId": str(self.listenerId), "contextId": str(self.contextId)}
 
 
@@ -221,7 +221,7 @@ class AudioNode:
             ChannelInterpretation(json["channelInterpretation"]),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "nodeId": str(self.nodeId),
             "contextId": str(self.contextId),
@@ -272,7 +272,7 @@ class AudioParam:
             json["maxValue"],
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "paramId": str(self.paramId),
             "nodeId": str(self.nodeId),

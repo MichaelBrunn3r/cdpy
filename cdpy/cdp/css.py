@@ -49,7 +49,7 @@ class PseudoElementMatches:
             [RuleMatch.from_json(m) for m in json["matches"]],
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "pseudoType": self.pseudoType.value,
             "matches": [m.to_json() for m in self.matches],
@@ -78,7 +78,7 @@ class InheritedStyleEntry:
             CSSStyle.from_json(json["inlineStyle"]) if "inlineStyle" in json else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "matchedCSSRules": [m.to_json() for m in self.matchedCSSRules],
@@ -106,7 +106,7 @@ class RuleMatch:
     def from_json(cls, json: dict) -> RuleMatch:
         return cls(CSSRule.from_json(json["rule"]), json["matchingSelectors"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "rule": self.rule.to_json(),
             "matchingSelectors": self.matchingSelectors,
@@ -135,7 +135,7 @@ class Value:
             SourceRange.from_json(json["range"]) if "range" in json else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {"text": self.text, "range": self.range.to_json() if self.range else None}
         )
@@ -160,7 +160,7 @@ class SelectorList:
     def from_json(cls, json: dict) -> SelectorList:
         return cls([Value.from_json(s) for s in json["selectors"]], json["text"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"selectors": [s.to_json() for s in self.selectors], "text": self.text}
 
 
@@ -250,7 +250,7 @@ class CSSStyleSheetHeader:
             json.get("hasSourceURL"),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "styleSheetId": str(self.styleSheetId),
@@ -310,7 +310,7 @@ class CSSRule:
             [CSSMedia.from_json(m) for m in json["media"]] if "media" in json else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "selectorList": self.selectorList.to_json(),
@@ -353,7 +353,7 @@ class RuleUsage:
             json["used"],
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "styleSheetId": str(self.styleSheetId),
             "startOffset": self.startOffset,
@@ -389,7 +389,7 @@ class SourceRange:
             json["startLine"], json["startColumn"], json["endLine"], json["endColumn"]
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "startLine": self.startLine,
             "startColumn": self.startColumn,
@@ -419,7 +419,7 @@ class ShorthandEntry:
     def from_json(cls, json: dict) -> ShorthandEntry:
         return cls(json["name"], json["value"], json.get("important"))
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {"name": self.name, "value": self.value, "important": self.important}
         )
@@ -443,7 +443,7 @@ class CSSComputedStyleProperty:
     def from_json(cls, json: dict) -> CSSComputedStyleProperty:
         return cls(json["name"], json["value"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"name": self.name, "value": self.value}
 
 
@@ -482,7 +482,7 @@ class CSSStyle:
             SourceRange.from_json(json["range"]) if "range" in json else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "cssProperties": [c.to_json() for c in self.cssProperties],
@@ -540,7 +540,7 @@ class CSSProperty:
             SourceRange.from_json(json["range"]) if "range" in json else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "name": self.name,
@@ -599,7 +599,7 @@ class CSSMedia:
             else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "text": self.text,
@@ -636,7 +636,7 @@ class MediaQuery:
             json["active"],
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "expressions": [e.to_json() for e in self.expressions],
             "active": self.active,
@@ -677,7 +677,7 @@ class MediaQueryExpression:
             json.get("computedLength"),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "value": self.value,
@@ -711,7 +711,7 @@ class PlatformFontUsage:
     def from_json(cls, json: dict) -> PlatformFontUsage:
         return cls(json["familyName"], json["isCustomFont"], json["glyphCount"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "familyName": self.familyName,
             "isCustomFont": self.isCustomFont,
@@ -753,7 +753,7 @@ class FontVariationAxis:
             json["defaultValue"],
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "tag": self.tag,
             "name": self.name,
@@ -816,7 +816,7 @@ class FontFace:
             else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "fontFamily": self.fontFamily,
@@ -856,7 +856,7 @@ class CSSKeyframesRule:
             [CSSKeyframeRule.from_json(k) for k in json["keyframes"]],
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "animationName": self.animationName.to_json(),
             "keyframes": [k.to_json() for k in self.keyframes],
@@ -894,7 +894,7 @@ class CSSKeyframeRule:
             StyleSheetId(json["styleSheetId"]) if "styleSheetId" in json else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "origin": self.origin.value,
@@ -931,7 +931,7 @@ class StyleDeclarationEdit:
             json["text"],
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "styleSheetId": str(self.styleSheetId),
             "range": self.range.to_json(),

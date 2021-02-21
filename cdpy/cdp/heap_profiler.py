@@ -44,7 +44,7 @@ class SamplingHeapProfileNode:
             [SamplingHeapProfileNode.from_json(c) for c in json["children"]],
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "callFrame": self.callFrame.to_json(),
             "selfSize": self.selfSize,
@@ -76,7 +76,7 @@ class SamplingHeapProfileSample:
     def from_json(cls, json: dict) -> SamplingHeapProfileSample:
         return cls(json["size"], json["nodeId"], json["ordinal"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"size": self.size, "nodeId": self.nodeId, "ordinal": self.ordinal}
 
 
@@ -100,7 +100,7 @@ class SamplingHeapProfile:
             [SamplingHeapProfileSample.from_json(s) for s in json["samples"]],
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "head": self.head.to_json(),
             "samples": [s.to_json() for s in self.samples],

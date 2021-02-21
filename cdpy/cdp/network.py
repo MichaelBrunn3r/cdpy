@@ -214,7 +214,7 @@ class ResourceTiming:
             json["receiveHeadersEnd"],
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "requestTime": self.requestTime,
             "proxyStart": self.proxyStart,
@@ -262,7 +262,7 @@ class PostDataEntry:
     def from_json(cls, json: dict) -> PostDataEntry:
         return cls(json.get("bytes"))
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none({"bytes": self.bytes})
 
 
@@ -335,7 +335,7 @@ class Request:
             else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "url": self.url,
@@ -406,7 +406,7 @@ class SignedCertificateTimestamp:
             json["signatureData"],
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "status": self.status,
             "origin": self.origin,
@@ -490,7 +490,7 @@ class SecurityDetails:
             json.get("mac"),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "protocol": self.protocol,
@@ -588,7 +588,7 @@ class CorsErrorStatus:
     def from_json(cls, json: dict) -> CorsErrorStatus:
         return cls(CorsError(json["corsError"]), json["failedParameter"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "corsError": self.corsError.value,
             "failedParameter": self.failedParameter,
@@ -633,7 +633,7 @@ class TrustTokenParams:
             json.get("issuers"),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "type": self.type.value,
@@ -761,7 +761,7 @@ class Response:
             else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "url": self.url,
@@ -813,7 +813,7 @@ class WebSocketRequest:
     def from_json(cls, json: dict) -> WebSocketRequest:
         return cls(Headers(json["headers"]))
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"headers": dict(self.headers)}
 
 
@@ -855,7 +855,7 @@ class WebSocketResponse:
             json.get("requestHeadersText"),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "status": self.status,
@@ -894,7 +894,7 @@ class WebSocketFrame:
     def from_json(cls, json: dict) -> WebSocketFrame:
         return cls(json["opcode"], json["mask"], json["payloadData"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "opcode": self.opcode,
             "mask": self.mask,
@@ -932,7 +932,7 @@ class CachedResource:
             Response.from_json(json["response"]) if "response" in json else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "url": self.url,
@@ -983,7 +983,7 @@ class Initiator:
             RequestId(json["requestId"]) if "requestId" in json else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "type": self.type,
@@ -1058,7 +1058,7 @@ class Cookie:
             CookieSameSite(json["sameSite"]) if "sameSite" in json else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "name": self.name,
@@ -1150,7 +1150,7 @@ class BlockedSetCookieWithReason:
             Cookie.from_json(json["cookie"]) if "cookie" in json else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "blockedReasons": [b.value for b in self.blockedReasons],
@@ -1182,7 +1182,7 @@ class BlockedCookieWithReason:
             Cookie.from_json(json["cookie"]),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "blockedReasons": [b.value for b in self.blockedReasons],
             "cookie": self.cookie.to_json(),
@@ -1244,7 +1244,7 @@ class CookieParam:
             CookiePriority(json["priority"]) if "priority" in json else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "name": self.name,
@@ -1286,7 +1286,7 @@ class AuthChallenge:
     def from_json(cls, json: dict) -> AuthChallenge:
         return cls(json["origin"], json["scheme"], json["realm"], json.get("source"))
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "origin": self.origin,
@@ -1323,7 +1323,7 @@ class AuthChallengeResponse:
     def from_json(cls, json: dict) -> AuthChallengeResponse:
         return cls(json["response"], json.get("username"), json.get("password"))
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "response": self.response,
@@ -1371,7 +1371,7 @@ class RequestPattern:
             else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "urlPattern": self.urlPattern,
@@ -1434,7 +1434,7 @@ class SignedExchangeSignature:
             json.get("certificates"),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "label": self.label,
@@ -1485,7 +1485,7 @@ class SignedExchangeHeader:
             json["headerIntegrity"],
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "requestUrl": self.requestUrl,
             "responseCode": self.responseCode,
@@ -1534,7 +1534,7 @@ class SignedExchangeError:
             else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "message": self.message,
@@ -1580,7 +1580,7 @@ class SignedExchangeInfo:
             else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "outerResponse": self.outerResponse.to_json(),
@@ -1631,7 +1631,7 @@ class ClientSecurityState:
             PrivateNetworkRequestPolicy(json["privateNetworkRequestPolicy"]),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "initiatorIsSecureContext": self.initiatorIsSecureContext,
             "initiatorIPAddressSpace": self.initiatorIPAddressSpace.value,
@@ -1673,7 +1673,7 @@ class CrossOriginOpenerPolicyStatus:
             json.get("reportOnlyReportingEndpoint"),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "value": self.value.value,
@@ -1716,7 +1716,7 @@ class CrossOriginEmbedderPolicyStatus:
             json.get("reportOnlyReportingEndpoint"),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "value": self.value.value,
@@ -1750,7 +1750,7 @@ class SecurityIsolationStatus:
             else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "coop": self.coop.to_json() if self.coop else None,
@@ -1794,7 +1794,7 @@ class LoadNetworkResourcePageResult:
             Headers(json["headers"]) if "headers" in json else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "success": self.success,
@@ -1825,7 +1825,7 @@ class LoadNetworkResourceOptions:
     def from_json(cls, json: dict) -> LoadNetworkResourceOptions:
         return cls(json["disableCache"], json["includeCredentials"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "disableCache": self.disableCache,
             "includeCredentials": self.includeCredentials,

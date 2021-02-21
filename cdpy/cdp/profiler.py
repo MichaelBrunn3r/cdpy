@@ -48,7 +48,7 @@ class ProfileNode:
             else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "id": self.id,
@@ -98,7 +98,7 @@ class Profile:
             json.get("timeDeltas"),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "nodes": [n.to_json() for n in self.nodes],
@@ -129,7 +129,7 @@ class PositionTickInfo:
     def from_json(cls, json: dict) -> PositionTickInfo:
         return cls(json["line"], json["ticks"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"line": self.line, "ticks": self.ticks}
 
 
@@ -155,7 +155,7 @@ class CoverageRange:
     def from_json(cls, json: dict) -> CoverageRange:
         return cls(json["startOffset"], json["endOffset"], json["count"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "startOffset": self.startOffset,
             "endOffset": self.endOffset,
@@ -189,7 +189,7 @@ class FunctionCoverage:
             json["isBlockCoverage"],
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "functionName": self.functionName,
             "ranges": [r.to_json() for r in self.ranges],
@@ -223,7 +223,7 @@ class ScriptCoverage:
             [FunctionCoverage.from_json(f) for f in json["functions"]],
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "scriptId": str(self.scriptId),
             "url": self.url,
@@ -247,7 +247,7 @@ class TypeObject:
     def from_json(cls, json: dict) -> TypeObject:
         return cls(json["name"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"name": self.name}
 
 
@@ -270,7 +270,7 @@ class TypeProfileEntry:
     def from_json(cls, json: dict) -> TypeProfileEntry:
         return cls(json["offset"], [TypeObject.from_json(t) for t in json["types"]])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"offset": self.offset, "types": [t.to_json() for t in self.types]}
 
 
@@ -300,7 +300,7 @@ class ScriptTypeProfile:
             [TypeProfileEntry.from_json(e) for e in json["entries"]],
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "scriptId": str(self.scriptId),
             "url": self.url,
@@ -327,7 +327,7 @@ class CounterInfo:
     def from_json(cls, json: dict) -> CounterInfo:
         return cls(json["name"], json["value"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"name": self.name, "value": self.value}
 
 
@@ -353,7 +353,7 @@ class RuntimeCallCounterInfo:
     def from_json(cls, json: dict) -> RuntimeCallCounterInfo:
         return cls(json["name"], json["value"], json["time"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"name": self.name, "value": self.value, "time": self.time}
 
 

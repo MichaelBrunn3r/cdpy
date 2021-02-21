@@ -44,7 +44,7 @@ class PlayerMessage:
     def from_json(cls, json: dict) -> PlayerMessage:
         return cls(json["level"], json["message"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"level": self.level, "message": self.message}
 
 
@@ -65,7 +65,7 @@ class PlayerProperty:
     def from_json(cls, json: dict) -> PlayerProperty:
         return cls(json["name"], json["value"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"name": self.name, "value": self.value}
 
 
@@ -86,7 +86,7 @@ class PlayerEvent:
     def from_json(cls, json: dict) -> PlayerEvent:
         return cls(Timestamp(json["timestamp"]), json["value"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"timestamp": float(self.timestamp), "value": self.value}
 
 
@@ -112,7 +112,7 @@ class PlayerError:
     def from_json(cls, json: dict) -> PlayerError:
         return cls(json["type"], json["errorCode"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"type": self.type, "errorCode": self.errorCode}
 
 

@@ -67,7 +67,7 @@ class LogEntry:
             else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "source": self.source,
@@ -105,7 +105,7 @@ class ViolationSetting:
     def from_json(cls, json: dict) -> ViolationSetting:
         return cls(json["name"], json["threshold"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"name": self.name, "threshold": self.threshold}
 
 

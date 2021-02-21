@@ -27,7 +27,7 @@ class Metric:
     def from_json(cls, json: dict) -> Metric:
         return cls(json["name"], json["value"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"name": self.name, "value": self.value}
 
 

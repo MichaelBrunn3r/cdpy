@@ -25,7 +25,7 @@ class ScreenshotParams:
     def from_json(cls, json: dict) -> ScreenshotParams:
         return cls(json.get("format"), json.get("quality"))
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none({"format": self.format, "quality": self.quality})
 
 

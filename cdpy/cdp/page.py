@@ -124,7 +124,7 @@ class Frame:
             AdFrameType(json["adFrameType"]) if "adFrameType" in json else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "id": str(self.id),
@@ -189,7 +189,7 @@ class FrameResource:
             json.get("canceled"),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "url": self.url,
@@ -231,7 +231,7 @@ class FrameResourceTree:
             else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "frame": self.frame.to_json(),
@@ -267,7 +267,7 @@ class FrameTree:
             else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "frame": self.frame.to_json(),
@@ -337,7 +337,7 @@ class NavigationEntry:
             TransitionType(json["transitionType"]),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "id": self.id,
             "url": self.url,
@@ -389,7 +389,7 @@ class ScreencastFrameMetadata:
             network.TimeSinceEpoch(json["timestamp"]) if "timestamp" in json else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "offsetTop": self.offsetTop,
@@ -437,7 +437,7 @@ class AppManifestError:
     def from_json(cls, json: dict) -> AppManifestError:
         return cls(json["message"], json["critical"], json["line"], json["column"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "message": self.message,
             "critical": self.critical,
@@ -462,7 +462,7 @@ class AppManifestParsedProperties:
     def from_json(cls, json: dict) -> AppManifestParsedProperties:
         return cls(json["scope"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"scope": self.scope}
 
 
@@ -493,7 +493,7 @@ class LayoutViewport:
             json["pageX"], json["pageY"], json["clientWidth"], json["clientHeight"]
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "pageX": self.pageX,
             "pageY": self.pageY,
@@ -548,7 +548,7 @@ class VisualViewport:
             json.get("zoom"),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "offsetX": self.offsetX,
@@ -591,7 +591,7 @@ class Viewport:
     def from_json(cls, json: dict) -> Viewport:
         return cls(json["x"], json["y"], json["width"], json["height"], json["scale"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "x": self.x,
             "y": self.y,
@@ -643,7 +643,7 @@ class FontFamilies:
             json.get("pictograph"),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "standard": self.standard,
@@ -676,7 +676,7 @@ class FontSizes:
     def from_json(cls, json: dict) -> FontSizes:
         return cls(json.get("standard"), json.get("fixed"))
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none({"standard": self.standard, "fixed": self.fixed})
 
 
@@ -720,7 +720,7 @@ class InstallabilityErrorArgument:
     def from_json(cls, json: dict) -> InstallabilityErrorArgument:
         return cls(json["name"], json["value"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"name": self.name, "value": self.value}
 
 
@@ -746,7 +746,7 @@ class InstallabilityError:
             [InstallabilityErrorArgument.from_json(e) for e in json["errorArguments"]],
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "errorId": self.errorId,
             "errorArguments": [e.to_json() for e in self.errorArguments],

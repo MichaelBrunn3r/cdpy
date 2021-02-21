@@ -28,7 +28,7 @@ class AffectedCookie:
     def from_json(cls, json: dict) -> AffectedCookie:
         return cls(json["name"], json["path"], json["domain"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"name": self.name, "path": self.path, "domain": self.domain}
 
 
@@ -50,7 +50,7 @@ class AffectedRequest:
     def from_json(cls, json: dict) -> AffectedRequest:
         return cls(network.RequestId(json["requestId"]), json.get("url"))
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none({"requestId": str(self.requestId), "url": self.url})
 
 
@@ -69,7 +69,7 @@ class AffectedFrame:
     def from_json(cls, json: dict) -> AffectedFrame:
         return cls(page.FrameId(json["frameId"]))
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"frameId": str(self.frameId)}
 
 
@@ -149,7 +149,7 @@ class SameSiteCookieIssueDetails:
             AffectedRequest.from_json(json["request"]) if "request" in json else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "cookie": self.cookie.to_json(),
@@ -247,7 +247,7 @@ class MixedContentIssueDetails:
             AffectedFrame.from_json(json["frame"]) if "frame" in json else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "resolutionStatus": self.resolutionStatus.value,
@@ -308,7 +308,7 @@ class BlockedByResponseIssueDetails:
             else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "request": self.request.to_json(),
@@ -361,7 +361,7 @@ class HeavyAdIssueDetails:
             AffectedFrame.from_json(json["frame"]),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "resolution": self.resolution.value,
             "reason": self.reason.value,
@@ -404,7 +404,7 @@ class SourceCodeLocation:
             runtime.ScriptId(json["scriptId"]) if "scriptId" in json else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "url": self.url,
@@ -459,7 +459,7 @@ class ContentSecurityPolicyIssueDetails:
             else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "violatedDirective": self.violatedDirective,
@@ -511,7 +511,7 @@ class SharedArrayBufferIssueDetails:
             SharedArrayBufferIssueType(json["type"]),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "sourceCodeLocation": self.sourceCodeLocation.to_json(),
             "isWarning": self.isWarning,
@@ -560,7 +560,7 @@ class TrustedWebActivityIssueDetails:
             json.get("signature"),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "url": self.url,
@@ -606,7 +606,7 @@ class LowTextContrastIssueDetails:
             json["fontWeight"],
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "violatingNodeId": int(self.violatingNodeId),
             "violatingNodeSelector": self.violatingNodeSelector,
@@ -700,7 +700,7 @@ class InspectorIssueDetails:
             else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "sameSiteCookieIssueDetails": self.sameSiteCookieIssueDetails.to_json()
@@ -751,7 +751,7 @@ class InspectorIssue:
             InspectorIssueDetails.from_json(json["details"]),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"code": self.code.value, "details": self.details.to_json()}
 
 

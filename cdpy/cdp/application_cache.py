@@ -28,7 +28,7 @@ class ApplicationCacheResource:
     def from_json(cls, json: dict) -> ApplicationCacheResource:
         return cls(json["url"], json["size"], json["type"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"url": self.url, "size": self.size, "type": self.type}
 
 
@@ -66,7 +66,7 @@ class ApplicationCache:
             [ApplicationCacheResource.from_json(r) for r in json["resources"]],
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "manifestURL": self.manifestURL,
             "size": self.size,
@@ -98,7 +98,7 @@ class FrameWithManifest:
     def from_json(cls, json: dict) -> FrameWithManifest:
         return cls(page.FrameId(json["frameId"]), json["manifestURL"], json["status"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "frameId": str(self.frameId),
             "manifestURL": self.manifestURL,

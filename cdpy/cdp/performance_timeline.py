@@ -42,7 +42,7 @@ class LargestContentfulPaint:
             dom.BackendNodeId(json["nodeId"]) if "nodeId" in json else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "renderTime": float(self.renderTime),
@@ -77,7 +77,7 @@ class LayoutShiftAttribution:
             dom.BackendNodeId(json["nodeId"]) if "nodeId" in json else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "previousRect": self.previousRect.to_json(),
@@ -114,7 +114,7 @@ class LayoutShift:
             [LayoutShiftAttribution.from_json(s) for s in json["sources"]],
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "value": self.value,
             "hadRecentInput": self.hadRecentInput,
@@ -167,7 +167,7 @@ class TimelineEvent:
             else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "frameId": str(self.frameId),

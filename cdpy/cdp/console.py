@@ -44,7 +44,7 @@ class ConsoleMessage:
             json.get("column"),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "source": self.source,

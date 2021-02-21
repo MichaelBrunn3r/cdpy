@@ -53,7 +53,7 @@ class GPUDevice:
             json.get("revision"),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "vendorId": self.vendorId,
@@ -87,7 +87,7 @@ class Size:
     def from_json(cls, json: dict) -> Size:
         return cls(json["width"], json["height"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"width": self.width, "height": self.height}
 
 
@@ -118,7 +118,7 @@ class VideoDecodeAcceleratorCapability:
             Size.from_json(json["minResolution"]),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "profile": self.profile,
             "maxResolution": self.maxResolution.to_json(),
@@ -158,7 +158,7 @@ class VideoEncodeAcceleratorCapability:
             json["maxFramerateDenominator"],
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "profile": self.profile,
             "maxResolution": self.maxResolution.to_json(),
@@ -214,7 +214,7 @@ class ImageDecodeAcceleratorCapability:
             [SubsamplingFormat(s) for s in json["subsamplings"]],
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "imageType": self.imageType.value,
             "maxDimensions": self.maxDimensions.to_json(),
@@ -274,7 +274,7 @@ class GPUInfo:
             json.get("featureStatus"),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "devices": [d.to_json() for d in self.devices],
@@ -311,7 +311,7 @@ class ProcessInfo:
     def from_json(cls, json: dict) -> ProcessInfo:
         return cls(json["type"], json["id"], json["cpuTime"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"type": self.type, "id": self.id, "cpuTime": self.cpuTime}
 
 

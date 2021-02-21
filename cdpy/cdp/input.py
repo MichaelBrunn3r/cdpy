@@ -65,7 +65,7 @@ class TouchPoint:
             json.get("id"),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "x": self.x,

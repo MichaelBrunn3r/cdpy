@@ -146,7 +146,7 @@ class DOMNode:
             json.get("scrollOffsetY"),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "nodeType": self.nodeType,
@@ -216,7 +216,7 @@ class InlineTextBox:
             json["numCharacters"],
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "boundingBox": self.boundingBox.to_json(),
             "startCharacterIndex": self.startCharacterIndex,
@@ -270,7 +270,7 @@ class LayoutTreeNode:
             json.get("isStackingContext"),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "domNodeIndex": self.domNodeIndex,
@@ -302,7 +302,7 @@ class ComputedStyle:
     def from_json(cls, json: dict) -> ComputedStyle:
         return cls([NameValue.from_json(p) for p in json["properties"]])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"properties": [p.to_json() for p in self.properties]}
 
 
@@ -325,7 +325,7 @@ class NameValue:
     def from_json(cls, json: dict) -> NameValue:
         return cls(json["name"], json["value"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"name": self.name, "value": self.value}
 
 
@@ -343,7 +343,7 @@ class ArrayOfStrings(list[StringIndex]):
     def from_json(cls, json: dict) -> ArrayOfStrings:
         return cls([StringIndex(e) for e in json])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return [int(e) for e in self]
 
 
@@ -364,7 +364,7 @@ class RareStringData:
     def from_json(cls, json: dict) -> RareStringData:
         return cls(json["index"], [StringIndex(v) for v in json["value"]])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"index": self.index, "value": [int(v) for v in self.value]}
 
 
@@ -382,7 +382,7 @@ class RareBooleanData:
     def from_json(cls, json: dict) -> RareBooleanData:
         return cls(json["index"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"index": self.index}
 
 
@@ -402,7 +402,7 @@ class RareIntegerData:
     def from_json(cls, json: dict) -> RareIntegerData:
         return cls(json["index"], json["value"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"index": self.index, "value": self.value}
 
 
@@ -487,7 +487,7 @@ class DocumentSnapshot:
             json.get("contentHeight"),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "documentURL": int(self.documentURL),
@@ -609,7 +609,7 @@ class NodeTreeSnapshot:
             else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "parentIndex": self.parentIndex,
@@ -703,7 +703,7 @@ class LayoutTreeSnapshot:
             else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "nodeIndex": self.nodeIndex,
@@ -758,7 +758,7 @@ class TextBoxSnapshot:
             json["length"],
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "layoutIndex": self.layoutIndex,
             "bounds": [list(b) for b in self.bounds],

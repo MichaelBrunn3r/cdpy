@@ -65,7 +65,7 @@ class Bounds:
             WindowState(json["windowState"]) if "windowState" in json else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "left": self.left,
@@ -150,7 +150,7 @@ class PermissionDescriptor:
             json.get("panTiltZoom"),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "name": self.name,
@@ -191,7 +191,7 @@ class Bucket:
     def from_json(cls, json: dict) -> Bucket:
         return cls(json["low"], json["high"], json["count"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"low": self.low, "high": self.high, "count": self.count}
 
 
@@ -225,7 +225,7 @@ class Histogram:
             [Bucket.from_json(b) for b in json["buckets"]],
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "name": self.name,
             "sum": self.sum,

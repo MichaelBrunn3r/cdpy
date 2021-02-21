@@ -71,7 +71,7 @@ class DataEntry:
             [Header.from_json(r) for r in json["responseHeaders"]],
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "requestURL": self.requestURL,
             "requestMethod": self.requestMethod,
@@ -106,7 +106,7 @@ class Cache:
     def from_json(cls, json: dict) -> Cache:
         return cls(CacheId(json["cacheId"]), json["securityOrigin"], json["cacheName"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "cacheId": str(self.cacheId),
             "securityOrigin": self.securityOrigin,
@@ -130,7 +130,7 @@ class Header:
     def from_json(cls, json: dict) -> Header:
         return cls(json["name"], json["value"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"name": self.name, "value": self.value}
 
 
@@ -150,7 +150,7 @@ class CachedResponse:
     def from_json(cls, json: dict) -> CachedResponse:
         return cls(json["body"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"body": self.body}
 
 

@@ -49,7 +49,7 @@ class BackendNode:
             json["nodeType"], json["nodeName"], BackendNodeId(json["backendNodeId"])
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "nodeType": self.nodeType,
             "nodeName": self.nodeName,
@@ -234,7 +234,7 @@ class Node:
             json.get("isSVG"),
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "nodeId": int(self.nodeId),
@@ -310,7 +310,7 @@ class RGBA:
     def from_json(cls, json: dict) -> RGBA:
         return cls(json["r"], json["g"], json["b"], json.get("a"))
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none({"r": self.r, "g": self.g, "b": self.b, "a": self.a})
 
 
@@ -365,7 +365,7 @@ class BoxModel:
             else None,
         )
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return filter_none(
             {
                 "content": list(self.content),
@@ -403,7 +403,7 @@ class ShapeOutsideInfo:
     def from_json(cls, json: dict) -> ShapeOutsideInfo:
         return cls(Quad(json["bounds"]), json["shape"], json["marginShape"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {
             "bounds": list(self.bounds),
             "shape": self.shape,
@@ -436,7 +436,7 @@ class Rect:
     def from_json(cls, json: dict) -> Rect:
         return cls(json["x"], json["y"], json["width"], json["height"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"x": self.x, "y": self.y, "width": self.width, "height": self.height}
 
 
@@ -458,7 +458,7 @@ class CSSComputedStyleProperty:
     def from_json(cls, json: dict) -> CSSComputedStyleProperty:
         return cls(json["name"], json["value"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"name": self.name, "value": self.value}
 
 

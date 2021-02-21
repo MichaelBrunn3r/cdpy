@@ -23,7 +23,7 @@ class Domain:
     def from_json(cls, json: dict) -> Domain:
         return cls(json["name"], json["version"])
 
-    def to_json(self) -> dict:
+    def to_json(self):
         return {"name": self.name, "version": self.version}
 
 
