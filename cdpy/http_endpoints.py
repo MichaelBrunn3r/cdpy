@@ -1,4 +1,4 @@
-from typing import Callable, Iterable, Iterator, Optional
+from typing import Callable, Iterable, Iterator, Optional, no_type_check
 
 from .cdpy import Target, TargetType
 
@@ -6,7 +6,7 @@ from .cdpy import Target, TargetType
 def get_targets(
     remote_debugging_url: str,
     request_json: Callable[[str], Iterable],
-    filter_types: Optional[list[TargetType]] = None,
+    filter_types: list[TargetType] = [],
 ) -> Iterator[Target]:
     """
     Parameters
@@ -20,9 +20,9 @@ def get_targets(
     """
 
     targets_json = request_json(f"{remote_debugging_url}/json/list")
-    targets = map(lambda t: Target.from_json(t), targets_json)
+    targets: Iterator[Target] = map(lambda t: Target.from_json(t), targets_json)
 
-    if filter_types != None and len(filter_types) > 0:
+    if len(filter_types):
         targets = filter(lambda t: t.type in filter_types, targets)
 
     return targets

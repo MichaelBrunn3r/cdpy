@@ -6,7 +6,7 @@ import threading
 from collections import defaultdict
 from typing import Any, Callable
 
-import websocket
+import websocket  # type: ignore
 
 from .cdpy import EventParserError, Target, parse_event
 
@@ -35,7 +35,7 @@ class TargetConnection:
         self._threads_stopped = threading.Event()
 
         # Event handling
-        self._event_queue = queue.Queue()
+        self._event_queue: queue.Queue[dict] = queue.Queue()
         self._event_handlers: defaultdict[
             str, list[Callable[[Any], None]]
         ] = defaultdict(list)

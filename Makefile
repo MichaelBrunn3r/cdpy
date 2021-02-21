@@ -35,6 +35,10 @@ coverage:
 	$(PYTHON) -m pytest --cov=cdpy
 	poetry run coverage-badge -o coverage.svg -f
 
+.PHONY: check
+check:
+	$(PYTHON) -m mypy .\cdpy\
+
 .PHONY: format
 format:
 	poetry run black .

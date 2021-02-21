@@ -1,6 +1,6 @@
 import enum
 from dataclasses import dataclass
-from typing import Optional
+from typing import Any, Optional
 
 from .cdp._event_parsers import event_parsers
 
@@ -55,7 +55,7 @@ def parse_event(event_json: dict):
         raise EventParserError("Can't parse event, missing item: 'params'")
 
     event_name = event_json["method"]
-    parser = event_parsers.get(event_name)
+    parser: Any = event_parsers.get(event_name)
 
     if not parser:
         raise EventParserError(f"Couldn't find parser for event: {event_name}")
