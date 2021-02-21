@@ -631,7 +631,7 @@ class Method:
             self.context.require("deprecated.sphinx", "deprecated")
             decorators.append(
                 ast_from_str(
-                    f"deprecated(version={self.context.global_context.protocol_version})"
+                    f"deprecated(version='{self.context.global_context.protocol_version}')"
                 )
             )
 

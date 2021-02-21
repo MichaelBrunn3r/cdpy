@@ -772,7 +772,7 @@ def get_document(
     return Node.from_json(response["root"])
 
 
-@deprecated(version=1.3)
+@deprecated(version="1.3")
 def get_flattened_document(
     depth: Optional[int] = None, pierce: Optional[bool] = None
 ) -> Generator[dict, dict, list[Node]]:

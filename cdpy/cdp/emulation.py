@@ -460,7 +460,7 @@ def clear_idle_override() -> dict:
     return {"method": "Emulation.clearIdleOverride", "params": {}}
 
 
-@deprecated(version=1.3)
+@deprecated(version="1.3")
 def set_navigator_overrides(platform: str) -> dict:
     """Overrides value returned by the javascript navigator object.
 
@@ -608,7 +608,7 @@ def set_timezone_override(timezoneId: str) -> dict:
     }
 
 
-@deprecated(version=1.3)
+@deprecated(version="1.3")
 def set_visible_size(width: int, height: int) -> dict:
     """Resizes the frame/viewport of the page. Note that this does not affect the frame's container
     (e.g. browser window). Can be used to produce screenshots of the specified size. Not supported

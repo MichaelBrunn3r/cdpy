@@ -766,7 +766,7 @@ class ReferrerPolicy(enum.Enum):
     UNSAFE_URL = "unsafeUrl"
 
 
-@deprecated(version=1.3)
+@deprecated(version="1.3")
 def add_script_to_evaluate_on_load(
     scriptSource: str,
 ) -> Generator[dict, dict, ScriptIdentifier]:
@@ -885,7 +885,7 @@ def capture_snapshot(format: Optional[str] = None) -> Generator[dict, dict, str]
     return response["data"]
 
 
-@deprecated(version=1.3)
+@deprecated(version="1.3")
 def clear_device_metrics_override() -> dict:
     """Clears the overriden device metrics.
 
@@ -894,7 +894,7 @@ def clear_device_metrics_override() -> dict:
     return {"method": "Page.clearDeviceMetricsOverride", "params": {}}
 
 
-@deprecated(version=1.3)
+@deprecated(version="1.3")
 def clear_device_orientation_override() -> dict:
     """Clears the overridden Device Orientation.
 
@@ -903,7 +903,7 @@ def clear_device_orientation_override() -> dict:
     return {"method": "Page.clearDeviceOrientationOverride", "params": {}}
 
 
-@deprecated(version=1.3)
+@deprecated(version="1.3")
 def clear_geolocation_override() -> dict:
     """Clears the overriden Geolocation Position and Error."""
     return {"method": "Page.clearGeolocationOverride", "params": {}}
@@ -944,7 +944,7 @@ def create_isolated_world(
     return runtime.ExecutionContextId(response["executionContextId"])
 
 
-@deprecated(version=1.3)
+@deprecated(version="1.3")
 def delete_cookie(cookieName: str, url: str) -> dict:
     """Deletes browser cookie with given name, domain and path.
 
@@ -1020,7 +1020,7 @@ def get_manifest_icons() -> Generator[dict, dict, Optional[str]]:
     return response.get("primaryIcon")
 
 
-@deprecated(version=1.3)
+@deprecated(version="1.3")
 def get_cookies() -> Generator[dict, dict, list[network.Cookie]]:
     """Returns all browser cookies. Depending on the backend support, will return detailed cookie
     information in the `cookies` field.
@@ -1336,7 +1336,7 @@ def reload(
     }
 
 
-@deprecated(version=1.3)
+@deprecated(version="1.3")
 def remove_script_to_evaluate_on_load(identifier: ScriptIdentifier) -> dict:
     """Deprecated, please use removeScriptToEvaluateOnNewDocument instead.
 
@@ -1448,7 +1448,7 @@ def set_bypass_csp(enabled: bool) -> dict:
     return {"method": "Page.setBypassCSP", "params": {"enabled": enabled}}
 
 
-@deprecated(version=1.3)
+@deprecated(version="1.3")
 def set_device_metrics_override(
     width: int,
     height: int,
@@ -1520,7 +1520,7 @@ def set_device_metrics_override(
     }
 
 
-@deprecated(version=1.3)
+@deprecated(version="1.3")
 def set_device_orientation_override(alpha: float, beta: float, gamma: float) -> dict:
     """Overrides the Device Orientation.
 
@@ -1586,7 +1586,7 @@ def set_document_content(frameId: FrameId, html: str) -> dict:
     }
 
 
-@deprecated(version=1.3)
+@deprecated(version="1.3")
 def set_download_behavior(behavior: str, downloadPath: Optional[str] = None) -> dict:
     """Set the behavior when downloading a file.
 
@@ -1606,7 +1606,7 @@ def set_download_behavior(behavior: str, downloadPath: Optional[str] = None) -> 
     }
 
 
-@deprecated(version=1.3)
+@deprecated(version="1.3")
 def set_geolocation_override(
     latitude: Optional[float] = None,
     longitude: Optional[float] = None,
@@ -1645,7 +1645,7 @@ def set_lifecycle_events_enabled(enabled: bool) -> dict:
     return {"method": "Page.setLifecycleEventsEnabled", "params": {"enabled": enabled}}
 
 
-@deprecated(version=1.3)
+@deprecated(version="1.3")
 def set_touch_emulation_enabled(
     enabled: bool, configuration: Optional[str] = None
 ) -> dict:

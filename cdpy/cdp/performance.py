@@ -50,7 +50,7 @@ def enable(timeDomain: Optional[str] = None) -> dict:
     }
 
 
-@deprecated(version=1.3)
+@deprecated(version="1.3")
 def set_time_domain(timeDomain: str) -> dict:
     """Sets time domain to use for collecting and reporting duration metrics.
     Note that this must be called before enabling metrics collection. Calling

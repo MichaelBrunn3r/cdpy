@@ -546,7 +546,7 @@ def get_script_source(scriptId: runtime.ScriptId) -> Generator[dict, dict, dict]
     }
 
 
-@deprecated(version=1.3)
+@deprecated(version="1.3")
 def get_wasm_bytecode(scriptId: runtime.ScriptId) -> Generator[dict, dict, str]:
     """This command is deprecated. Use getScriptSource instead.
 
@@ -594,7 +594,7 @@ def pause() -> dict:
     return {"method": "Debugger.pause", "params": {}}
 
 
-@deprecated(version=1.3)
+@deprecated(version="1.3")
 def pause_on_async_call(parentStackTraceId: runtime.StackTraceId) -> dict:
     """
     Parameters

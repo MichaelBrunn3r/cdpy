@@ -1832,7 +1832,7 @@ class LoadNetworkResourceOptions:
         }
 
 
-@deprecated(version=1.3)
+@deprecated(version="1.3")
 def can_clear_browser_cache() -> Generator[dict, dict, bool]:
     """Tells whether clearing browser cache is supported.
 
@@ -1845,7 +1845,7 @@ def can_clear_browser_cache() -> Generator[dict, dict, bool]:
     return response["result"]
 
 
-@deprecated(version=1.3)
+@deprecated(version="1.3")
 def can_clear_browser_cookies() -> Generator[dict, dict, bool]:
     """Tells whether clearing browser cookies is supported.
 
@@ -1858,7 +1858,7 @@ def can_clear_browser_cookies() -> Generator[dict, dict, bool]:
     return response["result"]
 
 
-@deprecated(version=1.3)
+@deprecated(version="1.3")
 def can_emulate_network_conditions() -> Generator[dict, dict, bool]:
     """Tells whether emulation of network conditions is supported.
 
@@ -1881,7 +1881,7 @@ def clear_browser_cookies() -> dict:
     return {"method": "Network.clearBrowserCookies", "params": {}}
 
 
-@deprecated(version=1.3)
+@deprecated(version="1.3")
 def continue_intercepted_request(
     interceptionId: InterceptionId,
     errorReason: Optional[ErrorReason] = None,
@@ -2406,7 +2406,7 @@ def set_attach_debug_stack(enabled: bool) -> dict:
     return {"method": "Network.setAttachDebugStack", "params": {"enabled": enabled}}
 
 
-@deprecated(version=1.3)
+@deprecated(version="1.3")
 def set_request_interception(patterns: list[RequestPattern]) -> dict:
     """Sets the requests to intercept that match the provided patterns and optionally resource types.
     Deprecated, please use Fetch.enable instead.

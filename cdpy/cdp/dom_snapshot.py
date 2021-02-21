@@ -777,7 +777,7 @@ def enable() -> dict:
     return {"method": "DOMSnapshot.enable", "params": {}}
 
 
-@deprecated(version=1.3)
+@deprecated(version="1.3")
 def get_snapshot(
     computedStyleWhitelist: list[str],
     includeEventListeners: Optional[bool] = None,

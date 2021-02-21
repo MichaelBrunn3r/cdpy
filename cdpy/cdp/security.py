@@ -374,7 +374,7 @@ def set_ignore_certificate_errors(ignore: bool) -> dict:
     }
 
 
-@deprecated(version=1.3)
+@deprecated(version="1.3")
 def handle_certificate_error(eventId: int, action: CertificateErrorAction) -> dict:
     """Handles a certificate error that fired a certificateError event.
 
@@ -391,7 +391,7 @@ def handle_certificate_error(eventId: int, action: CertificateErrorAction) -> di
     }
 
 
-@deprecated(version=1.3)
+@deprecated(version="1.3")
 def set_override_certificate_errors(override: bool) -> dict:
     """Enable/disable overriding certificate errors. If enabled, all certificate error events need to
     be handled by the DevTools client and should be answered with `handleCertificateError` commands.

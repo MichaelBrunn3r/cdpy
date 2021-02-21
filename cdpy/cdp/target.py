@@ -379,7 +379,7 @@ def get_targets() -> Generator[dict, dict, list[TargetInfo]]:
     return [TargetInfo.from_json(t) for t in response["targetInfos"]]
 
 
-@deprecated(version=1.3)
+@deprecated(version="1.3")
 def send_message_to_target(
     message: str,
     sessionId: Optional[SessionID] = None,
