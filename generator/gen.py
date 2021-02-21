@@ -492,7 +492,7 @@ class Type:
         )
 
         if self.has_optional_attributes:
-            self.context.require("._utils", "filter_none")
+            self.context.require(".._utils", "filter_none")
             json = ast_call("filter_none", [json])
 
         return ast_function(
@@ -640,7 +640,7 @@ class Method:
 
         # Remove unset optional parameters
         if self.has_optional_params:
-            self.context.require("._utils", "filter_none")
+            self.context.require(".._utils", "filter_none")
             params = f"filter_none({params})"
 
         return f'{{"method": "{self.context.domain_name}.{self.name}", "params": {params}}}'
@@ -828,25 +828,6 @@ def create_init_module(global_context: GlobalContext):
     )
     all += [f'"{d.context.module_name}"' for d in global_context.domains.values()]
 
-    # Imports from cdpy
-    cdpy_module_imports = ["parse_event", "EventParserError"]
-    body.append(ast_import_from(".cdpy", *cdpy_module_imports))
-    all += map(lambda i: f'"{i}"', cdpy_module_imports)
-
-    # Imports from http_endpoints
-    http_endpoints_imports = [
-        "Target",
-        "TargetType",
-        "get_targets",
-        "get_version",
-        "open_new_tab",
-        "activate_page",
-        "close_page",
-        "get_protocol",
-    ]
-    body.append(ast_import_from(".http_endpoints", *http_endpoints_imports))
-    all += map(lambda i: f'"{i}"', http_endpoints_imports)
-
     # Add __all__ assignment
     body.append(ast_from_str(f"__all__ = [{','.join(all)}]"))
 
@@ -916,8 +897,10 @@ def generate(
     # Write files to disk
     if not dry:
         logger.info(f"Writing {len(module_files)} files ...")
-        for path, content in module_files.items():
-            with Path(GENERATE_DIR.parent, "cdpy", path).open("w") as f:
+        dir = Path(GENERATE_DIR.parent, "cdpy", "protocol")
+        dir.mkdir(parents=True, exist_ok=True)
+        for file, content in module_files.items():
+            with Path(dir, file).open("w") as f:
                 f.write(content)
 
 

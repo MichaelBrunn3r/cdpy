@@ -1,7 +1,8 @@
-from typing import Optional
-from ._event_parsers import event_parsers
-from dataclasses import dataclass
 import enum
+from dataclasses import dataclass
+from typing import Optional
+
+from .protocol._event_parsers import event_parsers
 
 
 class TargetType(enum.Enum):

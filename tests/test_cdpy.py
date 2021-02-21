@@ -1,5 +1,6 @@
-import cdpy
 import pytest
+
+import cdpy
 
 
 class TestParseEvent:

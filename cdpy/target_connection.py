@@ -1,13 +1,14 @@
 import enum
-import threading
-from typing import Any, Callable
-import websocket
 import json
 import logging
 import queue
+import threading
 from collections import defaultdict
+from typing import Any, Callable
 
-from .cdpy import Target, parse_event, EventParserError
+import websocket
+
+from .cdpy import EventParserError, Target, parse_event
 
 logger = logging.getLogger(__name__)
 

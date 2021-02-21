@@ -1,4 +1,5 @@
 from typing import Callable, Iterable, Iterator, Optional
+
 from .cdpy import Target, TargetType
 
 
