@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Generator, Optional
+from typing import Any, Generator, Optional
 
 from ._utils import filter_none
 
@@ -41,7 +41,7 @@ class RemoteObject:
             Object subtype hint. Specified for `object` or `wasm` type values only.
     className: Optional[str]
             Object class (constructor) name. Specified for `object` type values only.
-    value: Optional[any]
+    value: Optional[Any]
             Remote object value in case of primitive values or JSON values (if it was requested).
     unserializableValue: Optional[UnserializableValue]
             Primitive value which can not be JSON-stringified does not have `value`, but gets this
@@ -58,7 +58,7 @@ class RemoteObject:
     type: str
     subtype: Optional[str] = None
     className: Optional[str] = None
-    value: Optional[any] = None
+    value: Optional[Any] = None
     unserializableValue: Optional[UnserializableValue] = None
     description: Optional[str] = None
     objectId: Optional[RemoteObjectId] = None
@@ -423,7 +423,7 @@ class CallArgument:
 
     Attributes
     ----------
-    value: Optional[any]
+    value: Optional[Any]
             Primitive value or serializable javascript object.
     unserializableValue: Optional[UnserializableValue]
             Primitive value which can not be JSON-stringified.
@@ -431,7 +431,7 @@ class CallArgument:
             Remote object handle.
     """
 
-    value: Optional[any] = None
+    value: Optional[Any] = None
     unserializableValue: Optional[UnserializableValue] = None
     objectId: Optional[RemoteObjectId] = None
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 import enum
-from typing import Generator, Optional
+from typing import Any, Generator, Optional
 
 from deprecated.sphinx import deprecated
 
@@ -389,15 +389,15 @@ class ShapeOutsideInfo:
     ----------
     bounds: Quad
             Shape bounds
-    shape: list[any]
+    shape: list[Any]
             Shape coordinate details
-    marginShape: list[any]
+    marginShape: list[Any]
             Margin shape bounds
     """
 
     bounds: Quad
-    shape: list[any]
-    marginShape: list[any]
+    shape: list[Any]
+    marginShape: list[Any]
 
     @classmethod
     def from_json(cls, json: dict) -> ShapeOutsideInfo:

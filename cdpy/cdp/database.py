@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Generator, Optional
+from typing import Any, Generator, Optional
 
 
 class DatabaseId(str):
@@ -90,7 +90,7 @@ def execute_sql(databaseId: DatabaseId, query: str) -> Generator[dict, dict, dic
     Returns
     -------
     columnNames: Optional[list[str]]
-    values: Optional[list[any]]
+    values: Optional[list[Any]]
     sqlError: Optional[Error]
     """
     response = yield {

@@ -36,6 +36,14 @@ logging.basicConfig(level=log_level)
 logger = logging.getLogger(__name__)
 
 
+def js_type_to_builtin(js_type: str, default, context: ModuleContext):
+    if js_type == "any":
+        context.require("typing", "Any")
+        return "Any"
+    else:
+        return JS_TYPE_TO_BUILTIN_MAP.get(js_type, default)
+
+
 class GlobalContext:
     def __init__(self, protocol_version: str):
         self.domains: dict[str, Domain] = {}
@@ -90,7 +98,7 @@ def create_type_annotation(
     type, ref, is_list: bool, optional: bool, context: ModuleContext
 ):
     if type:
-        annot = JS_TYPE_TO_BUILTIN_MAP.get(type, type)
+        annot = js_type_to_builtin(type, type, context)
     else:
         referenced_domain, referenced_type = get_reference_parts(ref)
 
@@ -304,11 +312,14 @@ class Property:
             elif self.category.unparse_with_to_json:
                 unparse_template = f"{{}}.to_json()"
             else:
-                base_type = JS_TYPE_TO_BUILTIN_MAP.get(
+                base_type = js_type_to_builtin(
                     self.context.get_type_by_ref(
                         self.items.ref if self.is_list else self.ref
-                    ).json_type
+                    ).json_type,
+                    None,
+                    self.context,
                 )
+
                 unparse_template = f"{base_type}({{}})"
 
             if self.is_list:

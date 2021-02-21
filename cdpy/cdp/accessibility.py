@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 import enum
-from typing import Generator, Optional
+from typing import Any, Generator, Optional
 
 from . import dom, runtime
 from ._utils import filter_none
@@ -203,7 +203,7 @@ class AXValue:
     ----------
     type: AXValueType
             The type of this value.
-    value: Optional[any]
+    value: Optional[Any]
             The computed value of this property.
     relatedNodes: Optional[list[AXRelatedNode]]
             One or more related nodes, if applicable.
@@ -212,7 +212,7 @@ class AXValue:
     """
 
     type: AXValueType
-    value: Optional[any] = None
+    value: Optional[Any] = None
     relatedNodes: Optional[list[AXRelatedNode]] = None
     sources: Optional[list[AXValueSource]] = None
 
